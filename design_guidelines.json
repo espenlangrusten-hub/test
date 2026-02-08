@@ -1,0 +1,117 @@
+{
+  "identity": {
+    "name": "E1",
+    "tone": "Tactical, Precision, Professional, High-Energy",
+    "description": "A visually stunning, highly functional assistant for football/futsal coaches."
+  },
+  "technical_stack": {
+    "framework": "React Native (Expo)",
+    "navigation": "expo-router",
+    "styling": "NativeWind (Tailwind CSS for React Native)",
+    "icons": "lucide-react-native",
+    "state_management": "React Context / Local State",
+    "storage": "AsyncStorage (via @react-native-async-storage/async-storage)",
+    "animation": "react-native-reanimated"
+  },
+  "theme": {
+    "colors": {
+      "background": "#09090b",
+      "background_secondary": "#18181b",
+      "primary": "#00C853",
+      "primary_foreground": "#FFFFFF",
+      "secondary": "#27272a",
+      "secondary_foreground": "#FAFAFA",
+      "accent": "#00E676",
+      "destructive": "#EF4444",
+      "muted": "#71717a",
+      "border": "#27272a",
+      "pitch_bg": "#1a1a1a",
+      "pitch_line": "#00C853"
+    },
+    "typography": {
+      "headings": {
+        "family": "BarlowCondensed_700Bold",
+        "fallback": "System",
+        "letterSpacing": "tracking-tighter"
+      },
+      "body": {
+        "family": "Inter_400Regular",
+        "fallback": "System"
+      }
+    },
+    "radius": {
+      "sm": "rounded-sm",
+      "md": "rounded-md",
+      "lg": "rounded-lg",
+      "xl": "rounded-xl",
+      "full": "rounded-full"
+    }
+  },
+  "layout_system": {
+    "spacing": {
+      "container_padding": "p-4",
+      "section_gap": "gap-6",
+      "item_gap": "gap-3"
+    },
+    "safe_area": "Using react-native-safe-area-context"
+  },
+  "components": {
+    "Button": {
+      "base": "h-12 flex-row items-center justify-center rounded-lg active:opacity-80",
+      "variants": {
+        "primary": "bg-[#00C853]",
+        "secondary": "bg-zinc-800 border border-zinc-700",
+        "ghost": "bg-transparent",
+        "destructive": "bg-red-600"
+      },
+      "text": {
+        "primary": "text-white font-bold uppercase tracking-wider",
+        "secondary": "text-white font-medium",
+        "ghost": "text-zinc-400"
+      }
+    },
+    "Card": {
+      "base": "bg-zinc-900 border border-zinc-800 rounded-xl p-4 overflow-hidden"
+    },
+    "Input": {
+      "base": "h-12 bg-zinc-950 border border-zinc-800 rounded-lg px-4 text-white placeholder-zinc-500 focus:border-[#00C853]"
+    }
+  },
+  "features_and_screens": {
+    "home": {
+      "title": "Select Sport",
+      "layout": "Grid of 2 cards (Football vs Futsal)",
+      "assets": {
+        "football_bg": "https://images.unsplash.com/photo-1766756467595-fd3f1f62d562?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHw0fHxmb290YmFsbCUyMHBpdGNoJTIwbmlnaHQlMjBzdGFkaXVtfGVufDB8fHx8MTc3MDU4NjIwNXww&ixlib=rb-4.1.0&q=85",
+        "futsal_bg": "https://images.unsplash.com/photo-1760174053338-4def27153cb7?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwxfHxmdXRzYWwlMjBpbmRvb3IlMjBjb3VydHxlbnwwfHx8fDE3NzA1ODYyMDV8MA&ixlib=rb-4.1.0&q=85"
+      }
+    },
+    "team_roster": {
+      "title": "Squad",
+      "layout": "List view with 'Add Player' floating action button (FAB)",
+      "item": "Player avatar (circle) + Name + Number + Position Badge"
+    },
+    "tactics_board": {
+      "title": "Tactics",
+      "layout": "Visual Pitch (Top 60%) + Draggable Player List (Bottom 40% - BottomSheet style)",
+      "interactions": "Drag and drop players onto pitch. Tap player to set role/captain.",
+      "assets": {
+        "pitch_texture": "https://images.unsplash.com/photo-1646910863174-9ddace8d7d85?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzR8MHwxfHNlYXJjaHw0fHxkYXJrJTIwY2FyYm9uJTIwZmliZXIlMjB0ZXh0dXJlfGVufDB8fHx8MTc3MDU4NjIwNnww&ixlib=rb-4.1.0&q=85"
+      }
+    },
+    "match_mode": {
+      "title": "Match Day",
+      "layout": "Large Timer (Top) + Pitch View (Center) + Substitution Bench (Bottom)",
+      "features": "Start/Stop Timer, 'Sub Now' alerts, Event Log"
+    }
+  },
+  "instructions_to_main_agent": [
+    "INSTALL NATIVEWIND: Run 'yarn add nativewind tailwindcss react-native-svg' immediately.",
+    "SETUP TAILWIND: Create tailwind.config.js with the colors defined in 'theme'.",
+    "USE LUCIDE ICONS: Use 'lucide-react-native' for all icons (e.g., <Trophy size={24} color='#00C853' />).",
+    "DARK MODE ONLY: Force dark mode in the app. Do not implement light mode toggles.",
+    "DATA PERSISTENCE: Create a 'storage.js' utility using AsyncStorage for saving teams and tactics.",
+    "FONTS: Use 'expo-font' to load Barlow Condensed (headings) and Inter (body).",
+    "NO WEB SHADCN: Do not use '@radix-ui' or web-based shadcn components. Build simple RN components using the design tokens provided."
+  ]
+}
