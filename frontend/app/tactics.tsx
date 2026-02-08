@@ -219,6 +219,17 @@ export default function TacticsScreen() {
           </>
         )}
 
+        {/* Tactic Guide */}
+        <TouchableOpacity
+          testID="tactic-guide-btn"
+          style={styles.actionRow}
+          onPress={() => router.push('/tactic-guide')}
+        >
+          <MaterialCommunityIcons name="clipboard-text-outline" size={20} color={Colors.primary} />
+          <Text style={styles.actionText}>Tactic Guide — Focus Areas</Text>
+          <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.textMuted} />
+        </TouchableOpacity>
+
         {/* Set Piece Takers */}
         <TouchableOpacity
           testID="set-piece-btn"
