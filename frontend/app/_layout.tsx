@@ -21,6 +21,7 @@ export default function RootLayout() {
         <Stack.Screen name="team-setup" options={{ title: 'Squad Setup' }} />
         <Stack.Screen name="tactics" options={{ title: 'Tactics Board' }} />
         <Stack.Screen name="match" options={{ title: 'Match Day' }} />
+        <Stack.Screen name="tactic-guide" options={{ title: 'Tactic Guide' }} />
         <Stack.Screen name="player-notes" options={{ title: 'Player Notes' }} />
         <Stack.Screen name="match-history" options={{ title: 'Match History' }} />
       </Stack>
