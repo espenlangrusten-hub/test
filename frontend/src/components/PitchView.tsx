@@ -68,8 +68,14 @@ function DraggableDot({
   const py = (posY / 100) * pitchH - dotSize / 2;
 
   return (
-    <Animated.View
+    <View
       testID={`pitch-position-${index}`}
+      onStartShouldSetResponder={() => true}
+      onMoveShouldSetResponder={() => true}
+      onResponderGrant={onGrant}
+      onResponderMove={onMove}
+      onResponderRelease={onRelease}
+      onResponderTerminate={onRelease}
       style={[
         styles.playerDot,
         {
@@ -81,18 +87,16 @@ function DraggableDot({
           backgroundColor: player ? Colors.primary : 'rgba(255,255,255,0.15)',
           borderColor: '#FFD700',
           borderWidth: 2.5,
-          transform: [{ translateX: pan.x }, { translateY: pan.y }],
           zIndex: 10,
         },
       ]}
-      {...panResponder.panHandlers}
     >
       {player ? (
         <Text style={[styles.playerNumber, { fontSize }]}>{player.number}</Text>
       ) : (
         <Text style={[styles.posLabel, { fontSize: fontSize - 3 }]}>{posRole}</Text>
       )}
-    </Animated.View>
+    </View>
   );
 }
 
