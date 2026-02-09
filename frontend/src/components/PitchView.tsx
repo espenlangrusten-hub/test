@@ -38,22 +38,70 @@ function DraggableDot({
   onDragEnd: (idx: number, x: number, y: number) => void;
 }) {
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const isDragging = useRef(false);
   const startRef = useRef({ x: 0, y: 0 });
 
   const px = (posX / 100) * pitchW - dotSize / 2 + offset.x;
   const py = (posY / 100) * pitchH - dotSize / 2 + offset.y;
 
+  // Use global pointer events for web compatibility
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const handleMove = (e: PointerEvent) => {
+      if (!isDragging.current) return;
+      e.preventDefault();
+      const dx = e.clientX - startRef.current.x;
+      const dy = e.clientY - startRef.current.y;
+      setOffset({ x: dx, y: dy });
+    };
+
+    const handleUp = (e: PointerEvent) => {
+      if (!isDragging.current) return;
+      isDragging.current = false;
+      const dx = e.clientX - startRef.current.x;
+      const dy = e.clientY - startRef.current.y;
+      const basePxX = (posX / 100) * pitchW;
+      const basePxY = (posY / 100) * pitchH;
+      const newPctX = Math.max(5, Math.min(95, ((basePxX + dx) / pitchW) * 100));
+      const newPctY = Math.max(5, Math.min(95, ((basePxY + dy) / pitchH) * 100));
+      setOffset({ x: 0, y: 0 });
+      onDragEnd(index, Math.round(newPctX * 10) / 10, Math.round(newPctY * 10) / 10);
+    };
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('pointermove', handleMove);
+      window.addEventListener('pointerup', handleUp);
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('pointermove', handleMove);
+        window.removeEventListener('pointerup', handleUp);
+      }
+    };
+  }, [posX, posY, pitchW, pitchH, index, onDragEnd]);
+
+  const handlePointerDown = useCallback((e: any) => {
+    isDragging.current = true;
+    startRef.current = { x: e.nativeEvent?.clientX ?? e.clientX, y: e.nativeEvent?.clientY ?? e.clientY };
+    setOffset({ x: 0, y: 0 });
+  }, []);
+
+  // Native responder handlers
   const onGrant = useCallback((e: GestureResponderEvent) => {
+    isDragging.current = true;
     startRef.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
   }, []);
 
   const onMove = useCallback((e: GestureResponderEvent) => {
+    if (!isDragging.current) return;
     const dx = e.nativeEvent.pageX - startRef.current.x;
     const dy = e.nativeEvent.pageY - startRef.current.y;
     setOffset({ x: dx, y: dy });
   }, []);
 
   const onRelease = useCallback((e: GestureResponderEvent) => {
+    isDragging.current = false;
     const dx = e.nativeEvent.pageX - startRef.current.x;
     const dy = e.nativeEvent.pageY - startRef.current.y;
     const basePxX = (posX / 100) * pitchW;
@@ -63,6 +111,18 @@ function DraggableDot({
     setOffset({ x: 0, y: 0 });
     onDragEnd(index, Math.round(newPctX * 10) / 10, Math.round(newPctY * 10) / 10);
   }, [posX, posY, pitchW, pitchH, index, onDragEnd]);
+
+  // Web uses onPointerDown + global listeners, native uses responder
+  const viewProps = Platform.OS === 'web'
+    ? { onPointerDown: handlePointerDown }
+    : {
+        onStartShouldSetResponder: () => true,
+        onMoveShouldSetResponder: () => true,
+        onResponderGrant: onGrant,
+        onResponderMove: onMove,
+        onResponderRelease: onRelease,
+        onResponderTerminate: onRelease,
+      };
 
   return (
     <View
