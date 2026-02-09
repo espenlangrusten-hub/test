@@ -84,14 +84,13 @@ export default function MatchHistoryScreen() {
         )}
 
         {matches.map((match) => (
-          <TouchableOpacity
-            key={match.id}
-            testID={`match-${match.id}`}
-            style={styles.matchCard}
-            onPress={() => router.push({ pathname: '/match-detail', params: { matchId: match.id } })}
-            onLongPress={() => deleteMatch(match.id)}
-            activeOpacity={0.7}
-          >
+          <View key={match.id} style={styles.matchCard}>
+            <TouchableOpacity
+              testID={`match-${match.id}`}
+              style={styles.matchCardMain}
+              onPress={() => router.push({ pathname: '/match-detail', params: { matchId: match.id } })}
+              activeOpacity={0.7}
+            >
             <View style={styles.matchTop}>
               <View style={[styles.statusDot, { backgroundColor: statusColor(match.status) }]} />
               <Text style={[styles.statusText, { color: statusColor(match.status) }]}>
