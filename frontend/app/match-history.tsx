@@ -160,12 +160,11 @@ export default function MatchHistoryScreen() {
 
       {/* Delete Confirmation Overlay */}
       {matchToDelete && (
-        <View style={styles.modalOverlay}>
-          <TouchableOpacity
-            style={styles.modalBackdrop}
-            activeOpacity={1}
-            onPress={() => setMatchToDelete(null)}
-          />
+        <View style={{
+          position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
+          justifyContent: 'center', alignItems: 'center', padding: 24,
+          zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.75)',
+        }}>
           <View style={styles.modalCard}>
             <View style={styles.modalIconWrap}>
               <MaterialCommunityIcons name="trash-can-outline" size={32} color={Colors.destructive} />
