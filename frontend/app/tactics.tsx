@@ -139,8 +139,8 @@ export default function TacticsScreen() {
       }));
       await saveTeam({
         players: updatedPlayers,
-        formation: selectedFormation.name,
-        tactic_name: selectedFormation.displayName,
+        formation: isCustomizing ? `${selectedFormation.name} (Custom)` : selectedFormation.name,
+        tactic_name: isCustomizing ? `Custom ${selectedFormation.displayName}` : selectedFormation.displayName,
       });
       router.push('/match');
     } catch {
