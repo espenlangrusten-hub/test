@@ -28,6 +28,7 @@ export default function MatchHistoryScreen() {
   const { teamId } = useLocalSearchParams<{ teamId?: string }>();
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [matchToDelete, setMatchToDelete] = useState<MatchItem | null>(null);
 
   useFocusEffect(
     useCallback(() => {
