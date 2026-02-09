@@ -64,13 +64,15 @@ export default function TacticsScreen() {
   };
 
   const changeFormation = (f: Formation) => {
-    const currentPlayers = Object.values(assignments).filter(Boolean) as PlayerData[];
-    console.log('[changeFormation] currentPlayers count:', currentPlayers.length);
+    const currentPlayers = Object.values(assignmentsRef.current).filter(Boolean) as PlayerData[];
+    // Also fallback to allPlayers if no assignments yet
+    const playersToAssign = currentPlayers.length > 0 ? currentPlayers : allPlayers.slice(0, f.positions.length);
+
     setSelectedFormation(f);
     setIsCustomizing(false);
     setCustomPositions(null);
 
-    if (currentPlayers.length === 0) {
+    if (playersToAssign.length === 0) {
       setAssignments({});
       return;
     }
@@ -80,7 +82,7 @@ export default function TacticsScreen() {
 
     // Pass 1: Exact role match (player.position === slot.role)
     f.positions.forEach((slot, idx) => {
-      const match = currentPlayers.find(p => !usedIds.has(p.id) && p.position === slot.role);
+      const match = playersToAssign.find(p => !usedIds.has(p.id) && p.position === slot.role);
       if (match) {
         newAssignments[idx] = match;
         usedIds.add(match.id);
@@ -91,7 +93,7 @@ export default function TacticsScreen() {
     f.positions.forEach((slot, idx) => {
       if (newAssignments[idx]) return;
       const slotGroup = getGroup(slot.role);
-      const match = currentPlayers.find(p => !usedIds.has(p.id) && getGroup(p.position) === slotGroup);
+      const match = playersToAssign.find(p => !usedIds.has(p.id) && getGroup(p.position) === slotGroup);
       if (match) {
         newAssignments[idx] = match;
         usedIds.add(match.id);
@@ -101,14 +103,13 @@ export default function TacticsScreen() {
     // Pass 3: Fill remaining with any unassigned player
     f.positions.forEach((_, idx) => {
       if (newAssignments[idx]) return;
-      const remaining = currentPlayers.find(p => !usedIds.has(p.id));
+      const remaining = playersToAssign.find(p => !usedIds.has(p.id));
       if (remaining) {
         newAssignments[idx] = remaining;
         usedIds.add(remaining.id);
       }
     });
 
-    console.log('[changeFormation] assigned count:', Object.values(newAssignments).filter(Boolean).length);
     setAssignments(newAssignments);
   };
 
