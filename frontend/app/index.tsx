@@ -280,4 +280,28 @@ const styles = StyleSheet.create({
     padding: 16, marginTop: 20, gap: 8,
   },
   linkButtonText: { fontSize: 14, color: Colors.primary, fontWeight: '600' },
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.75)',
+    justifyContent: 'center', alignItems: 'center', padding: 32,
+  },
+  modalCard: {
+    backgroundColor: Colors.backgroundSecondary, borderRadius: 20,
+    padding: 28, alignItems: 'center', width: '100%',
+    borderWidth: 1, borderColor: Colors.border,
+  },
+  modalIconWrap: {
+    width: 64, height: 64, borderRadius: 32,
+    backgroundColor: 'rgba(239,68,68,0.1)',
+    justifyContent: 'center', alignItems: 'center', marginBottom: 16,
+  },
+  modalTitle: { fontSize: 20, fontWeight: '800', color: Colors.white, marginBottom: 8 },
+  modalDesc: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center', lineHeight: 20, marginBottom: 24 },
+  modalActions: { width: '100%', gap: 8 },
+  deleteConfirmBtn: {
+    backgroundColor: Colors.destructive, height: 48, borderRadius: 10,
+    justifyContent: 'center', alignItems: 'center',
+  },
+  deleteConfirmText: { fontSize: 14, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
+  cancelBtn: { height: 44, justifyContent: 'center', alignItems: 'center' },
+  cancelBtnText: { fontSize: 13, fontWeight: '700', color: Colors.textMuted },
 });
