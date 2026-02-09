@@ -62,6 +62,7 @@ export default function TacticsScreen() {
 
   const changeFormation = (f: Formation) => {
     const currentPlayers = Object.values(assignments).filter(Boolean) as PlayerData[];
+    console.log('[changeFormation] currentPlayers count:', currentPlayers.length);
     setSelectedFormation(f);
     setIsCustomizing(false);
     setCustomPositions(null);
@@ -83,7 +84,7 @@ export default function TacticsScreen() {
       }
     });
 
-    // Pass 2: Same positional group match (DEF→DEF, MID→MID, FWD→FWD)
+    // Pass 2: Same positional group match
     f.positions.forEach((slot, idx) => {
       if (newAssignments[idx]) return;
       const slotGroup = getGroup(slot.role);
@@ -104,6 +105,7 @@ export default function TacticsScreen() {
       }
     });
 
+    console.log('[changeFormation] assigned count:', Object.values(newAssignments).filter(Boolean).length);
     setAssignments(newAssignments);
   };
 
