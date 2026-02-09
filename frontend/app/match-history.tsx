@@ -24,6 +24,7 @@ interface MatchItem {
 }
 
 export default function MatchHistoryScreen() {
+  const router = useRouter();
   const { teamId } = useLocalSearchParams<{ teamId?: string }>();
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [loading, setLoading] = useState(true);
