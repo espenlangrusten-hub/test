@@ -16,7 +16,7 @@ Football & Futsal Coach Strategy Planner app. Helps coaches plan team setups, fo
 - **Substitution Alerts**: Modal popup at calculated times with confirm/skip
 - **Player Notes**: Per-player performance notes with 1-10 rating system
 - **Match History**: View all past matches with formation, duration, and notes count
-- **Tactic Guide**: Formation-specific attacking & defensive focus areas for team and each individual player (18 formations covered)
+- **Custom Formations**: Drag players to customize any formation's positions with visual gold-bordered dots and reset option
 
 ## Tech Stack
 - **Frontend**: React Native (Expo SDK 54), expo-router, StyleSheet
