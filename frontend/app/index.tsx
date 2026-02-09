@@ -242,6 +242,14 @@ const styles = StyleSheet.create({
   },
   badgeText: { fontSize: 10, fontWeight: '700', color: Colors.primary },
   playerCount: { fontSize: 11, color: Colors.textSecondary },
+  teamActions: {
+    flexDirection: 'column', gap: 4, paddingRight: 10, paddingVertical: 8,
+    borderLeftWidth: 1, borderLeftColor: Colors.border, paddingLeft: 10,
+  },
+  teamActionBtn: {
+    width: 34, height: 34, borderRadius: 17,
+    backgroundColor: Colors.card, justifyContent: 'center', alignItems: 'center',
+  },
   linkButton: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
     padding: 16, marginTop: 20, gap: 8,
