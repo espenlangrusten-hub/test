@@ -230,10 +230,9 @@ const styles = StyleSheet.create({
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   statText: { fontSize: 12, color: Colors.textMuted },
   modalOverlay: {
-    position: 'absolute', top: 0, left: 0,
-    width: SCREEN_W, height: SCREEN_H,
+    position: 'fixed' as any, top: 0, left: 0, right: 0, bottom: 0,
     justifyContent: 'center', alignItems: 'center', padding: 24,
-    zIndex: 999,
+    zIndex: 9999,
   },
   modalBackdrop: {
     ...StyleSheet.absoluteFillObject,
