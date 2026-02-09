@@ -142,11 +142,51 @@ export default function MatchHistoryScreen() {
               </View>
               <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textMuted} style={{ marginLeft: 'auto' }} />
             </View>
-          </TouchableOpacity>
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID={`delete-match-${match.id}`}
+              style={styles.deleteMatchBtn}
+              onPress={() => setMatchToDelete(match)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
+              <MaterialCommunityIcons name="trash-can-outline" size={16} color={Colors.destructive} />
+            </TouchableOpacity>
+          </View>
         ))}
 
         <View style={{ height: 20 }} />
       </ScrollView>
+
+      {/* Delete Confirmation Modal */}
+      <Modal visible={matchToDelete !== null} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
+              <MaterialCommunityIcons name="trash-can-outline" size={32} color={Colors.destructive} />
+            </View>
+            <Text style={styles.modalTitle}>Delete Match</Text>
+            <Text style={styles.modalDesc}>
+              Remove match vs "{matchToDelete?.opponent || 'Unknown'}"? This cannot be undone.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                testID="confirm-delete-match-btn"
+                style={styles.deleteConfirmBtn}
+                onPress={() => matchToDelete && deleteMatch(matchToDelete.id)}
+              >
+                <Text style={styles.deleteConfirmText}>DELETE</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="cancel-delete-match-btn"
+                style={styles.cancelBtn}
+                onPress={() => setMatchToDelete(null)}
+              >
+                <Text style={styles.cancelBtnText}>CANCEL</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
