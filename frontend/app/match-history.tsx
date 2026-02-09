@@ -37,7 +37,8 @@ export default function MatchHistoryScreen() {
   const loadMatches = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/matches`);
+      const query = teamId ? `?team_id=${teamId}` : '';
+      const res = await fetch(`${API_URL}/api/matches${query}`);
       const data = await res.json();
       setMatches(Array.isArray(data) ? data : []);
     } catch {
