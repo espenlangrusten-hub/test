@@ -47,13 +47,19 @@ function DraggableDot({
     () =>
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: (_, gs) =>
-          Math.abs(gs.dx) > 3 || Math.abs(gs.dy) > 3,
-        onPanResponderMove: Animated.event(
-          [null, { dx: pan.x, dy: pan.y }],
-          { useNativeDriver: false }
-        ),
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => {
+          pan.setOffset({
+            x: (pan.x as any)._value || 0,
+            y: (pan.y as any)._value || 0,
+          });
+          pan.setValue({ x: 0, y: 0 });
+        },
+        onPanResponderMove: (_, gs) => {
+          pan.setValue({ x: gs.dx, y: gs.dy });
+        },
         onPanResponderRelease: (_, gs) => {
+          pan.flattenOffset();
           const basePxX = (posX / 100) * pitchW;
           const basePxY = (posY / 100) * pitchH;
           const newPctX = Math.max(5, Math.min(95, ((basePxX + gs.dx) / pitchW) * 100));
