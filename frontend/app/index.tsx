@@ -118,36 +118,54 @@ export default function HomeScreen() {
           <>
             <Text style={styles.sectionTitle}>YOUR TEAMS</Text>
             {teams.map((team) => (
-              <TouchableOpacity
-                key={team.id}
-                testID={`team-card-${team.id}`}
-                style={styles.teamCard}
-                onPress={() => openTeam(team)}
-                activeOpacity={0.7}
-              >
-                <View style={styles.teamIconWrap}>
-                  <MaterialCommunityIcons
-                    name={team.sport === 'futsal' ? 'shoe-cleat' : 'shield-half-full'}
-                    size={24}
-                    color={Colors.primary}
-                  />
-                </View>
-                <View style={styles.teamInfo}>
-                  <Text style={styles.teamName}>{team.name}</Text>
-                  <View style={styles.teamMeta}>
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{team.sport.toUpperCase()}</Text>
-                    </View>
-                    <View style={styles.badge}>
-                      <Text style={styles.badgeText}>{team.format}</Text>
-                    </View>
-                    <Text style={styles.playerCount}>
-                      {team.players?.length || 0} players
-                    </Text>
+              <View key={team.id} style={styles.teamCard}>
+                <TouchableOpacity
+                  testID={`team-card-${team.id}`}
+                  style={styles.teamCardMain}
+                  onPress={() => openTeam(team)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.teamIconWrap}>
+                    <MaterialCommunityIcons
+                      name={team.sport === 'futsal' ? 'shoe-cleat' : 'shield-half-full'}
+                      size={24}
+                      color={Colors.primary}
+                    />
                   </View>
+                  <View style={styles.teamInfo}>
+                    <Text style={styles.teamName}>{team.name}</Text>
+                    <View style={styles.teamMeta}>
+                      <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{team.sport.toUpperCase()}</Text>
+                      </View>
+                      <View style={styles.badge}>
+                        <Text style={styles.badgeText}>{team.format}</Text>
+                      </View>
+                      <Text style={styles.playerCount}>
+                        {team.players?.length || 0} players
+                      </Text>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+                <View style={styles.teamActions}>
+                  <TouchableOpacity
+                    testID={`edit-team-${team.id}`}
+                    style={styles.teamActionBtn}
+                    onPress={() => editTeam(team)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <MaterialCommunityIcons name="pencil" size={18} color={Colors.primary} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    testID={`delete-team-${team.id}`}
+                    style={styles.teamActionBtn}
+                    onPress={() => confirmDeleteTeam(team)}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <MaterialCommunityIcons name="trash-can-outline" size={18} color={Colors.destructive} />
+                  </TouchableOpacity>
                 </View>
-                <MaterialCommunityIcons name="chevron-right" size={24} color={Colors.textMuted} />
-              </TouchableOpacity>
+              </View>
             ))}
           </>
         )}
