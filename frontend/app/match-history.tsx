@@ -226,11 +226,9 @@ const styles = StyleSheet.create({
   matchStats: { flexDirection: 'row', gap: 16 },
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   statText: { fontSize: 12, color: Colors.textMuted },
-  modalOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.75)',
+  modalFullScreen: {
+    flex: 1, backgroundColor: Colors.background,
     justifyContent: 'center', alignItems: 'center', padding: 24,
-    zIndex: 9999,
   },
   modalCard: {
     backgroundColor: Colors.backgroundSecondary, borderRadius: 16,
