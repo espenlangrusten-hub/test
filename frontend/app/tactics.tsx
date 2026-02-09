@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useApp, PlayerData } from '../src/context/AppContext';
 import { Colors } from '../src/constants/colors';
-import { getFormations, Formation, SET_PIECE_ROLES, STARTERS_COUNT } from '../src/constants/formations';
+import { getFormations, Formation, PositionSlot, SET_PIECE_ROLES, STARTERS_COUNT } from '../src/constants/formations';
 import PitchView from '../src/components/PitchView';
 
 export default function TacticsScreen() {
@@ -23,6 +23,8 @@ export default function TacticsScreen() {
   const [showPlayerPicker, setShowPlayerPicker] = useState(false);
   const [showSetPiece, setShowSetPiece] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [isCustomizing, setIsCustomizing] = useState(false);
+  const [customPositions, setCustomPositions] = useState<PositionSlot[] | null>(null);
 
   const allPlayers = currentTeam?.players || [];
 
