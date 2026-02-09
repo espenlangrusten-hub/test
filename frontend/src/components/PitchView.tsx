@@ -127,12 +127,7 @@ function DraggableDot({
   return (
     <View
       testID={`pitch-position-${index}`}
-      onStartShouldSetResponder={() => true}
-      onMoveShouldSetResponder={() => true}
-      onResponderGrant={onGrant}
-      onResponderMove={onMove}
-      onResponderRelease={onRelease}
-      onResponderTerminate={onRelease}
+      {...viewProps}
       style={[
         styles.playerDot,
         {
@@ -145,6 +140,10 @@ function DraggableDot({
           borderColor: '#FFD700',
           borderWidth: 2.5,
           zIndex: 10,
+          // @ts-ignore web style
+          cursor: 'grab',
+          userSelect: 'none',
+          touchAction: 'none',
         },
       ]}
     >
