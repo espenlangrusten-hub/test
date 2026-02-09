@@ -1,14 +1,13 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  ActivityIndicator, Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../src/constants/colors';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 
 interface MatchItem {
   id: string;
