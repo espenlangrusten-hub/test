@@ -173,6 +173,37 @@ export default function HomeScreen() {
           <Text style={styles.linkButtonText}>Match History</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Delete Confirmation Modal */}
+      <Modal visible={teamToDelete !== null} transparent animationType="fade">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <View style={styles.modalIconWrap}>
+              <MaterialCommunityIcons name="trash-can-outline" size={32} color={Colors.destructive} />
+            </View>
+            <Text style={styles.modalTitle}>Delete Team</Text>
+            <Text style={styles.modalDesc}>
+              Remove "{teamToDelete?.name}" and all its data? This cannot be undone.
+            </Text>
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                testID="confirm-delete-btn"
+                style={styles.deleteConfirmBtn}
+                onPress={executeDelete}
+              >
+                <Text style={styles.deleteConfirmText}>DELETE</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                testID="cancel-delete-btn"
+                style={styles.cancelBtn}
+                onPress={() => setTeamToDelete(null)}
+              >
+                <Text style={styles.cancelBtnText}>CANCEL</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
