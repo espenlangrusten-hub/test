@@ -300,6 +300,7 @@ export default function TacticsScreen() {
           </TouchableOpacity>
         )}
         <PitchView
+          key={selectedFormation.id + '-' + Object.keys(assignments).length}
           positions={activePositions}
           assignedPlayers={assignments}
           onPositionPress={isCustomizing ? undefined : handlePositionPress}
