@@ -61,53 +61,53 @@ export default function TacticsScreen() {
   };
 
   const changeFormation = (f: Formation) => {
-    const currentPlayers = Object.values(assignmentsRef.current).filter(Boolean) as PlayerData[];
-    // Also fallback to allPlayers if no assignments yet
-    const playersToAssign = currentPlayers.length > 0 ? currentPlayers : allPlayers.slice(0, f.positions.length);
-
     setSelectedFormation(f);
     setIsCustomizing(false);
     setCustomPositions(null);
 
-    if (playersToAssign.length === 0) {
-      setAssignments({});
-      return;
-    }
+    // Use functional updater to guarantee latest assignments state
+    setAssignments(prevAssignments => {
+      const currentPlayers = Object.values(prevAssignments).filter(Boolean) as PlayerData[];
+      // Fallback to allPlayers if nothing assigned yet
+      const playersToAssign = currentPlayers.length > 0 ? currentPlayers : allPlayers.slice(0, f.positions.length);
 
-    const newAssignments: { [key: number]: PlayerData | null } = {};
-    const usedIds = new Set<string>();
+      if (playersToAssign.length === 0) return {};
 
-    // Pass 1: Exact role match (player.position === slot.role)
-    f.positions.forEach((slot, idx) => {
-      const match = playersToAssign.find(p => !usedIds.has(p.id) && p.position === slot.role);
-      if (match) {
-        newAssignments[idx] = match;
-        usedIds.add(match.id);
-      }
+      const newAssignments: { [key: number]: PlayerData | null } = {};
+      const usedIds = new Set<string>();
+
+      // Pass 1: Exact role match (player.position === slot.role)
+      f.positions.forEach((slot, idx) => {
+        const match = playersToAssign.find(p => !usedIds.has(p.id) && p.position === slot.role);
+        if (match) {
+          newAssignments[idx] = match;
+          usedIds.add(match.id);
+        }
+      });
+
+      // Pass 2: Same positional group match
+      f.positions.forEach((slot, idx) => {
+        if (newAssignments[idx]) return;
+        const slotGroup = getGroup(slot.role);
+        const match = playersToAssign.find(p => !usedIds.has(p.id) && getGroup(p.position) === slotGroup);
+        if (match) {
+          newAssignments[idx] = match;
+          usedIds.add(match.id);
+        }
+      });
+
+      // Pass 3: Fill remaining with any unassigned player
+      f.positions.forEach((_, idx) => {
+        if (newAssignments[idx]) return;
+        const remaining = playersToAssign.find(p => !usedIds.has(p.id));
+        if (remaining) {
+          newAssignments[idx] = remaining;
+          usedIds.add(remaining.id);
+        }
+      });
+
+      return newAssignments;
     });
-
-    // Pass 2: Same positional group match
-    f.positions.forEach((slot, idx) => {
-      if (newAssignments[idx]) return;
-      const slotGroup = getGroup(slot.role);
-      const match = playersToAssign.find(p => !usedIds.has(p.id) && getGroup(p.position) === slotGroup);
-      if (match) {
-        newAssignments[idx] = match;
-        usedIds.add(match.id);
-      }
-    });
-
-    // Pass 3: Fill remaining with any unassigned player
-    f.positions.forEach((_, idx) => {
-      if (newAssignments[idx]) return;
-      const remaining = playersToAssign.find(p => !usedIds.has(p.id));
-      if (remaining) {
-        newAssignments[idx] = remaining;
-        usedIds.add(remaining.id);
-      }
-    });
-
-    setAssignments(newAssignments);
   };
 
   // Active positions = custom or formation default
