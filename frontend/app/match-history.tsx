@@ -202,6 +202,12 @@ const styles = StyleSheet.create({
   matchCard: {
     backgroundColor: Colors.backgroundSecondary, borderRadius: 12,
     padding: 16, marginBottom: 10, borderWidth: 1, borderColor: Colors.border,
+    flexDirection: 'row', alignItems: 'flex-start',
+  },
+  matchCardMain: { flex: 1 },
+  deleteMatchBtn: {
+    padding: 8, borderRadius: 8, marginLeft: 4, marginTop: 2,
+    backgroundColor: 'rgba(255,59,48,0.1)',
   },
   matchTop: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8 },
   statusDot: { width: 8, height: 8, borderRadius: 4 },
