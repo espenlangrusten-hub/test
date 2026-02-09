@@ -222,7 +222,11 @@ const styles = StyleSheet.create({
   teamCard: {
     flexDirection: 'row', alignItems: 'center',
     backgroundColor: Colors.backgroundSecondary, borderRadius: 12,
-    padding: 14, marginBottom: 8, borderWidth: 1, borderColor: Colors.border,
+    marginBottom: 8, borderWidth: 1, borderColor: Colors.border,
+    overflow: 'hidden',
+  },
+  teamCardMain: {
+    flex: 1, flexDirection: 'row', alignItems: 'center', padding: 14,
   },
   teamIconWrap: {
     width: 44, height: 44, borderRadius: 22,
