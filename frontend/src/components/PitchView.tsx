@@ -37,38 +37,32 @@ function DraggableDot({
   player: PlayerInfo | null; posRole: string;
   onDragEnd: (idx: number, x: number, y: number) => void;
 }) {
-  const pan = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const startRef = useRef({ x: 0, y: 0 });
 
-  useEffect(() => {
-    pan.setValue({ x: 0, y: 0 });
-  }, [posX, posY]);
+  const px = (posX / 100) * pitchW - dotSize / 2 + offset.x;
+  const py = (posY / 100) * pitchH - dotSize / 2 + offset.y;
 
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant: () => {
-          pan.setOffset({
-            x: (pan.x as any)._value || 0,
-            y: (pan.y as any)._value || 0,
-          });
-          pan.setValue({ x: 0, y: 0 });
-        },
-        onPanResponderMove: (_, gs) => {
-          pan.setValue({ x: gs.dx, y: gs.dy });
-        },
-        onPanResponderRelease: (_, gs) => {
-          pan.flattenOffset();
-          const basePxX = (posX / 100) * pitchW;
-          const basePxY = (posY / 100) * pitchH;
-          const newPctX = Math.max(5, Math.min(95, ((basePxX + gs.dx) / pitchW) * 100));
-          const newPctY = Math.max(5, Math.min(95, ((basePxY + gs.dy) / pitchH) * 100));
-          onDragEnd(index, Math.round(newPctX * 10) / 10, Math.round(newPctY * 10) / 10);
-        },
-      }),
-    [posX, posY, pitchW, pitchH, index]
-  );
+  const onGrant = useCallback((e: GestureResponderEvent) => {
+    startRef.current = { x: e.nativeEvent.pageX, y: e.nativeEvent.pageY };
+  }, []);
+
+  const onMove = useCallback((e: GestureResponderEvent) => {
+    const dx = e.nativeEvent.pageX - startRef.current.x;
+    const dy = e.nativeEvent.pageY - startRef.current.y;
+    setOffset({ x: dx, y: dy });
+  }, []);
+
+  const onRelease = useCallback((e: GestureResponderEvent) => {
+    const dx = e.nativeEvent.pageX - startRef.current.x;
+    const dy = e.nativeEvent.pageY - startRef.current.y;
+    const basePxX = (posX / 100) * pitchW;
+    const basePxY = (posY / 100) * pitchH;
+    const newPctX = Math.max(5, Math.min(95, ((basePxX + dx) / pitchW) * 100));
+    const newPctY = Math.max(5, Math.min(95, ((basePxY + dy) / pitchH) * 100));
+    setOffset({ x: 0, y: 0 });
+    onDragEnd(index, Math.round(newPctX * 10) / 10, Math.round(newPctY * 10) / 10);
+  }, [posX, posY, pitchW, pitchH, index, onDragEnd]);
 
   const px = (posX / 100) * pitchW - dotSize / 2;
   const py = (posY / 100) * pitchH - dotSize / 2;
