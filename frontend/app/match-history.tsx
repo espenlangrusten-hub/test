@@ -148,6 +148,7 @@ export default function MatchHistoryScreen() {
                   {match.player_notes?.length || 0} notes
                 </Text>
               </View>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textMuted} style={{ marginLeft: 'auto' }} />
             </View>
           </TouchableOpacity>
         ))}
