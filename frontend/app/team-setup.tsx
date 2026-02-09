@@ -82,6 +82,8 @@ export default function TeamSetupScreen() {
     ]);
   };
 
+  const isEditing = !!currentTeam?.id;
+
   const handleContinue = async () => {
     if (!teamName.trim()) return Alert.alert('Error', 'Enter a team name');
     if (players.length < startersCount) {
@@ -96,7 +98,11 @@ export default function TeamSetupScreen() {
         players,
       });
       setCurrentTeam(saved);
-      router.push('/tactics');
+      if (isEditing) {
+        router.back();
+      } else {
+        router.push('/tactics');
+      }
     } catch (e) {
       Alert.alert('Error', 'Failed to save team');
     }
