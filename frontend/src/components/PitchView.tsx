@@ -1,7 +1,7 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, Dimensions,
-  GestureResponderEvent,
+  Platform, GestureResponderEvent,
 } from 'react-native';
 import { Colors } from '../constants/colors';
 
