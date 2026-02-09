@@ -48,7 +48,12 @@ export default function TacticsScreen() {
   const changeFormation = (f: Formation) => {
     setSelectedFormation(f);
     setAssignments({});
+    setIsCustomizing(false);
+    setCustomPositions(null);
   };
+
+  // Active positions = custom or formation default
+  const activePositions = customPositions || selectedFormation.positions;
 
   const assignedIds = Object.values(assignments).filter(Boolean).map(p => p!.id);
   const unassignedPlayers = allPlayers.filter(p => !assignedIds.includes(p.id));
