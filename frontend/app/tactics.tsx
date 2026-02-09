@@ -402,7 +402,27 @@ const styles = StyleSheet.create({
     fontSize: 12, fontWeight: '700', color: Colors.textMuted,
     letterSpacing: 2.5, marginBottom: 8, marginTop: 8,
   },
-  hint: { fontSize: 12, color: Colors.textMuted, marginBottom: 12 },
+  hint: { fontSize: 12, color: Colors.textMuted, marginBottom: 8 },
+  pitchHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start',
+    marginTop: 8, marginBottom: 4,
+  },
+  customizeBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8,
+    borderWidth: 1.5, borderColor: Colors.primary,
+  },
+  customizeBtnActive: {
+    backgroundColor: Colors.primary,
+  },
+  customizeBtnText: {
+    fontSize: 11, fontWeight: '700', color: Colors.primary, letterSpacing: 1,
+  },
+  resetRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    marginBottom: 8, paddingVertical: 4,
+  },
+  resetText: { fontSize: 11, color: Colors.warning, fontWeight: '600' },
   formationScroll: { marginBottom: 12 },
   formationCard: {
     paddingHorizontal: 16, paddingVertical: 12, borderRadius: 10,
