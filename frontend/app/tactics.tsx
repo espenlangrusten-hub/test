@@ -295,6 +295,17 @@ export default function TacticsScreen() {
           <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.textMuted} />
         </TouchableOpacity>
 
+        {/* Team Match History */}
+        <TouchableOpacity
+          testID="team-match-history-btn"
+          style={styles.actionRow}
+          onPress={() => router.push({ pathname: '/match-history', params: { teamId: currentTeam?.id } })}
+        >
+          <MaterialCommunityIcons name="history" size={20} color={Colors.primary} />
+          <Text style={styles.actionText}>Match History</Text>
+          <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.textMuted} />
+        </TouchableOpacity>
+
         <View style={{ height: 120 }} />
       </ScrollView>
 
