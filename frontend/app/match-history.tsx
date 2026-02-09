@@ -64,6 +64,39 @@ export default function MatchHistoryScreen() {
     return Colors.textMuted;
   };
 
+  // If delete modal is active, show full-screen confirmation
+  if (matchToDelete) {
+    return (
+      <View style={styles.modalFullScreen}>
+        <View style={styles.modalCard}>
+          <View style={styles.modalIconWrap}>
+            <MaterialCommunityIcons name="trash-can-outline" size={32} color={Colors.destructive} />
+          </View>
+          <Text style={styles.modalTitle}>Delete Match</Text>
+          <Text style={styles.modalDesc}>
+            Remove match vs "{matchToDelete.opponent || 'Unknown'}"?{'\n'}This cannot be undone.
+          </Text>
+          <View style={styles.modalActions}>
+            <TouchableOpacity
+              testID="confirm-delete-match-btn"
+              style={styles.deleteConfirmBtn}
+              onPress={() => deleteMatch(matchToDelete.id)}
+            >
+              <Text style={styles.deleteConfirmText}>DELETE</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              testID="cancel-delete-match-btn"
+              style={styles.cancelBtn}
+              onPress={() => setMatchToDelete(null)}
+            >
+              <Text style={styles.cancelBtnText}>CANCEL</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -157,41 +190,6 @@ export default function MatchHistoryScreen() {
 
         <View style={{ height: 20 }} />
       </ScrollView>
-
-      {/* Delete Confirmation Overlay */}
-      {matchToDelete && (
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setMatchToDelete(null)}
-        >
-          <TouchableOpacity activeOpacity={1} style={styles.modalCard} onPress={() => {}}>
-            <View style={styles.modalIconWrap}>
-              <MaterialCommunityIcons name="trash-can-outline" size={32} color={Colors.destructive} />
-            </View>
-            <Text style={styles.modalTitle}>Delete Match</Text>
-            <Text style={styles.modalDesc}>
-              Remove match vs "{matchToDelete?.opponent || 'Unknown'}"? This cannot be undone.
-            </Text>
-            <View style={styles.modalActions}>
-              <TouchableOpacity
-                testID="confirm-delete-match-btn"
-                style={styles.deleteConfirmBtn}
-                onPress={() => deleteMatch(matchToDelete.id)}
-              >
-                <Text style={styles.deleteConfirmText}>DELETE</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                testID="cancel-delete-match-btn"
-                style={styles.cancelBtn}
-                onPress={() => setMatchToDelete(null)}
-              >
-                <Text style={styles.cancelBtnText}>CANCEL</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        </TouchableOpacity>
-      )}
     </View>
   );
 }
