@@ -19,6 +19,9 @@ export default function TacticsScreen() {
 
   const [selectedFormation, setSelectedFormation] = useState<Formation>(formations[0]);
   const [assignments, setAssignments] = useState<{ [key: number]: PlayerData | null }>({});
+  const assignmentsRef = useRef(assignments);
+  // Keep ref in sync with state
+  useEffect(() => { assignmentsRef.current = assignments; }, [assignments]);
   const [selectedPosIdx, setSelectedPosIdx] = useState<number | null>(null);
   const [showPlayerPicker, setShowPlayerPicker] = useState(false);
   const [showSetPiece, setShowSetPiece] = useState(false);
