@@ -54,21 +54,14 @@ export default function HomeScreen() {
   };
 
   const confirmDeleteTeam = (team: any) => {
-    Alert.alert(
-      'Delete Team',
-      `Remove "${team.name}" and all its data?`,
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            await deleteTeam(team.id);
-            setTeams(prev => prev.filter(t => t.id !== team.id));
-          },
-        },
-      ]
-    );
+    setTeamToDelete(team);
+  };
+
+  const executeDelete = async () => {
+    if (!teamToDelete) return;
+    await deleteTeam(teamToDelete.id);
+    setTeams(prev => prev.filter(t => t.id !== teamToDelete.id));
+    setTeamToDelete(null);
   };
 
   return (
