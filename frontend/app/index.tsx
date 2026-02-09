@@ -90,7 +90,7 @@ export default function HomeScreen() {
             activeOpacity={0.8}
           >
             <View style={styles.sportIconWrap}>
-              <MaterialCommunityIcons name="soccer" size={44} color={Colors.primary} />
+              <MaterialCommunityIcons name="shoe-cleat" size={44} color={Colors.primary} />
             </View>
             <Text style={styles.sportName}>FOOTBALL</Text>
             <Text style={styles.sportFormats}>5v5 · 7v7 · 11v11</Text>
@@ -103,7 +103,7 @@ export default function HomeScreen() {
             activeOpacity={0.8}
           >
             <View style={[styles.sportIconWrap, { backgroundColor: 'rgba(0,230,118,0.08)' }]}>
-              <MaterialCommunityIcons name="shoe-cleat" size={44} color={Colors.accent} />
+              <MaterialCommunityIcons name="soccer" size={44} color={Colors.accent} />
             </View>
             <Text style={styles.sportName}>FUTSAL</Text>
             <Text style={styles.sportFormats}>5v5</Text>
