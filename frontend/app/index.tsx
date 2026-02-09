@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
-  SafeAreaView, ActivityIndicator,
+  SafeAreaView, ActivityIndicator, Alert,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -10,7 +10,7 @@ import { Colors } from '../src/constants/colors';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { setSport, setFormat, setCurrentTeam, loadTeams } = useApp();
+  const { setSport, setFormat, setCurrentTeam, loadTeams, deleteTeam } = useApp();
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
