@@ -157,9 +157,14 @@ export default function MatchHistoryScreen() {
         <View style={{ height: 20 }} />
       </ScrollView>
 
-      {/* Delete Confirmation Modal */}
-      <Modal visible={matchToDelete !== null} transparent animationType="fade">
+      {/* Delete Confirmation Overlay */}
+      {matchToDelete && (
         <View style={styles.modalOverlay}>
+          <TouchableOpacity
+            style={styles.modalBackdrop}
+            activeOpacity={1}
+            onPress={() => setMatchToDelete(null)}
+          />
           <View style={styles.modalCard}>
             <View style={styles.modalIconWrap}>
               <MaterialCommunityIcons name="trash-can-outline" size={32} color={Colors.destructive} />
@@ -172,7 +177,7 @@ export default function MatchHistoryScreen() {
               <TouchableOpacity
                 testID="confirm-delete-match-btn"
                 style={styles.deleteConfirmBtn}
-                onPress={() => matchToDelete && deleteMatch(matchToDelete.id)}
+                onPress={() => deleteMatch(matchToDelete.id)}
               >
                 <Text style={styles.deleteConfirmText}>DELETE</Text>
               </TouchableOpacity>
@@ -186,7 +191,7 @@ export default function MatchHistoryScreen() {
             </View>
           </View>
         </View>
-      </Modal>
+      )}
     </View>
   );
 }
