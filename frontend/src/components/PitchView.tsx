@@ -64,9 +64,6 @@ function DraggableDot({
     onDragEnd(index, Math.round(newPctX * 10) / 10, Math.round(newPctY * 10) / 10);
   }, [posX, posY, pitchW, pitchH, index, onDragEnd]);
 
-  const px = (posX / 100) * pitchW - dotSize / 2;
-  const py = (posY / 100) * pitchH - dotSize / 2;
-
   return (
     <View
       testID={`pitch-position-${index}`}
