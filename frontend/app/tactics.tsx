@@ -200,13 +200,60 @@ export default function TacticsScreen() {
         )}
 
         {/* Pitch View */}
-        <Text style={styles.sectionTitle}>PITCH VIEW</Text>
-        <Text style={styles.hint}>Tap empty positions to assign players</Text>
+        <View style={styles.pitchHeader}>
+          <View>
+            <Text style={styles.sectionTitle}>PITCH VIEW</Text>
+            <Text style={styles.hint}>
+              {isCustomizing ? 'Drag players to reposition them' : 'Tap empty positions to assign players'}
+            </Text>
+          </View>
+          <TouchableOpacity
+            testID="customize-toggle-btn"
+            style={[styles.customizeBtn, isCustomizing && styles.customizeBtnActive]}
+            onPress={() => {
+              if (!isCustomizing) {
+                setCustomPositions([...activePositions]);
+                setIsCustomizing(true);
+              } else {
+                setIsCustomizing(false);
+              }
+            }}
+          >
+            <MaterialCommunityIcons
+              name={isCustomizing ? 'check' : 'cursor-move'}
+              size={16}
+              color={isCustomizing ? Colors.white : Colors.primary}
+            />
+            <Text style={[styles.customizeBtnText, isCustomizing && { color: Colors.white }]}>
+              {isCustomizing ? 'DONE' : 'CUSTOMIZE'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        {isCustomizing && (
+          <TouchableOpacity
+            testID="reset-positions-btn"
+            style={styles.resetRow}
+            onPress={() => {
+              setCustomPositions([...selectedFormation.positions]);
+            }}
+          >
+            <MaterialCommunityIcons name="refresh" size={14} color={Colors.warning} />
+            <Text style={styles.resetText}>Reset to default positions</Text>
+          </TouchableOpacity>
+        )}
         <PitchView
-          positions={selectedFormation.positions}
+          positions={activePositions}
           assignedPlayers={assignments}
-          onPositionPress={handlePositionPress}
+          onPositionPress={isCustomizing ? undefined : handlePositionPress}
           sport={sport}
+          draggable={isCustomizing}
+          onPositionDrag={(idx, newX, newY) => {
+            if (customPositions) {
+              const updated = [...customPositions];
+              updated[idx] = { ...updated[idx], x: newX, y: newY };
+              setCustomPositions(updated);
+            }
+          }}
         />
 
         {/* Bench */}
