@@ -45,6 +45,31 @@ export default function HomeScreen() {
     router.push('/tactics');
   };
 
+  const editTeam = (team: any) => {
+    setSport(team.sport);
+    setFormat(team.format);
+    setCurrentTeam(team);
+    router.push('/team-setup');
+  };
+
+  const confirmDeleteTeam = (team: any) => {
+    Alert.alert(
+      'Delete Team',
+      `Remove "${team.name}" and all its data?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            await deleteTeam(team.id);
+            setTeams(prev => prev.filter(t => t.id !== team.id));
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
