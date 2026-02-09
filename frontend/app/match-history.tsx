@@ -223,4 +223,34 @@ const styles = StyleSheet.create({
   matchStats: { flexDirection: 'row', gap: 16 },
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   statText: { fontSize: 12, color: Colors.textMuted },
+  modalOverlay: {
+    flex: 1, backgroundColor: 'rgba(0,0,0,0.6)',
+    justifyContent: 'center', alignItems: 'center', padding: 24,
+  },
+  modalCard: {
+    backgroundColor: Colors.backgroundSecondary, borderRadius: 16,
+    padding: 24, width: '100%', maxWidth: 340, alignItems: 'center',
+    borderWidth: 1, borderColor: Colors.border,
+  },
+  modalIconWrap: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: 'rgba(255,59,48,0.12)', justifyContent: 'center',
+    alignItems: 'center', marginBottom: 16,
+  },
+  modalTitle: { fontSize: 18, fontWeight: '700', color: Colors.white, marginBottom: 8 },
+  modalDesc: {
+    fontSize: 14, color: Colors.textMuted, textAlign: 'center',
+    lineHeight: 20, marginBottom: 20,
+  },
+  modalActions: { width: '100%', gap: 10 },
+  deleteConfirmBtn: {
+    backgroundColor: Colors.destructive, borderRadius: 10,
+    paddingVertical: 12, alignItems: 'center',
+  },
+  deleteConfirmText: { color: Colors.white, fontWeight: '700', fontSize: 15 },
+  cancelBtn: {
+    backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 10,
+    paddingVertical: 12, alignItems: 'center',
+  },
+  cancelBtnText: { color: Colors.textMuted, fontWeight: '600', fontSize: 15 },
 });
