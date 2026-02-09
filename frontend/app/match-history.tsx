@@ -49,20 +49,12 @@ export default function MatchHistoryScreen() {
     setLoading(false);
   };
 
-  const deleteMatch = (id: string) => {
-    Alert.alert('Delete Match', 'Remove this match from history?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Delete',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            await fetch(`${API_URL}/api/matches/${id}`, { method: 'DELETE' });
-            setMatches(prev => prev.filter(m => m.id !== id));
-          } catch {}
-        },
-      },
-    ]);
+  const deleteMatch = async (id: string) => {
+    try {
+      await fetch(`${API_URL}/api/matches/${id}`, { method: 'DELETE' });
+      setMatches(prev => prev.filter(m => m.id !== id));
+    } catch {}
+    setMatchToDelete(null);
   };
 
   const statusColor = (status: string) => {
