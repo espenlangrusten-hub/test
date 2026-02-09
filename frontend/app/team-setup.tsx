@@ -191,9 +191,9 @@ export default function TeamSetupScreen() {
           disabled={saving || players.length < startersCount}
         >
           <Text style={styles.continueBtnText}>
-            {saving ? 'SAVING...' : 'CONTINUE TO TACTICS'}
+            {saving ? 'SAVING...' : isEditing ? 'SAVE CHANGES' : 'CONTINUE TO TACTICS'}
           </Text>
-          <MaterialCommunityIcons name="arrow-right" size={20} color={Colors.white} />
+          {!isEditing && <MaterialCommunityIcons name="arrow-right" size={20} color={Colors.white} />}
         </TouchableOpacity>
       </View>
 
