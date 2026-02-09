@@ -45,11 +45,66 @@ export default function TacticsScreen() {
     setAssignments(initialAssign);
   }, []);
 
+  // Positional affinity groups for smart re-assignment
+  const POSITION_GROUPS: Record<string, string[]> = {
+    GK: ['GK'],
+    DEF: ['CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF', 'Fixo'],
+    MID: ['CM', 'CDM', 'CAM', 'LM', 'RM', 'LAM', 'RAM', 'MID', 'Ala'],
+    FWD: ['ST', 'CF', 'LW', 'RW', 'FWD', 'Pivot'],
+  };
+
+  const getGroup = (role: string): string => {
+    for (const [group, roles] of Object.entries(POSITION_GROUPS)) {
+      if (roles.includes(role)) return group;
+    }
+    return 'MID';
+  };
+
   const changeFormation = (f: Formation) => {
+    const currentPlayers = Object.values(assignments).filter(Boolean) as PlayerData[];
     setSelectedFormation(f);
-    setAssignments({});
     setIsCustomizing(false);
     setCustomPositions(null);
+
+    if (currentPlayers.length === 0) {
+      setAssignments({});
+      return;
+    }
+
+    const newAssignments: { [key: number]: PlayerData | null } = {};
+    const usedIds = new Set<string>();
+
+    // Pass 1: Exact role match (player.position === slot.role)
+    f.positions.forEach((slot, idx) => {
+      const match = currentPlayers.find(p => !usedIds.has(p.id) && p.position === slot.role);
+      if (match) {
+        newAssignments[idx] = match;
+        usedIds.add(match.id);
+      }
+    });
+
+    // Pass 2: Same positional group match (DEF→DEF, MID→MID, FWD→FWD)
+    f.positions.forEach((slot, idx) => {
+      if (newAssignments[idx]) return;
+      const slotGroup = getGroup(slot.role);
+      const match = currentPlayers.find(p => !usedIds.has(p.id) && getGroup(p.position) === slotGroup);
+      if (match) {
+        newAssignments[idx] = match;
+        usedIds.add(match.id);
+      }
+    });
+
+    // Pass 3: Fill remaining with any unassigned player
+    f.positions.forEach((_, idx) => {
+      if (newAssignments[idx]) return;
+      const remaining = currentPlayers.find(p => !usedIds.has(p.id));
+      if (remaining) {
+        newAssignments[idx] = remaining;
+        usedIds.add(remaining.id);
+      }
+    });
+
+    setAssignments(newAssignments);
   };
 
   // Active positions = custom or formation default
