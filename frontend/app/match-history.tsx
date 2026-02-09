@@ -95,8 +95,9 @@ export default function MatchHistoryScreen() {
             key={match.id}
             testID={`match-${match.id}`}
             style={styles.matchCard}
+            onPress={() => router.push({ pathname: '/match-detail', params: { matchId: match.id } })}
             onLongPress={() => deleteMatch(match.id)}
-            activeOpacity={0.8}
+            activeOpacity={0.7}
           >
             <View style={styles.matchTop}>
               <View style={[styles.statusDot, { backgroundColor: statusColor(match.status) }]} />
