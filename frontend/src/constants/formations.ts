@@ -18,6 +18,7 @@ export interface Formation {
 
 export const POSITIONS: Record<string, string[]> = {
   '11v11': ['GK', 'CB', 'LB', 'RB', 'LWB', 'RWB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'ST', 'CF'],
+  '9v9': ['GK', 'CB', 'LB', 'RB', 'CM', 'LM', 'RM', 'CAM', 'ST', 'LW', 'RW'],
   '7v7': ['GK', 'CB', 'LB', 'RB', 'CM', 'LM', 'RM', 'ST', 'CAM'],
   '5v5': ['GK', 'DEF', 'MID', 'FWD'],
   'futsal_5v5': ['GK', 'Fixo', 'Ala', 'Pivot'],
@@ -26,6 +27,7 @@ export const POSITIONS: Record<string, string[]> = {
 export const STARTERS_COUNT: Record<string, number> = {
   '5v5': 5,
   '7v7': 7,
+  '9v9': 9,
   '11v11': 11,
 };
 
