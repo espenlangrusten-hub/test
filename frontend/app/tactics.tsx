@@ -577,6 +577,20 @@ const styles = StyleSheet.create({
   deletePlayerBtn: { padding: 10 },
   benchEmpty: { fontSize: 12, color: Colors.textMuted, textAlign: 'center', paddingVertical: 12 },
 
+  // Selection bar
+  selectionBar: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: 'rgba(255,215,0,0.12)', borderRadius: 10, padding: 10,
+    marginTop: 8, borderWidth: 1.5, borderColor: '#FFD700',
+  },
+  selectionText: { flex: 1, fontSize: 13, fontWeight: '700', color: '#FFD700' },
+  benchMoveBtn: {
+    flexDirection: 'row', alignItems: 'center', gap: 4,
+    backgroundColor: Colors.destructive, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8,
+  },
+  benchMoveText: { fontSize: 11, fontWeight: '700', color: Colors.white },
+  deselectBtn: { padding: 4 },
+
   actionRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 14, marginTop: 16, borderWidth: 1, borderColor: Colors.border },
   actionText: { flex: 1, fontSize: 14, fontWeight: '600', color: Colors.white },
   bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, paddingBottom: 32, backgroundColor: Colors.background, borderTopWidth: 1, borderTopColor: Colors.border },
