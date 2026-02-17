@@ -1,0 +1,98 @@
+{
+  "summary": "Frontend testing for football/futsal team management app latest changes. Tested: 9v9 format text on home page, MATCH MODE button on tactics screen, halftime-based duration selector, auto-sub equal play time display, match history with score/starting lineup. Found CRITICAL BUG: Formation switching causes players to disappear from pitch.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "tactics.tsx - changeFormation() / PitchView",
+        "issue": "Formation switching causes most players to disappear from pitch. Only 1-3 players visible instead of 11. Root cause: useEffect initializes assignments using stale selectedFormation state.",
+        "selector": "[data-testid^='formation-']",
+        "priority": "CRITICAL"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_results": {
+    "test_1_home_page_9v9_text": {
+      "status": "PASSED",
+      "description": "Football card shows '5v5 · 7v7 · 9v9 · 11v11' correctly"
+    },
+    "test_2_match_mode_button": {
+      "status": "PASSED",
+      "description": "Tactics screen shows 'MATCH MODE' button (not 'START MATCH')"
+    },
+    "test_3_match_setup_screen": {
+      "status": "PASSED",
+      "description": "Match setup screen shows: MATCH MODE header, MINUTES PER HALF selector, total match time hint (e.g. '90 min (45 x 2 halves)'), START MATCH button"
+    },
+    "test_4_auto_sub_expected_playing_time": {
+      "status": "PASSED",
+      "description": "EXPECTED PLAYING TIME section shows bars for all players. GK gets full match time (90 min), outfield players get approximately equal time (~45 min each for rotation)"
+    },
+    "test_5_substitution_plan": {
+      "status": "PASSED",
+      "description": "SUBSTITUTION PLAN section shows rotation windows with minute markers"
+    },
+    "test_6_formation_switching": {
+      "status": "FAILED",
+      "description": "Formation switching causes players to disappear. Only 1-3 of 11 players remain visible after switching formations",
+      "details": "4-3-3: 3 players, 4-2-3-1: 1 player, 3-5-2: 2 players, 4-4-2: 2 players"
+    },
+    "test_7_9v9_format_selection": {
+      "status": "PASSED",
+      "description": "9v9 format appears in format selection screen. Clicking navigates to team setup with 'FOOTBALL · 9v9' badge and 'SQUAD (0 / 9+ players)'"
+    },
+    "test_8_match_history": {
+      "status": "PASSED",
+      "description": "Match history shows: score (e.g. 4-3), starting lineup with player names/numbers, formation badges, chevron arrows, starters/subs/notes counts"
+    }
+  },
+  "test_report_links": [
+    "/root/.emergent/automation_output/20260217_160309/",
+    "/root/.emergent/automation_output/20260217_160344/",
+    "/root/.emergent/automation_output/20260217_160425/",
+    "/root/.emergent/automation_output/20260217_160512/",
+    "/root/.emergent/automation_output/20260217_160554/",
+    "/root/.emergent/automation_output/20260217_160632/",
+    "/root/.emergent/automation_output/20260217_160706/",
+    "/root/.emergent/automation_output/20260217_160730/",
+    "/root/.emergent/automation_output/20260217_160754/"
+  ],
+  "action_items": [
+    "FIX CRITICAL: Formation switching causes players to disappear from pitch in tactics.tsx",
+    "Root cause: useEffect on line 54-66 initializes assignments using selectedFormation which may be stale",
+    "The setSelectedFormation(found) on line 57 updates state AFTER initialAssign is already calculated using old selectedFormation value",
+    "Solution: Add selectedFormation to useEffect dependency array OR move assignment initialization to a separate effect that runs after formation is set"
+  ],
+  "critical_code_review_comments": [
+    "tactics.tsx line 62: Uses selectedFormation state which may be stale in the useEffect with empty dependency array []",
+    "tactics.tsx line 77-102: changeFormation() relies on prev state which may have fewer players assigned than expected",
+    "The initial assignment only assigns players up to selectedFormation.positions.length, but if formation changes, this count is wrong",
+    "Consider using useCallback or splitting the useEffect to ensure formation is set before assignments are calculated"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "87.5% (7/8 tests passed, 1 CRITICAL failure)"
+  },
+  "seed_data_creation": "None - used existing teams 'Monolitten g2012' (11v11) and 'Monolitten' (futsal)",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Formation switching bug confirmed. The issue is in tactics.tsx useEffect initialization. When you switch formations, only 1-3 players appear instead of 11. This affects the team 'Monolitten g2012' with 13 players. All other features (9v9 text, MATCH MODE button, halftime duration, auto-sub display, match history) work correctly.",
+  "rca_of_the_issue": {
+    "bug": "Formation switching causes players to disappear from pitch",
+    "root_cause": "In tactics.tsx, the useEffect on line 54-66 has an empty dependency array []. It uses selectedFormation state to calculate initialAssign, but selectedFormation may be updated by setSelectedFormation(found) on line 57 AFTER initialAssign is already calculated. The state update is asynchronous, so the old formation's position count is used.",
+    "reproduction_steps": [
+      "1. Navigate to home page",
+      "2. Click on team card (e.g. Monolitten g2012)",
+      "3. Observe initial formation shows some players",
+      "4. Click on a different formation (e.g. 4-2-3-1)",
+      "5. Players disappear - only 1-3 visible instead of 11"
+    ],
+    "mitigation": "Fix the useEffect to properly depend on selectedFormation or restructure to ensure formation is set before assignments are calculated"
+  }
+}
