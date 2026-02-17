@@ -1,58 +1,43 @@
-# Football & Futsal Coach Assistant - PRD
+# PRD — Tactical Lineup (Football & Futsal Coach Assistant)
 
 ## Original Problem Statement
-Build a football and futsal team management application with tactical boards, match management, and player rotation features.
+Build a football and futsal team management application with team setup, tactics board, live match management, substitution planning, coaching suggestions, and match history.
 
-## Core Requirements
-- Team creation with multiple formats (Football: 5v5, 7v7, 9v9, 11v11 | Futsal: 5v5)
-- Tactics board with formation selection and player positioning
-- Match mode with timer, scoring, substitutions, and coaching
-- Match history with scores and lineup review
-- Post-match player ratings
+## Core Features (Implemented)
+- **Team Management**: Create, edit, delete teams. Football (5v5, 7v7, 9v9, 11v11) and Futsal (5v5) formats
+- **Tactics Board**: Formation selection, player placement, drag-to-reposition, tap-to-swap. CUSTOMIZE mode.
+- **Match Mode**: Halftime-based duration, opponent entry, auto/manual sub modes
+- **Auto-Substitution**: Rotational algorithm for equal playing time (exc. GK). Players sub in and out multiple times. Shows expected playing time per player + full substitution plan before match starts.
+- **Dynamic Re-planning**: Manual sub during auto mode recalculates remaining plan
+- **Live Match**: Timer with 1st/2nd half, halftime pause, scoreboard, manual sub, coaching panel
+- **In-Match Coaching**: 3 categories (Team Level, Defensive Line, Attack) with tactical cards showing quote, problem, principle, and action items. Applying a tactic draws arrows on the pitch to illustrate movement.
+- **Post-Match Review**: Player ratings, notes, match saving
+- **Match History**: Shows score, starting lineup, formation, opponent, date
 
 ## Architecture
-- **Frontend**: React Native (Expo) with TypeScript, Expo Router
-- **Backend**: FastAPI (Python) with SQLite
-- **State**: Zustand + Context API
+- Frontend: React Native (Expo) + TypeScript + Expo Router
+- Backend: FastAPI (Python) + MongoDB
+- State: Zustand (useTeamStore) + React Context (AppContext)
+- Styling: React Native StyleSheet, dark theme
 
-## What's Been Implemented
-
-### Team Management
-- Team CRUD with sport/format selection
-- Player add/delete on tactics screen
-- Tap-to-select-and-swap player positions
-
-### Tactics Board
-- Formation selection (4-4-2, 4-3-3, 4-2-3-1, 4-3-3 Klopp, 3-5-2, 4-4-2 Simeone, 3-4-3)
-- 9v9 formations (3-3-2, 3-2-3, 2-4-2, 2-3-3, 3-2-2-1)
-- PitchView component with player dots and names
-- Custom position drag support
-- Formation switching with proper player reassignment (FIXED)
-
-### Match Mode
-- "MATCH MODE" button on tactics (was "START MATCH")
-- Match setup with opponent, halftime duration, sub mode
-- **Halftime-based duration**: Minutes per half (total = half x 2)
-- **Auto-sub equal play time**: Rotational algorithm distributing playing time equally across all outfield players (exc. GK)
-- **Expected Playing Time preview**: Bar chart showing projected minutes per player
-- **Substitution Plan preview**: List of all planned subs with minute markers
-- **Dynamic re-planning**: Manual subs during auto mode trigger recalculation
-- Live match with timer, halftime tracking, scoreboard
-- Manual substitution modal
-- In-match coaching panel with tactical suggestions
-- Visual coaching overlay on pitch
-- Post-match review with player ratings
-
-### Match History
-- Match list with score display
-- Starting lineup shown per match
-- Formation badges, player notes
+## Key Files
+- `frontend/app/index.tsx` — Home/sport selection
+- `frontend/app/format.tsx` — Format selection (5v5/7v7/9v9/11v11)
+- `frontend/app/tactics.tsx` — Tactics board with formations
+- `frontend/app/match.tsx` — Match setup + live match + post-match
+- `frontend/app/match-history.tsx` — Match history list
+- `frontend/src/components/PitchView.tsx` — Pitch component with tactical arrows
+- `frontend/src/lib/coaching-data.ts` — Coaching data (3 categories, 6 tactics)
+- `frontend/src/constants/formations.ts` — Formation data for all formats
 
 ## Known Issues
-- None currently blocking
+- **Formation Switching Bug (P0)**: Players may disappear when rapidly switching formations on tactics screen. Previous fix: `key` prop on PitchView. Needs further investigation.
 
-## Backlog / Future Tasks
-- P2: Refactor match.tsx substitution logic into useSubstitutions.ts hook
-- P2: More 9v9 team creation flow testing
-- P3: Push notifications for sub alerts (mobile)
-- P3: Season/tournament management
+## Backlog
+- P1: Deeper investigation of formation switching bug
+- P2: Refactor match.tsx substitution logic into `useSubstitutions.ts` hook
+- P2: Match detail page improvements
+- P3: Team statistics / analytics dashboard
+
+## Changelog
+- 2026-02-17: Added 9v9 format, "MATCH MODE" button, halftime-based duration, rotational auto-sub algorithm with expected playing time preview, coaching panel overhaul (quote/problem/principle/actions), tactical arrows on pitch
