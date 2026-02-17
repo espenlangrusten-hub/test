@@ -1178,6 +1178,7 @@ const styles = StyleSheet.create({
   },
   alertTitle: { fontSize: 22, fontWeight: '900', color: Colors.white, marginTop: 12, letterSpacing: 2 },
   alertTime: { fontSize: 14, color: Colors.primary, marginTop: 4, fontWeight: '700' },
+  queueHint: { fontSize: 11, color: Colors.accent, marginTop: 4, fontWeight: '600' },
   alertSubRow: { flexDirection: 'row', justifyContent: 'space-around', width: '100%', marginTop: 20 },
   alertPlayer: { alignItems: 'center', gap: 4 },
   alertPlayerName: { fontSize: 15, fontWeight: '700', color: Colors.white },
