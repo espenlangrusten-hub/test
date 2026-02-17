@@ -416,7 +416,7 @@ export default function TacticsScreen() {
           style={[styles.matchBtn, saving && styles.disabledBtn]}
           onPress={handleSaveAndMatch} disabled={saving}>
           <MaterialCommunityIcons name="whistle" size={20} color={Colors.white} />
-          <Text style={styles.matchBtnText}>{saving ? 'SAVING...' : 'START MATCH'}</Text>
+          <Text style={styles.matchBtnText}>{saving ? 'SAVING...' : 'MATCH MODE'}</Text>
         </TouchableOpacity>
       </View>
 
