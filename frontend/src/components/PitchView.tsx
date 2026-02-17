@@ -224,6 +224,51 @@ export default function PitchView({
       <View style={[styles.goalLine, { top: -2, left: w * 0.4, width: w * 0.2 }]} />
       <View style={[styles.goalLine, { bottom: -2, left: w * 0.4, width: w * 0.2 }]} />
 
+      {/* Tactical arrows overlay */}
+      {tacticalArrows.length > 0 && tacticalArrows.map((arrow, i) => {
+        const x1 = (arrow.fromX / 100) * w;
+        const y1 = (arrow.fromY / 100) * h;
+        const x2 = (arrow.toX / 100) * w;
+        const y2 = (arrow.toY / 100) * h;
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        const headSize = 8;
+
+        return (
+          <View key={`arrow-${i}`} pointerEvents="none">
+            {/* Arrow shaft */}
+            <View style={{
+              position: 'absolute', left: x1, top: y1 - 1.5,
+              width: len, height: 3, zIndex: 5,
+              backgroundColor: arrow.dashed ? 'transparent' : arrow.color,
+              borderStyle: arrow.dashed ? 'dashed' : 'solid',
+              borderWidth: arrow.dashed ? 1.5 : 0,
+              borderColor: arrow.dashed ? arrow.color : 'transparent',
+              transform: [{ rotate: `${angle}deg` }],
+              transformOrigin: '0 50%',
+              opacity: 0.85,
+            }} />
+            {/* Arrow head */}
+            <View style={{
+              position: 'absolute',
+              left: x2 - headSize / 2,
+              top: y2 - headSize / 2,
+              width: 0, height: 0, zIndex: 6,
+              borderLeftWidth: headSize,
+              borderRightWidth: headSize,
+              borderBottomWidth: headSize * 1.2,
+              borderLeftColor: 'transparent',
+              borderRightColor: 'transparent',
+              borderBottomColor: arrow.color,
+              transform: [{ rotate: `${angle - 90}deg` }],
+              opacity: 0.9,
+            }} />
+          </View>
+        );
+      })}
+
       {/* Player positions */}
       {positions.map((pos, index) => {
         const player = assignedPlayers[index];
