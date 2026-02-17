@@ -236,6 +236,16 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 10, fontWeight: '700', letterSpacing: 1 },
   matchDate: { fontSize: 11, color: Colors.textMuted, marginLeft: 'auto' },
   opponentName: { fontSize: 18, fontWeight: '700', color: Colors.white, marginBottom: 8 },
+  scoreRow: {
+    backgroundColor: 'rgba(0,200,83,0.08)', borderRadius: 8, paddingVertical: 6,
+    paddingHorizontal: 12, alignSelf: 'flex-start', marginBottom: 8,
+    borderWidth: 1, borderColor: 'rgba(0,200,83,0.15)',
+  },
+  scoreText: { fontSize: 20, fontWeight: '900', color: Colors.primary, letterSpacing: 2 },
+  lineupRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 8,
+  },
+  lineupText: { fontSize: 11, color: Colors.textMuted, flex: 1 },
   matchMeta: { flexDirection: 'row', gap: 6, flexWrap: 'wrap', marginBottom: 10 },
   metaBadge: {
     backgroundColor: 'rgba(0,200,83,0.1)', paddingHorizontal: 8,
