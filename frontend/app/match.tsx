@@ -894,27 +894,30 @@ export default function MatchScreen() {
       </ScrollView>
 
       {/* Sub Alert Modal */}
-      <Modal visible={showSubAlert !== null} transparent animationType="fade">
+      <Modal visible={currentSubAlert !== null} transparent animationType="fade">
         <View style={styles.alertOverlay}>
           <View style={styles.alertCard}>
             <MaterialCommunityIcons name="swap-horizontal-bold" size={40} color={Colors.primary} />
             <Text style={styles.alertTitle}>SUBSTITUTION</Text>
-            <Text style={styles.alertTime}>{showSubAlert?.minute}' minute</Text>
+            <Text style={styles.alertTime}>{currentSubAlert?.minute}' minute</Text>
+            {subAlertQueue.length > 1 && (
+              <Text style={styles.queueHint}>{subAlertQueue.length} subs due — showing 1 of {subAlertQueue.length}</Text>
+            )}
             <View style={styles.alertSubRow}>
               <View style={styles.alertPlayer}>
                 <MaterialCommunityIcons name="arrow-down" size={20} color={Colors.destructive} />
-                <Text style={styles.alertPlayerName}>{showSubAlert?.playerOutName}</Text>
+                <Text style={styles.alertPlayerName}>{currentSubAlert?.playerOutName}</Text>
               </View>
               <View style={styles.alertPlayer}>
                 <MaterialCommunityIcons name="arrow-up" size={20} color={Colors.primary} />
-                <Text style={styles.alertPlayerName}>{showSubAlert?.playerInName}</Text>
+                <Text style={styles.alertPlayerName}>{currentSubAlert?.playerInName}</Text>
               </View>
             </View>
             <View style={styles.alertActions}>
-              <TouchableOpacity testID="confirm-sub-btn" style={styles.alertConfirm} onPress={() => showSubAlert && confirmSub(showSubAlert)}>
+              <TouchableOpacity testID="confirm-sub-btn" style={styles.alertConfirm} onPress={() => currentSubAlert && confirmSub(currentSubAlert)}>
                 <Text style={styles.alertConfirmText}>CONFIRM SUB</Text>
               </TouchableOpacity>
-              <TouchableOpacity testID="skip-sub-btn" style={styles.alertSkip} onPress={() => setShowSubAlert(null)}>
+              <TouchableOpacity testID="skip-sub-btn" style={styles.alertSkip} onPress={skipSub}>
                 <Text style={styles.alertSkipText}>SKIP</Text>
               </TouchableOpacity>
             </View>
