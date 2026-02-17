@@ -10,6 +10,7 @@ import { Colors } from '../src/constants/colors';
 const FORMATS = [
   { id: '5v5', label: '5 v 5', players: 5, icon: 'account-group' as const, desc: 'Small-sided game' },
   { id: '7v7', label: '7 v 7', players: 7, icon: 'account-multiple' as const, desc: 'Youth format' },
+  { id: '9v9', label: '9 v 9', players: 9, icon: 'soccer-field' as const, desc: 'Youth / development' },
   { id: '11v11', label: '11 v 11', players: 11, icon: 'soccer-field' as const, desc: 'Full match' },
 ];
 
