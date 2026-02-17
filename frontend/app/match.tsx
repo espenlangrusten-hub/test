@@ -147,7 +147,7 @@ export default function MatchScreen() {
   const [matchId, setMatchId] = useState('');
   const [currentHalf, setCurrentHalf] = useState(1);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const alertedMinsRef = useRef<Set<number>>(new Set());
+  const alertedMinsRef = useRef<Set<string>>(new Set());
 
   // Live tracking
   const [onPitch, setOnPitch] = useState<PlayerData[]>([]);
