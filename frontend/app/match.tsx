@@ -175,7 +175,7 @@ export default function MatchScreen() {
   const [showCoaching, setShowCoaching] = useState(false);
   const [selectedCoachCat, setSelectedCoachCat] = useState<CoachingCategory | null>(null);
   const [coachingNotes, setCoachingNotes] = useState<string[]>([]);
-  const [activeCoachingOverlay, setActiveCoachingOverlay] = useState<{category: string, suggestion: string, color: string} | null>(null);
+  const [activeCoachingOverlay, setActiveCoachingOverlay] = useState<{category: string, suggestion: string, color: string, arrows: TacticalArrow[]} | null>(null);
 
   const allPlayers = currentTeam?.players || [];
   const starters = allPlayers.filter(p => p.is_starter);
