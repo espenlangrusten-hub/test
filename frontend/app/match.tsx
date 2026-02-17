@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useApp, PlayerData } from '../src/context/AppContext';
 import { Colors } from '../src/constants/colors';
 import { getFormations, STARTERS_COUNT } from '../src/constants/formations';
+import { COACHING_CATEGORIES, CoachingCategory, CoachingSuggestion } from '../src/lib/coaching-data';
 import PitchView from '../src/components/PitchView';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
