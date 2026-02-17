@@ -345,6 +345,68 @@ const formationsFutsal: Formation[] = [
   },
 ];
 
+const formations9v9: Formation[] = [
+  {
+    id: '332-9v9',
+    name: '3-3-2',
+    displayName: '3-3-2 Balanced',
+    sport: 'football',
+    format: '9v9',
+    description: 'Solid defensive base with width in midfield and two strikers.',
+    positions: [
+      { x: 50, y: 90, role: 'GK' },
+      { x: 20, y: 72, role: 'LB' }, { x: 50, y: 76, role: 'CB' }, { x: 80, y: 72, role: 'RB' },
+      { x: 20, y: 48, role: 'LM' }, { x: 50, y: 50, role: 'CM' }, { x: 80, y: 48, role: 'RM' },
+      { x: 35, y: 22, role: 'ST' }, { x: 65, y: 22, role: 'ST' },
+    ],
+  },
+  {
+    id: '323-9v9',
+    name: '3-2-3',
+    displayName: '3-2-3 Attacking',
+    sport: 'football',
+    format: '9v9',
+    description: 'Aggressive formation with three forwards. High pressing and width.',
+    positions: [
+      { x: 50, y: 90, role: 'GK' },
+      { x: 20, y: 72, role: 'LB' }, { x: 50, y: 76, role: 'CB' }, { x: 80, y: 72, role: 'RB' },
+      { x: 35, y: 50, role: 'CM' }, { x: 65, y: 50, role: 'CM' },
+      { x: 18, y: 24, role: 'LW' }, { x: 50, y: 20, role: 'ST' }, { x: 82, y: 24, role: 'RW' },
+    ],
+  },
+  {
+    id: '2321-9v9',
+    name: '2-3-2-1',
+    displayName: '2-3-2-1 Diamond',
+    sport: 'football',
+    format: '9v9',
+    description: 'Diamond midfield with central control. Two CBs and a lone striker.',
+    positions: [
+      { x: 50, y: 90, role: 'GK' },
+      { x: 35, y: 74, role: 'CB' }, { x: 65, y: 74, role: 'CB' },
+      { x: 20, y: 55, role: 'LM' }, { x: 50, y: 58, role: 'CDM' }, { x: 80, y: 55, role: 'RM' },
+      { x: 30, y: 36, role: 'CAM' }, { x: 70, y: 36, role: 'CAM' },
+      { x: 50, y: 18, role: 'ST' },
+    ],
+  },
+  {
+    id: '241-9v9',
+    name: '2-4-1',
+    displayName: '2-4-1 Midfield Control',
+    sport: 'football',
+    format: '9v9',
+    managerName: 'Possession Style',
+    description: 'Four-man midfield dominates the centre. Overload in build-up.',
+    positions: [
+      { x: 50, y: 90, role: 'GK' },
+      { x: 35, y: 74, role: 'CB' }, { x: 65, y: 74, role: 'CB' },
+      { x: 15, y: 48, role: 'LM' }, { x: 38, y: 52, role: 'CM' },
+      { x: 62, y: 52, role: 'CM' }, { x: 85, y: 48, role: 'RM' },
+      { x: 50, y: 22, role: 'ST' },
+    ],
+  },
+];
+
 export function getFormations(sport: string, format: string): Formation[] {
   if (sport === 'futsal') return formationsFutsal;
   if (format === '5v5') return formations5v5;
