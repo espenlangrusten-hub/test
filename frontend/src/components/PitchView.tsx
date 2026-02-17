@@ -27,6 +27,7 @@ interface PitchViewProps {
   draggable?: boolean;
   onPositionDrag?: (index: number, newX: number, newY: number) => void;
   selectedIndex?: number | null;
+  tacticalArrows?: { fromX: number; fromY: number; toX: number; toY: number; color: string; dashed?: boolean }[];
 }
 
 function DraggableDot({
