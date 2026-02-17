@@ -325,6 +325,7 @@ export default function TacticsScreen() {
           positions={activePositions} assignedPlayers={assignments}
           onPositionPress={isCustomizing ? undefined : handlePositionPress}
           sport={sport} draggable={isCustomizing}
+          selectedIndex={selectedSwapIdx}
           onPositionDrag={(idx, newX, newY) => {
             if (customPositions) {
               const updated = [...customPositions];
@@ -333,6 +334,22 @@ export default function TacticsScreen() {
             }
           }}
         />
+
+        {/* Selection action bar */}
+        {selectedSwapIdx !== null && assignments[selectedSwapIdx] && (
+          <View style={styles.selectionBar}>
+            <Text style={styles.selectionText}>
+              Selected: {assignments[selectedSwapIdx]!.name} (#{assignments[selectedSwapIdx]!.number})
+            </Text>
+            <TouchableOpacity style={styles.benchMoveBtn} onPress={moveSelectedToBench}>
+              <MaterialCommunityIcons name="arrow-down-bold" size={14} color={Colors.white} />
+              <Text style={styles.benchMoveText}>TO BENCH</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.deselectBtn} onPress={() => setSelectedSwapIdx(null)}>
+              <MaterialCommunityIcons name="close" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Bench — Tap to move to pitch */}
         <View style={styles.benchHeader}>
