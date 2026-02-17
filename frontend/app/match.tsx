@@ -199,12 +199,18 @@ export default function MatchScreen() {
   const doEndMatch = () => {
     if (timerRef.current) clearInterval(timerRef.current);
     setMatchStatus('ended');
-    addEvent('FULL TIME');
+    addEvent(`FULL TIME — Score: ${scoreHome}-${scoreAway}`);
     if (matchId) {
       fetch(`${API_URL}/api/matches/${matchId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'completed' }),
+        body: JSON.stringify({
+          status: 'completed',
+          score_home: scoreHome,
+          score_away: scoreAway,
+          events: [...events, `${formatTime(elapsedSec)} — FULL TIME`].map((e, i) => ({ type: 'event', minute: i, detail: e })),
+          coaching_notes: coachingNotes.map(n => ({ note: n })),
+        }),
       }).catch(() => {});
     }
   };
