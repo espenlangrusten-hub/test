@@ -141,6 +141,23 @@ export default function MatchHistoryScreen() {
               {match.opponent || 'Unknown Opponent'}
             </Text>
 
+            {/* Score */}
+            {match.status === 'completed' && match.score_home !== undefined && (
+              <View style={styles.scoreRow}>
+                <Text style={styles.scoreText}>{match.score_home} - {match.score_away ?? 0}</Text>
+              </View>
+            )}
+
+            {/* Starting Lineup */}
+            {match.starting_lineup && match.starting_lineup.length > 0 && (
+              <View style={styles.lineupRow}>
+                <MaterialCommunityIcons name="account-group" size={12} color={Colors.textMuted} />
+                <Text style={styles.lineupText} numberOfLines={1}>
+                  {match.starting_lineup.map(p => `${p.number} ${p.name.split(' ')[0]}`).join(', ')}
+                </Text>
+              </View>
+            )}
+
             <View style={styles.matchMeta}>
               {match.formation && (
                 <View style={styles.metaBadge}>
