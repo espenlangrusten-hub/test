@@ -160,6 +160,7 @@ async def create_match(match: MatchCreate):
         **match.dict(),
         "events": [],
         "player_notes": [],
+        "coaching_notes": [],
         "status": "planned",
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
