@@ -349,6 +349,7 @@ export function getFormations(sport: string, format: string): Formation[] {
   if (sport === 'futsal') return formationsFutsal;
   if (format === '5v5') return formations5v5;
   if (format === '7v7') return formations7v7;
+  if (format === '9v9') return formations9v9;
   return formations11v11;
 }
 
