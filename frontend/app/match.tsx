@@ -830,6 +830,68 @@ export default function MatchScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Coaching Panel Modal */}
+      <Modal visible={showCoaching} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxHeight: '85%' }]}>
+            <View style={styles.modalHead}>
+              <Text style={styles.modalHeadText}>
+                {selectedCoachCat ? selectedCoachCat.label : 'In-Match Coaching'}
+              </Text>
+              <TouchableOpacity onPress={() => {
+                if (selectedCoachCat) setSelectedCoachCat(null);
+                else setShowCoaching(false);
+              }}>
+                <MaterialCommunityIcons name={selectedCoachCat ? "arrow-left" : "close"} size={24} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+
+            {!selectedCoachCat ? (
+              <ScrollView>
+                <Text style={styles.coachSubtitle}>What's not working? Select a category:</Text>
+                {COACHING_CATEGORIES.map(cat => (
+                  <TouchableOpacity key={cat.id} style={styles.coachCatRow} onPress={() => setSelectedCoachCat(cat)}>
+                    <View style={[styles.coachCatIcon, { backgroundColor: cat.color + '20' }]}>
+                      <MaterialCommunityIcons name={cat.icon as any} size={22} color={cat.color} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.coachCatLabel}>{cat.label}</Text>
+                      <Text style={styles.coachCatCount}>{cat.suggestions.length} suggestions</Text>
+                    </View>
+                    <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.textMuted} />
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            ) : (
+              <ScrollView>
+                {selectedCoachCat.suggestions.map(sug => (
+                  <View key={sug.id} style={styles.coachSugCard}>
+                    <View style={styles.coachSugHeader}>
+                      <Text style={styles.coachSugTitle}>{sug.title}</Text>
+                      <View style={[styles.coachPhilBadge, { backgroundColor: selectedCoachCat.color + '20' }]}>
+                        <Text style={[styles.coachPhilText, { color: selectedCoachCat.color }]}>{sug.philosopher}</Text>
+                      </View>
+                    </View>
+                    <Text style={styles.coachSugDesc}>{sug.description}</Text>
+                    <View style={styles.coachSugFooter}>
+                      <Text style={styles.coachSugPhil}>{sug.philosophy}</Text>
+                      <TouchableOpacity style={styles.coachApplyBtn} onPress={() => {
+                        const note = `[${formatTime(elapsedSec)}] ${selectedCoachCat.label}: ${sug.title} (${sug.philosopher})`;
+                        setCoachingNotes(prev => [...prev, note]);
+                        addEvent(`Coach: ${sug.title}`);
+                      }}>
+                        <MaterialCommunityIcons name="check" size={14} color={Colors.white} />
+                        <Text style={styles.coachApplyText}>APPLY</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </ScrollView>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
