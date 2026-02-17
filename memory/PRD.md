@@ -1,41 +1,58 @@
-# Tactical Lineup - PRD
+# Football & Futsal Coach Assistant - PRD
 
-## Overview
-Football & Futsal Coach Strategy Planner app. Helps coaches plan team setups, formations, substitutions, and track player performance.
+## Original Problem Statement
+Build a football and futsal team management application with tactical boards, match management, and player rotation features.
 
-## Core Features
-- **Sport Selection**: Football (5v5, 7v7, 11v11) and Futsal (5v5)
-- **Team Management**: Create squads, add players with name/number/position
-- **Tactics Board**: Visual pitch with 18+ formations from famous managers (Guardiola, Mourinho, Klopp, Conte, Ferguson, Simeone, Bielsa)
-- **Position Assignment**: Tap pitch positions to assign starters, auto-assign available
-- **Set Piece Takers**: Assign corners, free kicks, penalties, throw-ins
-- **Captain Selection**: Tap any starter to toggle captain
-- **Match Timer**: Configurable duration (20-90 min), start/pause/resume/end controls
-- **Auto Substitution**: Calculates equal playing time for all outfield players (exc. GK)
-- **Manual Substitution**: Coach decides when to sub
-- **Substitution Alerts**: Modal popup at calculated times with confirm/skip
-- **Player Notes**: Per-player performance notes with 1-10 rating system
-- **Match History**: View all past matches with formation, duration, and notes count
-- **Custom Formations**: Drag players to customize any formation's positions with visual gold-bordered dots and reset option
+## Core Requirements
+- Team creation with multiple formats (Football: 5v5, 7v7, 9v9, 11v11 | Futsal: 5v5)
+- Tactics board with formation selection and player positioning
+- Match mode with timer, scoring, substitutions, and coaching
+- Match history with scores and lineup review
+- Post-match player ratings
 
-## Tech Stack
-- **Frontend**: React Native (Expo SDK 54), expo-router, StyleSheet
-- **Backend**: FastAPI, Motor (async MongoDB), Pydantic
-- **Database**: MongoDB
-- **State**: React Context + backend API
+## Architecture
+- **Frontend**: React Native (Expo) with TypeScript, Expo Router
+- **Backend**: FastAPI (Python) with SQLite
+- **State**: Zustand + Context API
 
-## Screens
-1. Home - Sport selection + saved teams
-2. Format Selection - 5v5/7v7/11v11
-3. Squad Setup - Player roster management
-4. Tactics Board - Formation picker + visual pitch
-5. Match Day - Timer + substitution management
-6. Player Notes - Per-player notes and ratings
-7. Match History - Past matches list
+## What's Been Implemented
 
-## API Endpoints
-- `POST/GET/PUT/DELETE /api/teams` - Team CRUD
-- `POST/GET/PUT/DELETE /api/matches` - Match CRUD
-- `POST /api/matches/{id}/notes` - Add player note
-- `GET /api/players/{id}/notes` - Get player notes
-- `GET /api/health` - Health check
+### Team Management
+- Team CRUD with sport/format selection
+- Player add/delete on tactics screen
+- Tap-to-select-and-swap player positions
+
+### Tactics Board
+- Formation selection (4-4-2, 4-3-3, 4-2-3-1, 4-3-3 Klopp, 3-5-2, 4-4-2 Simeone, 3-4-3)
+- 9v9 formations (3-3-2, 3-2-3, 2-4-2, 2-3-3, 3-2-2-1)
+- PitchView component with player dots and names
+- Custom position drag support
+- Formation switching with proper player reassignment (FIXED)
+
+### Match Mode
+- "MATCH MODE" button on tactics (was "START MATCH")
+- Match setup with opponent, halftime duration, sub mode
+- **Halftime-based duration**: Minutes per half (total = half x 2)
+- **Auto-sub equal play time**: Rotational algorithm distributing playing time equally across all outfield players (exc. GK)
+- **Expected Playing Time preview**: Bar chart showing projected minutes per player
+- **Substitution Plan preview**: List of all planned subs with minute markers
+- **Dynamic re-planning**: Manual subs during auto mode trigger recalculation
+- Live match with timer, halftime tracking, scoreboard
+- Manual substitution modal
+- In-match coaching panel with tactical suggestions
+- Visual coaching overlay on pitch
+- Post-match review with player ratings
+
+### Match History
+- Match list with score display
+- Starting lineup shown per match
+- Formation badges, player notes
+
+## Known Issues
+- None currently blocking
+
+## Backlog / Future Tasks
+- P2: Refactor match.tsx substitution logic into useSubstitutions.ts hook
+- P2: More 9v9 team creation flow testing
+- P3: Push notifications for sub alerts (mobile)
+- P3: Season/tournament management
