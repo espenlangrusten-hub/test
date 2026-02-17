@@ -123,6 +123,8 @@ export default function MatchScreen() {
     setOnPitch([...starters]);
     setOnBench([...subs]);
 
+    const startingLineup = starters.map(p => ({ id: p.id, name: p.name, number: p.number, position: p.position }));
+
     try {
       const res = await fetch(`${API_URL}/api/matches`, {
         method: 'POST',
@@ -141,6 +143,9 @@ export default function MatchScreen() {
             player_in_id: s.playerInId, player_out_name: s.playerOutName,
             player_in_name: s.playerInName,
           })),
+          starting_lineup: startingLineup,
+          score_home: 0,
+          score_away: 0,
         }),
       });
       const match = await res.json();
@@ -149,6 +154,8 @@ export default function MatchScreen() {
 
     setMatchStatus('live');
     setElapsedSec(0);
+    setScoreHome(0);
+    setScoreAway(0);
     alertedMinsRef.current = new Set();
     setEvents([`00:00 — Match started`]);
     startTimer();
