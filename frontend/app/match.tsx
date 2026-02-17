@@ -157,7 +157,7 @@ export default function MatchScreen() {
   const [onBench, setOnBench] = useState<PlayerData[]>([]);
 
   // Modals
-  const [showSubAlert, setShowSubAlert] = useState<SubEntry | null>(null);
+  const [subAlertQueue, setSubAlertQueue] = useState<SubEntry[]>([]);
   const [showManualSub, setShowManualSub] = useState(false);
   const [showEndConfirm, setShowEndConfirm] = useState(false);
   const [manualSubOut, setManualSubOut] = useState<PlayerData | null>(null);
