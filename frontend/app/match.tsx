@@ -185,7 +185,7 @@ export default function MatchScreen() {
     f => f.name === currentTeam?.formation || f.id === currentTeam?.formation
   ) || formations[0];
 
-  // Recalculate auto-subs when mode or duration changes
+  // Recalculate auto-subs when mode, duration, or roster changes
   useEffect(() => {
     if (subMode === 'auto' && subs.length > 0) {
       const { plan, playtimes } = calculateRotationalSubs(starters, subs, totalMatchMinutes);
@@ -195,7 +195,7 @@ export default function MatchScreen() {
       setSubPlan([]);
       setPlaytimePreview([]);
     }
-  }, [subMode, halfDuration]);
+  }, [subMode, halfDuration, starters.length, subs.length]);
 
   const startMatch = async () => {
     setOnPitch([...starters]);
