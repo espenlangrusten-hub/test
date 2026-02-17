@@ -51,18 +51,44 @@ export default function TacticsScreen() {
     return 'MID';
   };
 
+  // Build assignments for a given formation from a player list
+  const buildAssignments = (form: Formation, players: PlayerData[]): { [key: number]: PlayerData | null } => {
+    if (players.length === 0) return {};
+    const newA: { [key: number]: PlayerData | null } = {};
+    const used = new Set<string>();
+    // Pass 1: exact position match
+    form.positions.forEach((slot, idx) => {
+      const m = players.find(p => !used.has(p.id) && p.position === slot.role);
+      if (m) { newA[idx] = m; used.add(m.id); }
+    });
+    // Pass 2: group match
+    form.positions.forEach((slot, idx) => {
+      if (newA[idx]) return;
+      const g = getGroup(slot.role);
+      const m = players.find(p => !used.has(p.id) && getGroup(p.position) === g);
+      if (m) { newA[idx] = m; used.add(m.id); }
+    });
+    // Pass 3: any remaining
+    form.positions.forEach((_, idx) => {
+      if (newA[idx]) return;
+      const m = players.find(p => !used.has(p.id));
+      if (m) { newA[idx] = m; used.add(m.id); }
+    });
+    return newA;
+  };
+
   useEffect(() => {
+    let activeFormation = formations[0];
     if (currentTeam?.formation) {
       const found = formations.find(f => f.name === currentTeam.formation || f.id === currentTeam.formation);
-      if (found) setSelectedFormation(found);
+      if (found) {
+        activeFormation = found;
+        setSelectedFormation(found);
+      }
     }
-    const initialAssign: { [key: number]: PlayerData | null } = {};
     const starters = allPlayers.filter(p => p.is_starter);
     const toAssign = starters.length > 0 ? starters : allPlayers;
-    (selectedFormation?.positions || []).forEach((_, idx) => {
-      if (idx < toAssign.length) initialAssign[idx] = toAssign[idx];
-    });
-    setAssignments(initialAssign);
+    setAssignments(buildAssignments(activeFormation, toAssign));
   }, []);
 
   // Sync allPlayers when currentTeam changes
@@ -74,32 +100,10 @@ export default function TacticsScreen() {
     setSelectedFormation(f);
     setIsCustomizing(false);
     setCustomPositions(null);
-    setAssignments(prev => {
-      const currentPlayers = Object.values(prev).filter(Boolean) as PlayerData[];
-      const playersToAssign = currentPlayers.length > 0 ? currentPlayers : allPlayers.slice(0, f.positions.length);
-      if (playersToAssign.length === 0) return {};
-      const newA: { [key: number]: PlayerData | null } = {};
-      const used = new Set<string>();
-      // Pass 1: exact
-      f.positions.forEach((slot, idx) => {
-        const m = playersToAssign.find(p => !used.has(p.id) && p.position === slot.role);
-        if (m) { newA[idx] = m; used.add(m.id); }
-      });
-      // Pass 2: group
-      f.positions.forEach((slot, idx) => {
-        if (newA[idx]) return;
-        const g = getGroup(slot.role);
-        const m = playersToAssign.find(p => !used.has(p.id) && getGroup(p.position) === g);
-        if (m) { newA[idx] = m; used.add(m.id); }
-      });
-      // Pass 3: any
-      f.positions.forEach((_, idx) => {
-        if (newA[idx]) return;
-        const m = playersToAssign.find(p => !used.has(p.id));
-        if (m) { newA[idx] = m; used.add(m.id); }
-      });
-      return newA;
-    });
+    // Use allPlayers as the source to ensure we always have a full roster
+    const currentAssigned = Object.values(assignments).filter(Boolean) as PlayerData[];
+    const playersToAssign = currentAssigned.length > 0 ? currentAssigned : allPlayers.filter(p => p.is_starter).length > 0 ? allPlayers.filter(p => p.is_starter) : allPlayers.slice(0, f.positions.length);
+    setAssignments(buildAssignments(f, playersToAssign));
   };
 
   const activePositions = customPositions || selectedFormation.positions;
