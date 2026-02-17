@@ -167,6 +167,7 @@ export default function PitchView({
   draggable = false,
   onPositionDrag,
   selectedIndex = null,
+  tacticalArrows = [],
 }: PitchViewProps) {
   const screenWidth = Dimensions.get('window').width;
   const w = screenWidth - 32;
