@@ -1,0 +1,100 @@
+{
+  "summary": "Frontend testing completed for football/futsal team management app with coaching features. All 11 requested features tested and PASSED. Coaching panel now shows 3 categories (Team Level, Defensive Line, Attack) with full tactic cards showing quote, problem, principle, actions. Tactical arrows render on pitch when applying coaching tactics.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "known_issues_from_prev_iteration": [
+      {
+        "component": "tactics.tsx - PitchView",
+        "issue": "Formation switching causes most players to disappear from pitch. Only 3 players visible instead of 11.",
+        "priority": "CRITICAL",
+        "status": "STILL PRESENT - Not fixed in this iteration"
+      }
+    ]
+  },
+  "test_results": {
+    "test_1_home_page_9v9_text": {
+      "status": "PASSED",
+      "description": "Football card shows '5v5 · 7v7 · 9v9 · 11v11' correctly"
+    },
+    "test_2_match_mode_button_on_tactics": {
+      "status": "PASSED",
+      "description": "Tactics screen green button says 'MATCH MODE' instead of 'START MATCH'"
+    },
+    "test_3_match_setup_header": {
+      "status": "PASSED",
+      "description": "Match setup screen heading says 'MATCH MODE'"
+    },
+    "test_4_minutes_per_half_selector": {
+      "status": "PASSED",
+      "description": "Shows 'MINUTES PER HALF' selector with options: 10, 15, 20, 25, 30, 35, 40, 45"
+    },
+    "test_5_total_match_time_hint": {
+      "status": "PASSED",
+      "description": "Shows 'Total match time: 90 min (45 x 2 halves)' hint below duration selector"
+    },
+    "test_6_expected_playing_time_section": {
+      "status": "PASSED",
+      "description": "EXPECTED PLAYING TIME section shows all players with progress bars. GK gets 90 min, outfield players get ~75 min each for rotation"
+    },
+    "test_7_substitution_plan_preview": {
+      "status": "PASSED",
+      "description": "SUBSTITUTION PLAN section shows upcoming subs with minute markers"
+    },
+    "test_8_start_match_button_position": {
+      "status": "PASSED",
+      "description": "START MATCH button is at bottom of match setup screen"
+    },
+    "test_9_live_match_half_labels": {
+      "status": "PASSED",
+      "description": "Timer shows '1ST HALF' label with progress bar and halftime marker at 50%"
+    },
+    "test_10_coaching_panel_3_categories": {
+      "status": "PASSED",
+      "description": "Coaching panel opens with exactly 3 categories: Team Level (2 tactics), Defensive Line (2 tactics), Attack (2 tactics)"
+    },
+    "test_11_coaching_tactic_card_content": {
+      "status": "PASSED",
+      "description": "Each coaching tactic card shows: quote (italic), quotedBy (manager name), problem (red dot), principle (green dot), action items (bullet points), APPLY ON PITCH button"
+    },
+    "test_12_tactical_arrows_on_pitch": {
+      "status": "PASSED",
+      "description": "Applying coaching tactic renders arrows on pitch view illustrating movement (blue arrows, red dashed arrows visible)"
+    }
+  },
+  "test_report_links": [
+    "/root/.emergent/automation_output/20260217_220920/",
+    "/root/.emergent/automation_output/20260217_220938/",
+    "/root/.emergent/automation_output/20260217_221007/",
+    "/root/.emergent/automation_output/20260217_221240/",
+    "/root/.emergent/automation_output/20260217_221321/",
+    "/root/.emergent/automation_output/20260217_221400/"
+  ],
+  "action_items": [
+    "CARRIED FORWARD: Fix formation switching bug in tactics.tsx (only 3 of 11 players visible after switching formations)",
+    "Consider adding overlay banner showing active coaching tactic on pitch (currently arrows show but banner may be hidden below fold)"
+  ],
+  "critical_code_review_comments": [
+    "coaching-data.ts correctly exports 3 categories with arrows data",
+    "PitchView.tsx correctly renders tacticalArrows prop",
+    "match.tsx correctly applies arrows when coaching tactic selected"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "100% (12/12 tests passed for new features)"
+  },
+  "seed_data_creation": "None - used existing team 'Monolitten g2012' (FOOTBALL, 11v11, 13 players)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All coaching features work correctly after expo restart. The coaching panel had cached old categories before restart. Make sure to test after fresh page load. Formation switching bug from iteration_6 still present but not blocking coaching features. The coaching-data.ts has 3 categories with 2 tactics each, all rendering correctly.",
+  "rca_of_the_issue": {
+    "note": "No new bugs found in this testing iteration. All 11 requested features working correctly.",
+    "previous_bug_status": "Formation switching bug (iteration_6) still present - main agent should fix"
+  }
+}
