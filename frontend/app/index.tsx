@@ -87,7 +87,7 @@ export default function HomeScreen() {
               <MaterialCommunityIcons name="shoe-cleat" size={44} color={Colors.primary} />
             </View>
             <Text style={styles.sportName}>FOOTBALL</Text>
-            <Text style={styles.sportFormats}>5v5 · 7v7 · 11v11</Text>
+            <Text style={styles.sportFormats}>5v5 · 7v7 · 9v9 · 11v11</Text>
           </TouchableOpacity>
 
           <TouchableOpacity
