@@ -692,8 +692,38 @@ export default function MatchScreen() {
           )}
         </View>
 
-        {/* Pitch */}
-        <PitchView positions={formation.positions} assignedPlayers={pitchAssignments} compact sport={sport} />
+        {/* Pitch with live updates */}
+        <View>
+          <PitchView
+            key={`live-${onPitch.map(p=>p.id).join('-')}`}
+            positions={formation.positions}
+            assignedPlayers={pitchAssignments}
+            compact sport={sport}
+          />
+          {/* Coaching overlay on pitch */}
+          {activeCoachingOverlay && (
+            <View style={styles.coachOverlayBanner}>
+              <View style={[styles.coachOverlayDot, { backgroundColor: activeCoachingOverlay.color }]} />
+              <Text style={styles.coachOverlayText} numberOfLines={1}>{activeCoachingOverlay.suggestion}</Text>
+              <TouchableOpacity onPress={() => setActiveCoachingOverlay(null)} hitSlop={{top:8,bottom:8,left:8,right:8}}>
+                <MaterialCommunityIcons name="close" size={14} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
+
+        {/* Recent coaching actions */}
+        {coachingNotes.length > 0 && (
+          <View style={styles.coachNotesSection}>
+            <Text style={[styles.label, { marginTop: 8 }]}>ACTIVE TACTICS</Text>
+            {coachingNotes.slice(-3).reverse().map((note, i) => (
+              <View key={i} style={styles.coachNoteRow}>
+                <MaterialCommunityIcons name="clipboard-check" size={14} color="#8B5CF6" />
+                <Text style={styles.coachNoteText} numberOfLines={1}>{note}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         {/* On Bench */}
         {onBench.length > 0 && (
