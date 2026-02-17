@@ -324,8 +324,15 @@ export default function MatchScreen() {
 
   const confirmSub = (sub: SubEntry) => {
     executeSub(sub.playerOutId, sub.playerOutName, sub.playerInId, sub.playerInName, true);
-    setShowSubAlert(null);
+    // Remove from queue, next item will auto-show
+    setSubAlertQueue(prev => prev.slice(1));
   };
+
+  const skipSub = () => {
+    setSubAlertQueue(prev => prev.slice(1));
+  };
+
+  const currentSubAlert = subAlertQueue.length > 0 ? subAlertQueue[0] : null;
 
   const executeSub = (outId: string, outName: string, inId: string, inName: string, isPlanned: boolean) => {
     setOnPitch(prev => prev.map(p => p.id === outId ? allPlayers.find(x => x.id === inId)! : p).filter(Boolean));
