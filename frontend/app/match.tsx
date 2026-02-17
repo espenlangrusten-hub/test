@@ -267,13 +267,11 @@ export default function MatchScreen() {
 
     // Sub alerts
     subPlan.forEach(sub => {
-      if (!sub.done && currentMin >= sub.minute && !alertedMinsRef.current.has(sub.minute + sub.playerOutId.hashCode)) {
-        const alertKey = `${sub.minute}-${sub.playerOutId}-${sub.playerInId}`;
-        if (!alertedMinsRef.current.has(alertKey as any)) {
-          alertedMinsRef.current.add(alertKey as any);
-          setShowSubAlert(sub);
-          if (Platform.OS !== 'web') Vibration.vibrate([0, 200, 100, 200]);
-        }
+      const alertKey = `${sub.minute}-${sub.playerOutId}-${sub.playerInId}`;
+      if (!sub.done && currentMin >= sub.minute && !alertedMinsRef.current.has(alertKey)) {
+        alertedMinsRef.current.add(alertKey);
+        setShowSubAlert(sub);
+        if (Platform.OS !== 'web') Vibration.vibrate([0, 200, 100, 200]);
       }
     });
   }, [elapsedSec, matchStatus]);
