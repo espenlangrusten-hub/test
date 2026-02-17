@@ -260,7 +260,9 @@ export default function PitchView({
                 height: dotSize,
                 borderRadius: dotSize / 2,
                 backgroundColor: player ? Colors.primary : 'rgba(255,255,255,0.15)',
-                borderColor: player ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)',
+                borderColor: selectedIndex === index ? '#FFD700' : (player ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.3)'),
+                borderWidth: selectedIndex === index ? 3 : 2,
+                transform: selectedIndex === index ? [{ scale: 1.15 }] : [],
               },
             ]}
             onPress={() => onPositionPress?.(index)}
