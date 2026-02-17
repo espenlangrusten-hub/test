@@ -26,6 +26,7 @@ interface PitchViewProps {
   sport?: string;
   draggable?: boolean;
   onPositionDrag?: (index: number, newX: number, newY: number) => void;
+  selectedIndex?: number | null;
 }
 
 function DraggableDot({
