@@ -47,8 +47,9 @@ function calculateRotationalSubs(
   const outfieldStarters = starters.filter(p => p.position !== 'GK');
   const allOutfield = [...outfieldStarters, ...bench];
   const pitchSlots = outfieldStarters.length;
+  const benchSize = bench.length;
 
-  if (bench.length === 0 || pitchSlots === 0) {
+  if (benchSize === 0 || pitchSlots === 0) {
     const playtimes: PlayerPlaytime[] = starters.map(p => ({
       id: p.id, name: p.name, number: p.number,
       expectedMinutes: totalMinutes, isGK: p.position === 'GK',
@@ -57,12 +58,14 @@ function calculateRotationalSubs(
   }
 
   const totalOutfield = allOutfield.length;
-  const targetTime = Math.floor((totalMinutes * pitchSlots) / totalOutfield);
-  const numWindows = Math.max(1, Math.ceil(totalOutfield / pitchSlots) - 1);
-  const windowSize = Math.floor(totalMinutes / (numWindows + 1));
+  // Create enough rotation windows so each player gets rest time
+  // numSegments = how many time blocks we divide the match into
+  const numSegments = Math.max(2, Math.ceil(totalOutfield / benchSize));
+  const windowSize = Math.floor(totalMinutes / numSegments);
+  const numWindows = numSegments - 1;
 
   // Track who's on pitch and accumulated time
-  const onPitchIds = new Set(outfieldStarters.map(p => p.id));
+  const onPitchSet = new Set(outfieldStarters.map(p => p.id));
   const playedTime: Record<string, number> = {};
   allOutfield.forEach(p => { playedTime[p.id] = 0; });
 
@@ -74,23 +77,23 @@ function calculateRotationalSubs(
     const elapsed = subMinute - lastWindowMin;
 
     // Accumulate time for players on pitch
-    onPitchIds.forEach(id => { playedTime[id] += elapsed; });
+    onPitchSet.forEach(id => { playedTime[id] += elapsed; });
 
-    // Sort on-pitch players by most played time descending
-    const onPitchSorted = [...onPitchIds]
+    // Sort on-pitch by most played (desc) - these come off
+    const onPitchSorted = [...onPitchSet]
       .map(id => ({ id, time: playedTime[id] }))
       .sort((a, b) => b.time - a.time);
 
-    // Sort off-pitch players by least played time ascending
+    // Sort off-pitch by least played (asc) - these come on
     const offPitch = allOutfield
-      .filter(p => !onPitchIds.has(p.id))
+      .filter(p => !onPitchSet.has(p.id))
       .map(p => ({ id: p.id, time: playedTime[p.id] }))
       .sort((a, b) => a.time - b.time);
 
-    // Determine how many subs: swap enough players to balance time
-    const subsCount = Math.min(offPitch.length, Math.max(1, Math.floor(pitchSlots / 2)));
+    // Swap: bring in all bench players, take out the ones who played most
+    const subsCount = Math.min(offPitch.length, onPitchSorted.length);
 
-    for (let s = 0; s < subsCount && s < offPitch.length; s++) {
+    for (let s = 0; s < subsCount; s++) {
       const outPlayer = allOutfield.find(p => p.id === onPitchSorted[s].id)!;
       const inPlayer = allOutfield.find(p => p.id === offPitch[s].id)!;
 
@@ -103,8 +106,8 @@ function calculateRotationalSubs(
         done: false,
       });
 
-      onPitchIds.delete(outPlayer.id);
-      onPitchIds.add(inPlayer.id);
+      onPitchSet.delete(outPlayer.id);
+      onPitchSet.add(inPlayer.id);
     }
 
     lastWindowMin = subMinute;
@@ -112,7 +115,7 @@ function calculateRotationalSubs(
 
   // Final segment time
   const finalElapsed = totalMinutes - lastWindowMin;
-  onPitchIds.forEach(id => { playedTime[id] += finalElapsed; });
+  onPitchSet.forEach(id => { playedTime[id] += finalElapsed; });
 
   // Build playtimes
   const playtimes: PlayerPlaytime[] = [];
