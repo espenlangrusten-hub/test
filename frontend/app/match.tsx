@@ -61,6 +61,21 @@ export default function MatchScreen() {
   const [playerRatings, setPlayerRatings] = useState<PlayerRating[]>([]);
   const [savingReview, setSavingReview] = useState(false);
 
+  // Score tracking
+  const [scoreHome, setScoreHome] = useState(0);
+  const [scoreAway, setScoreAway] = useState(0);
+
+  // Coaching panel
+  const [showCoaching, setShowCoaching] = useState(false);
+  const [selectedCoachCat, setSelectedCoachCat] = useState<CoachingCategory | null>(null);
+  const [coachingNotes, setCoachingNotes] = useState<string[]>([]);
+
+  // Edit sub plan
+  const [editingSubIdx, setEditingSubIdx] = useState<number | null>(null);
+  const [editSubOut, setEditSubOut] = useState<PlayerData | null>(null);
+  const [editSubIn, setEditSubIn] = useState<PlayerData | null>(null);
+  const [showEditSub, setShowEditSub] = useState(false);
+
   const allPlayers = currentTeam?.players || [];
   const starters = allPlayers.filter(p => p.is_starter);
   const subs = allPlayers.filter(p => !p.is_starter);
