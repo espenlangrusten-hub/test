@@ -1041,4 +1041,42 @@ const styles = StyleSheet.create({
     alignItems: 'center', backgroundColor: Colors.primary, gap: 6,
   },
   saveReviewText: { fontSize: 13, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
+
+  // Scoreboard
+  scoreboardContainer: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
+    backgroundColor: Colors.backgroundSecondary, borderRadius: 12, padding: 12,
+    borderWidth: 1, borderColor: Colors.border, marginBottom: 12, gap: 12,
+  },
+  scoreTeam: { flex: 1, alignItems: 'center' },
+  scoreTeamName: { fontSize: 11, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1, marginBottom: 6, textTransform: 'uppercase' },
+  scoreControls: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  scoreBtn: { width: 32, height: 32, borderRadius: 8, backgroundColor: Colors.card, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: Colors.border },
+  scoreBtnPlus: { width: 32, height: 32, borderRadius: 8, backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center' },
+  scoreValue: { fontSize: 28, fontWeight: '900', color: Colors.white, minWidth: 36, textAlign: 'center' },
+  scoreDivider: { fontSize: 20, fontWeight: '700', color: Colors.textMuted },
+
+  // Coaching
+  coachSubtitle: { fontSize: 13, color: Colors.textMuted, marginBottom: 12, lineHeight: 18 },
+  coachCatRow: {
+    flexDirection: 'row', alignItems: 'center', padding: 14,
+    backgroundColor: Colors.card, borderRadius: 10, marginBottom: 8,
+    borderWidth: 1, borderColor: Colors.border, gap: 12,
+  },
+  coachCatIcon: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  coachCatLabel: { fontSize: 14, fontWeight: '700', color: Colors.white },
+  coachCatCount: { fontSize: 11, color: Colors.textMuted },
+  coachSugCard: {
+    backgroundColor: Colors.card, borderRadius: 12, padding: 14,
+    marginBottom: 10, borderWidth: 1, borderColor: Colors.border,
+  },
+  coachSugHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  coachSugTitle: { fontSize: 15, fontWeight: '700', color: Colors.white, flex: 1 },
+  coachPhilBadge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6, marginLeft: 8 },
+  coachPhilText: { fontSize: 10, fontWeight: '700' },
+  coachSugDesc: { fontSize: 13, color: Colors.textSecondary, lineHeight: 19, marginBottom: 10 },
+  coachSugFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  coachSugPhil: { fontSize: 11, color: Colors.textMuted, fontStyle: 'italic' },
+  coachApplyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
+  coachApplyText: { fontSize: 11, fontWeight: '700', color: Colors.white },
 });
