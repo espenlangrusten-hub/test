@@ -21,6 +21,9 @@ interface MatchItem {
   starters: string[];
   subs: string[];
   player_notes: any[];
+  score_home?: number;
+  score_away?: number;
+  starting_lineup?: { id: string; name: string; number: number; position: string }[];
 }
 
 export default function MatchHistoryScreen() {
