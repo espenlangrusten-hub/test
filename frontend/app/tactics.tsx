@@ -294,7 +294,9 @@ export default function TacticsScreen() {
           <View>
             <Text style={styles.sectionTitle}>PITCH VIEW</Text>
             <Text style={styles.hint}>
-              {isCustomizing ? 'Drag players to reposition' : 'Tap player to move to bench'}
+              {isCustomizing ? 'Drag players to reposition' : 
+               selectedSwapIdx !== null ? 'Tap another player to SWAP, or empty slot to MOVE' : 
+               'Tap player to select, then swap positions'}
             </Text>
           </View>
           <TouchableOpacity
