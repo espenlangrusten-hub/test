@@ -1028,17 +1028,16 @@ export default function MatchScreen() {
 
             {!selectedCoachCat ? (
               <ScrollView>
-                <Text style={styles.coachSubtitle}>What's not working? Select a category:</Text>
                 {COACHING_CATEGORIES.map(cat => (
                   <TouchableOpacity key={cat.id} style={styles.coachCatRow} onPress={() => setSelectedCoachCat(cat)}>
                     <View style={[styles.coachCatIcon, { backgroundColor: cat.color + '20' }]}>
-                      <MaterialCommunityIcons name={cat.icon as any} size={22} color={cat.color} />
+                      <MaterialCommunityIcons name={cat.icon as any} size={20} color={cat.color} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={styles.coachCatLabel}>{cat.label}</Text>
-                      <Text style={styles.coachCatCount}>{cat.suggestions.length} suggestions</Text>
+                      <Text style={styles.coachCatCount}>{cat.suggestions.length} tactics</Text>
                     </View>
-                    <MaterialCommunityIcons name="chevron-right" size={20} color={Colors.textMuted} />
+                    <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textMuted} />
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -1046,27 +1045,43 @@ export default function MatchScreen() {
               <ScrollView>
                 {selectedCoachCat.suggestions.map(sug => (
                   <View key={sug.id} style={styles.coachSugCard}>
-                    <View style={styles.coachSugHeader}>
-                      <Text style={styles.coachSugTitle}>{sug.title}</Text>
-                      <View style={[styles.coachPhilBadge, { backgroundColor: selectedCoachCat.color + '20' }]}>
-                        <Text style={[styles.coachPhilText, { color: selectedCoachCat.color }]}>{sug.philosopher}</Text>
-                      </View>
+                    <Text style={styles.coachQuote}>{sug.quote}</Text>
+                    <Text style={styles.coachQuotedBy}>-- {sug.quotedBy}</Text>
+
+                    <View style={styles.coachRow}>
+                      <View style={[styles.coachDot, { backgroundColor: '#EF4444' }]} />
+                      <Text style={styles.coachProblem}>{sug.problem}</Text>
                     </View>
-                    <Text style={styles.coachSugDesc}>{sug.description}</Text>
-                    <View style={styles.coachSugFooter}>
-                      <Text style={styles.coachSugPhil}>{sug.philosophy}</Text>
-                      <TouchableOpacity style={styles.coachApplyBtn} onPress={() => {
-                        const note = `[${formatTime(elapsedSec)}] ${selectedCoachCat.label}: ${sug.title} (${sug.philosopher})`;
-                        setCoachingNotes(prev => [...prev, note]);
-                        addEvent(`Coach: ${sug.title}`);
-                        setActiveCoachingOverlay({ category: selectedCoachCat.label, suggestion: sug.title, color: selectedCoachCat.color });
-                        setShowCoaching(false);
-                        setSelectedCoachCat(null);
-                      }}>
-                        <MaterialCommunityIcons name="check" size={14} color={Colors.white} />
-                        <Text style={styles.coachApplyText}>APPLY</Text>
-                      </TouchableOpacity>
+                    <View style={styles.coachRow}>
+                      <View style={[styles.coachDot, { backgroundColor: '#00C853' }]} />
+                      <Text style={styles.coachPrinciple}>{sug.principle}</Text>
                     </View>
+
+                    <View style={styles.coachActions}>
+                      {sug.actions.map((a, i) => (
+                        <View key={i} style={styles.coachActionRow}>
+                          <Text style={styles.coachBullet}>{'\u2022'}</Text>
+                          <Text style={styles.coachActionText}>{a}</Text>
+                        </View>
+                      ))}
+                    </View>
+
+                    <TouchableOpacity style={[styles.coachApplyBtn, { backgroundColor: selectedCoachCat.color }]} onPress={() => {
+                      const note = `[${formatTime(elapsedSec)}] ${selectedCoachCat.label}: ${sug.quotedBy} - ${sug.actions[0]}`;
+                      setCoachingNotes(prev => [...prev, note]);
+                      addEvent(`Coach: ${sug.quotedBy} tactic`);
+                      setActiveCoachingOverlay({
+                        category: selectedCoachCat.label,
+                        suggestion: `${sug.quotedBy}: ${sug.actions[0]}`,
+                        color: selectedCoachCat.color,
+                        arrows: sug.arrows,
+                      });
+                      setShowCoaching(false);
+                      setSelectedCoachCat(null);
+                    }}>
+                      <MaterialCommunityIcons name="check" size={14} color={Colors.white} />
+                      <Text style={styles.coachApplyText}>APPLY ON PITCH</Text>
+                    </TouchableOpacity>
                   </View>
                 ))}
               </ScrollView>
