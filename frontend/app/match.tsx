@@ -185,17 +185,19 @@ export default function MatchScreen() {
     f => f.name === currentTeam?.formation || f.id === currentTeam?.formation
   ) || formations[0];
 
-  // Recalculate auto-subs when mode, duration, or roster changes
-  useEffect(() => {
-    if (subMode === 'auto' && subs.length > 0) {
-      const { plan, playtimes } = calculateRotationalSubs(starters, subs, totalMatchMinutes);
-      setSubPlan(plan);
-      setPlaytimePreview(playtimes);
-    } else {
-      setSubPlan([]);
-      setPlaytimePreview([]);
+  // Compute auto-subs synchronously using useMemo - avoids stale closure issues
+  const { computedPlan, computedPlaytimes } = useMemo(() => {
+    if (subMode === 'auto' && subs.length > 0 && starters.length > 0) {
+      return calculateRotationalSubs(starters, subs, totalMatchMinutes);
     }
-  }, [subMode, halfDuration, starters.length, subs.length]);
+    return { computedPlan: [] as SubEntry[], computedPlaytimes: [] as PlayerPlaytime[] };
+  }, [subMode, halfDuration, JSON.stringify(starters.map(p => p.id)), JSON.stringify(subs.map(p => p.id))]);
+
+  // Sync plan to state for live tracking (mark done etc)
+  useEffect(() => {
+    setSubPlan(computedPlan.map(s => ({ ...s })));
+    setPlaytimePreview(computedPlaytimes);
+  }, [computedPlan, computedPlaytimes]);
 
   const startMatch = async () => {
     setOnPitch([...starters]);
