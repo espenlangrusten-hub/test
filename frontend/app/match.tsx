@@ -944,6 +944,9 @@ export default function MatchScreen() {
                         const note = `[${formatTime(elapsedSec)}] ${selectedCoachCat.label}: ${sug.title} (${sug.philosopher})`;
                         setCoachingNotes(prev => [...prev, note]);
                         addEvent(`Coach: ${sug.title}`);
+                        setActiveCoachingOverlay({ category: selectedCoachCat.label, suggestion: sug.title, color: selectedCoachCat.color });
+                        setShowCoaching(false);
+                        setSelectedCoachCat(null);
                       }}>
                         <MaterialCommunityIcons name="check" size={14} color={Colors.white} />
                         <Text style={styles.coachApplyText}>APPLY</Text>
