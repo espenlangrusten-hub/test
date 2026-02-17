@@ -107,15 +107,53 @@ export default function TacticsScreen() {
   const benchPlayers = allPlayers.filter(p => !assignedIds.includes(p.id));
   const unassignedPlayers = allPlayers.filter(p => !assignedIds.includes(p.id));
 
+  // Selection state for swap mode
+  const [selectedSwapIdx, setSelectedSwapIdx] = useState<number | null>(null);
+
   const handlePositionPress = (idx: number) => {
-    if (assignments[idx]) {
-      // Show options: remove from pitch (move to bench)
-      const updated = { ...assignments };
-      delete updated[idx];
-      setAssignments(updated);
+    if (selectedSwapIdx !== null) {
+      // Second tap — perform action
+      if (selectedSwapIdx === idx) {
+        // Tapped same player again → deselect
+        setSelectedSwapIdx(null);
+        return;
+      }
+      if (assignments[idx]) {
+        // Both positions have players → SWAP them
+        setAssignments(prev => ({
+          ...prev,
+          [idx]: prev[selectedSwapIdx],
+          [selectedSwapIdx]: prev[idx],
+        }));
+      } else {
+        // Empty position → MOVE selected player there
+        setAssignments(prev => {
+          const updated = { ...prev };
+          updated[idx] = updated[selectedSwapIdx];
+          delete updated[selectedSwapIdx];
+          return updated;
+        });
+      }
+      setSelectedSwapIdx(null);
     } else {
-      setSelectedPosIdx(idx);
-      setShowPlayerPicker(true);
+      if (assignments[idx]) {
+        // First tap on a player → SELECT for swap
+        setSelectedSwapIdx(idx);
+      } else {
+        // Tap on empty position → open player picker from bench
+        setSelectedPosIdx(idx);
+        setShowPlayerPicker(true);
+      }
+    }
+  };
+
+  // Move selected player to bench
+  const moveSelectedToBench = () => {
+    if (selectedSwapIdx !== null && assignments[selectedSwapIdx]) {
+      const updated = { ...assignments };
+      delete updated[selectedSwapIdx];
+      setAssignments(updated);
+      setSelectedSwapIdx(null);
     }
   };
 
