@@ -268,15 +268,19 @@ export default function MatchScreen() {
       return;
     }
 
-    // Sub alerts
-    subPlan.forEach(sub => {
+    // Sub alerts - queue all due subs at once
+    const dueSubs = subPlan.filter(sub => {
       const alertKey = `${sub.minute}-${sub.playerOutId}-${sub.playerInId}`;
-      if (!sub.done && currentMin >= sub.minute && !alertedMinsRef.current.has(alertKey)) {
-        alertedMinsRef.current.add(alertKey);
-        setShowSubAlert(sub);
-        if (Platform.OS !== 'web') Vibration.vibrate([0, 200, 100, 200]);
-      }
+      return !sub.done && currentMin >= sub.minute && !alertedMinsRef.current.has(alertKey);
     });
+    if (dueSubs.length > 0) {
+      dueSubs.forEach(sub => {
+        const alertKey = `${sub.minute}-${sub.playerOutId}-${sub.playerInId}`;
+        alertedMinsRef.current.add(alertKey);
+      });
+      setSubAlertQueue(prev => [...prev, ...dueSubs]);
+      if (Platform.OS !== 'web') Vibration.vibrate([0, 200, 100, 200]);
+    }
   }, [elapsedSec, matchStatus]);
 
   const pauseMatch = () => {
