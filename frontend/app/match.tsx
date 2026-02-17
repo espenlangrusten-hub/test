@@ -567,6 +567,41 @@ export default function MatchScreen() {
           <Text style={styles.timerMeta}>{opponent ? `vs ${opponent}` : ''} · {durationMin} min</Text>
         </View>
 
+        {/* Scoreboard */}
+        <View style={styles.scoreboardContainer}>
+          <View style={styles.scoreTeam}>
+            <Text style={styles.scoreTeamName} numberOfLines={1}>{currentTeam?.name || 'HOME'}</Text>
+            <View style={styles.scoreControls}>
+              <TouchableOpacity style={styles.scoreBtn} onPress={() => setScoreHome(Math.max(0, scoreHome - 1))}>
+                <MaterialCommunityIcons name="minus" size={18} color={Colors.textMuted} />
+              </TouchableOpacity>
+              <Text style={styles.scoreValue}>{scoreHome}</Text>
+              <TouchableOpacity style={styles.scoreBtnPlus} onPress={() => {
+                setScoreHome(scoreHome + 1);
+                addEvent(`GOAL! ${currentTeam?.name || 'Home'} (${scoreHome + 1}-${scoreAway})`);
+              }}>
+                <MaterialCommunityIcons name="plus" size={18} color={Colors.white} />
+              </TouchableOpacity>
+            </View>
+          </View>
+          <Text style={styles.scoreDivider}>—</Text>
+          <View style={styles.scoreTeam}>
+            <Text style={styles.scoreTeamName} numberOfLines={1}>{opponent || 'AWAY'}</Text>
+            <View style={styles.scoreControls}>
+              <TouchableOpacity style={styles.scoreBtn} onPress={() => setScoreAway(Math.max(0, scoreAway - 1))}>
+                <MaterialCommunityIcons name="minus" size={18} color={Colors.textMuted} />
+              </TouchableOpacity>
+              <Text style={styles.scoreValue}>{scoreAway}</Text>
+              <TouchableOpacity style={styles.scoreBtnPlus} onPress={() => {
+                setScoreAway(scoreAway + 1);
+                addEvent(`GOAL! ${opponent || 'Away'} (${scoreHome}-${scoreAway + 1})`);
+              }}>
+                <MaterialCommunityIcons name="plus" size={18} color={Colors.white} />
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+
         {/* Controls */}
         <View style={styles.controlRow}>
           {matchStatus === 'live' && (
