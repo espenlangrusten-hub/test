@@ -188,7 +188,8 @@ export default function MatchScreen() {
   // Compute auto-subs synchronously using useMemo - avoids stale closure issues
   const { computedPlan, computedPlaytimes } = useMemo(() => {
     if (subMode === 'auto' && subs.length > 0 && starters.length > 0) {
-      return calculateRotationalSubs(starters, subs, totalMatchMinutes);
+      const result = calculateRotationalSubs(starters, subs, totalMatchMinutes);
+      return { computedPlan: result.plan, computedPlaytimes: result.playtimes };
     }
     return { computedPlan: [] as SubEntry[], computedPlaytimes: [] as PlayerPlaytime[] };
   }, [subMode, halfDuration, JSON.stringify(starters.map(p => p.id)), JSON.stringify(subs.map(p => p.id))]);
