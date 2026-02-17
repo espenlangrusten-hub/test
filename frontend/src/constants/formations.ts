@@ -9,7 +9,7 @@ export interface Formation {
   name: string;
   displayName: string;
   sport: 'football' | 'futsal';
-  format: '5v5' | '7v7' | '11v11';
+  format: '5v5' | '7v7' | '9v9' | '11v11';
   positions: PositionSlot[];
   managerName?: string;
   managerStyle?: string;
