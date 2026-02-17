@@ -165,6 +165,7 @@ export default function PitchView({
   sport = 'football',
   draggable = false,
   onPositionDrag,
+  selectedIndex = null,
 }: PitchViewProps) {
   const screenWidth = Dimensions.get('window').width;
   const w = screenWidth - 32;
