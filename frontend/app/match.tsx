@@ -347,12 +347,46 @@ export default function MatchScreen() {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  // Build pitch assignments from current on-pitch players
+  // Build pitch assignments from current on-pitch players, mapping by position
   const pitchAssignments: { [key: number]: PlayerData | null } = {};
   const pitchPlayers = matchStatus === 'setup' ? starters : onPitch;
-  formation.positions.forEach((_, idx) => {
-    if (idx < pitchPlayers.length) pitchAssignments[idx] = pitchPlayers[idx];
+
+  // Smart assignment: try to match players to formation slots by position
+  const POSITION_GROUPS: Record<string, string[]> = {
+    GK: ['GK'],
+    DEF: ['CB', 'LB', 'RB', 'LWB', 'RWB', 'DEF', 'Fixo'],
+    MID: ['CM', 'CDM', 'CAM', 'LM', 'RM', 'LAM', 'RAM', 'MID', 'Ala'],
+    FWD: ['ST', 'CF', 'LW', 'RW', 'FWD', 'Pivot'],
+  };
+  const getGroup = (role: string): string => {
+    for (const [group, roles] of Object.entries(POSITION_GROUPS)) {
+      if (roles.includes(role)) return group;
+    }
+    return 'MID';
+  };
+
+  const usedIds = new Set<string>();
+  // Pass 1: exact position match
+  formation.positions.forEach((slot, idx) => {
+    const match = pitchPlayers.find(p => !usedIds.has(p.id) && p.position === slot.role);
+    if (match) { pitchAssignments[idx] = match; usedIds.add(match.id); }
   });
+  // Pass 2: group match
+  formation.positions.forEach((slot, idx) => {
+    if (pitchAssignments[idx]) return;
+    const g = getGroup(slot.role);
+    const match = pitchPlayers.find(p => !usedIds.has(p.id) && getGroup(p.position) === g);
+    if (match) { pitchAssignments[idx] = match; usedIds.add(match.id); }
+  });
+  // Pass 3: any remaining
+  formation.positions.forEach((_, idx) => {
+    if (pitchAssignments[idx]) return;
+    const match = pitchPlayers.find(p => !usedIds.has(p.id));
+    if (match) { pitchAssignments[idx] = match; usedIds.add(match.id); }
+  });
+
+  // Track active coaching overlay for pitch
+  const [activeCoachingOverlay, setActiveCoachingOverlay] = useState<{category: string, suggestion: string, color: string} | null>(null);
 
   const pendingSubs = subPlan.filter(s => !s.done);
   const doneSubs = subPlan.filter(s => s.done);
