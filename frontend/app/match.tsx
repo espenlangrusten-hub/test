@@ -614,6 +614,10 @@ export default function MatchScreen() {
                 <MaterialCommunityIcons name="swap-horizontal-bold" size={28} color={Colors.accent} />
                 <Text style={[styles.controlLabel, { color: Colors.accent }]}>SUB</Text>
               </TouchableOpacity>
+              <TouchableOpacity testID="coaching-btn" style={styles.controlBtn} onPress={() => setShowCoaching(true)}>
+                <MaterialCommunityIcons name="clipboard-text" size={28} color="#8B5CF6" />
+                <Text style={[styles.controlLabel, { color: '#8B5CF6' }]}>COACH</Text>
+              </TouchableOpacity>
               <TouchableOpacity testID="end-btn" style={styles.controlBtn} onPress={() => setShowEndConfirm(true)}>
                 <MaterialCommunityIcons name="stop" size={28} color={Colors.destructive} />
                 <Text style={[styles.controlLabel, { color: Colors.destructive }]}>END</Text>
@@ -629,6 +633,10 @@ export default function MatchScreen() {
               <TouchableOpacity testID="manual-sub-btn-paused" style={styles.controlBtn} onPress={() => setShowManualSub(true)}>
                 <MaterialCommunityIcons name="swap-horizontal-bold" size={28} color={Colors.accent} />
                 <Text style={[styles.controlLabel, { color: Colors.accent }]}>SUB</Text>
+              </TouchableOpacity>
+              <TouchableOpacity testID="coaching-btn-paused" style={styles.controlBtn} onPress={() => setShowCoaching(true)}>
+                <MaterialCommunityIcons name="clipboard-text" size={28} color="#8B5CF6" />
+                <Text style={[styles.controlLabel, { color: '#8B5CF6' }]}>COACH</Text>
               </TouchableOpacity>
               <TouchableOpacity testID="end-btn-paused" style={styles.controlBtn} onPress={() => setShowEndConfirm(true)}>
                 <MaterialCommunityIcons name="stop" size={28} color={Colors.destructive} />
