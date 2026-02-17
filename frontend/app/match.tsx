@@ -1146,4 +1146,22 @@ const styles = StyleSheet.create({
   coachSugPhil: { fontSize: 11, color: Colors.textMuted, fontStyle: 'italic' },
   coachApplyBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   coachApplyText: { fontSize: 11, fontWeight: '700', color: Colors.white },
+
+  // Coaching overlay on pitch
+  coachOverlayBanner: {
+    position: 'absolute', bottom: 8, left: 8, right: 8,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: 'rgba(0,0,0,0.85)', borderRadius: 8, paddingHorizontal: 10, paddingVertical: 8,
+  },
+  coachOverlayDot: { width: 8, height: 8, borderRadius: 4 },
+  coachOverlayText: { flex: 1, fontSize: 12, fontWeight: '700', color: Colors.white },
+
+  // Coaching notes section
+  coachNotesSection: { marginBottom: 8 },
+  coachNoteRow: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    paddingVertical: 5, paddingHorizontal: 8,
+    backgroundColor: 'rgba(139,92,246,0.08)', borderRadius: 6, marginTop: 4,
+  },
+  coachNoteText: { flex: 1, fontSize: 11, color: '#C4B5FD' },
 });
