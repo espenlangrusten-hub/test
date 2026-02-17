@@ -77,6 +77,9 @@ class MatchCreate(BaseModel):
     subs: List[str] = []
     sub_mode: str = "manual"
     sub_plan: List[SubPlan] = []
+    score_home: int = 0
+    score_away: int = 0
+    starting_lineup: List[dict] = []
 
 
 class MatchUpdate(BaseModel):
@@ -91,6 +94,10 @@ class MatchUpdate(BaseModel):
     events: Optional[List[MatchEvent]] = None
     player_notes: Optional[List[PlayerNote]] = None
     status: Optional[str] = None
+    score_home: Optional[int] = None
+    score_away: Optional[int] = None
+    starting_lineup: Optional[List[dict]] = None
+    coaching_notes: Optional[List[dict]] = None
 
 
 # ---- Team Endpoints ----
