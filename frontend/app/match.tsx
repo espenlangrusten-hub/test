@@ -813,6 +813,7 @@ export default function MatchScreen() {
             positions={formation.positions}
             assignedPlayers={pitchAssignments}
             compact sport={sport}
+            tacticalArrows={activeCoachingOverlay?.arrows || []}
           />
           {activeCoachingOverlay && (
             <View style={styles.coachOverlayBanner}>
