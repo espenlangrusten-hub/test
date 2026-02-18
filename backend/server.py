@@ -30,6 +30,7 @@ class Player(BaseModel):
     position: str = ""
     is_captain: bool = False
     is_starter: bool = True
+    available: bool = True
     set_piece_roles: List[str] = []
 
 
