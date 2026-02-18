@@ -1029,7 +1029,7 @@ export default function MatchScreen() {
 
             {!selectedCoachCat ? (
               <ScrollView>
-                {COACHING_CATEGORIES.map(cat => (
+                {coachingCategories.map(cat => (
                   <TouchableOpacity key={cat.id} style={styles.coachCatRow} onPress={() => setSelectedCoachCat(cat)}>
                     <View style={[styles.coachCatIcon, { backgroundColor: cat.color + '20' }]}>
                       <MaterialCommunityIcons name={cat.icon as any} size={20} color={cat.color} />
@@ -1046,9 +1046,6 @@ export default function MatchScreen() {
               <ScrollView>
                 {selectedCoachCat.suggestions.map(sug => (
                   <View key={sug.id} style={styles.coachSugCard}>
-                    <Text style={styles.coachQuote}>{sug.quote}</Text>
-                    <Text style={styles.coachQuotedBy}>-- {sug.quotedBy}</Text>
-
                     <View style={styles.coachRow}>
                       <View style={[styles.coachDot, { backgroundColor: '#EF4444' }]} />
                       <Text style={styles.coachProblem}>{sug.problem}</Text>
@@ -1083,6 +1080,9 @@ export default function MatchScreen() {
                       <MaterialCommunityIcons name="check" size={14} color={Colors.white} />
                       <Text style={styles.coachApplyText}>APPLY ON PITCH</Text>
                     </TouchableOpacity>
+
+                    <Text style={styles.coachQuote}>{sug.quote}</Text>
+                    <Text style={styles.coachQuotedBy}>-- {sug.quotedBy}</Text>
                   </View>
                 ))}
               </ScrollView>
