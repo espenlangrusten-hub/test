@@ -539,6 +539,139 @@ class TestPlayerNotes:
         assert len(notes) == 0
 
 
+class TestPlayerStats:
+    """Player stats endpoint tests - GET /api/teams/{team_id}/player-stats"""
+    
+    def test_get_player_stats_success(self, api_client, test_team, test_match):
+        """Test getting player stats returns match counts"""
+        # First complete the match so it counts in stats
+        update_data = {"status": "completed"}
+        api_client.put(f"{BASE_URL}/api/matches/{test_match['id']}", json=update_data)
+        
+        response = api_client.get(f"{BASE_URL}/api/teams/{test_team['id']}/player-stats")
+        assert response.status_code == 200
+        
+        stats = response.json()
+        assert isinstance(stats, dict)
+        # Player stats should include starters from completed matches
+        for player_id in stats:
+            assert isinstance(stats[player_id], int)
+    
+    def test_get_player_stats_empty_team(self, api_client):
+        """Test getting player stats for team with no completed matches"""
+        # Create a fresh team
+        team_data = {
+            "name": "TEST_Empty Stats Team",
+            "sport": "football",
+            "format": "11v11",
+            "players": [],
+            "formation": "",
+            "tactic_name": ""
+        }
+        response = api_client.post(f"{BASE_URL}/api/teams", json=team_data)
+        team = response.json()
+        
+        # Get stats (should be empty since no completed matches)
+        stats_response = api_client.get(f"{BASE_URL}/api/teams/{team['id']}/player-stats")
+        assert stats_response.status_code == 200
+        
+        stats = stats_response.json()
+        assert isinstance(stats, dict)
+        assert len(stats) == 0
+        
+        # Cleanup
+        api_client.delete(f"{BASE_URL}/api/teams/{team['id']}")
+
+
+class TestPlayerAvailability:
+    """Tests for player 'available' field in team operations"""
+    
+    def test_create_team_with_available_players(self, api_client):
+        """Test creating a team with players that have available field"""
+        team_data = {
+            "name": "TEST_Available Players Team",
+            "sport": "football",
+            "format": "11v11",
+            "players": [
+                {
+                    "id": "avail-player-1",
+                    "name": "Available Player",
+                    "number": 1,
+                    "position": "GK",
+                    "is_captain": False,
+                    "is_starter": True,
+                    "available": True,
+                    "set_piece_roles": []
+                },
+                {
+                    "id": "unavail-player-2",
+                    "name": "Unavailable Player",
+                    "number": 2,
+                    "position": "CB",
+                    "is_captain": False,
+                    "is_starter": False,
+                    "available": False,
+                    "set_piece_roles": []
+                }
+            ],
+            "formation": "4-3-3",
+            "tactic_name": "Test"
+        }
+        
+        response = api_client.post(f"{BASE_URL}/api/teams", json=team_data)
+        assert response.status_code == 200
+        
+        team = response.json()
+        assert len(team["players"]) == 2
+        
+        # Find players and verify availability
+        available_player = next((p for p in team["players"] if p["id"] == "avail-player-1"), None)
+        unavailable_player = next((p for p in team["players"] if p["id"] == "unavail-player-2"), None)
+        
+        assert available_player is not None
+        assert available_player.get("available", True) == True
+        
+        assert unavailable_player is not None
+        assert unavailable_player.get("available", True) == False
+        
+        # Cleanup
+        api_client.delete(f"{BASE_URL}/api/teams/{team['id']}")
+    
+    def test_update_player_availability(self, api_client, test_team):
+        """Test updating player availability"""
+        # Get current players
+        initial_players = test_team["players"]
+        
+        # Update first player to unavailable
+        updated_players = []
+        for p in initial_players:
+            updated_player = {**p}
+            if p["id"] == "test-player-1":
+                updated_player["available"] = False
+            else:
+                updated_player["available"] = True
+            updated_players.append(updated_player)
+        
+        update_data = {
+            "name": test_team["name"],
+            "sport": test_team["sport"],
+            "format": test_team["format"],
+            "players": updated_players,
+            "formation": test_team["formation"],
+            "tactic_name": test_team["tactic_name"]
+        }
+        
+        response = api_client.put(f"{BASE_URL}/api/teams/{test_team['id']}", json=update_data)
+        assert response.status_code == 200
+        
+        updated = response.json()
+        
+        # Verify changes persisted
+        unavailable_player = next((p for p in updated["players"] if p["id"] == "test-player-1"), None)
+        assert unavailable_player is not None
+        assert unavailable_player.get("available", True) == False
+
+
 class TestEdgeCases:
     """Edge cases and validation tests"""
     
