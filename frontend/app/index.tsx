@@ -43,7 +43,7 @@ export default function HomeScreen() {
     setSport(team.sport);
     setFormat(team.format);
     setCurrentTeam(team);
-    router.push('/tactics');
+    router.push('/team');
   };
 
   const editTeam = (team: any) => {
