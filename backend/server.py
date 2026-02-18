@@ -241,6 +241,24 @@ async def get_player_notes(player_id: str):
     return notes
 
 
+@api_router.get("/teams/{team_id}/player-stats")
+async def get_player_stats(team_id: str):
+    matches = await db.matches.find(
+        {"team_id": team_id, "status": "completed"},
+        {"_id": 0, "starters": 1, "subs": 1, "starting_lineup": 1, "events": 1}
+    ).to_list(500)
+    stats = {}
+    for match in matches:
+        all_ids = set(match.get("starters", []))
+        for ev in match.get("events", []):
+            pid = ev.get("player_in_id")
+            if pid:
+                all_ids.add(pid)
+        for pid in all_ids:
+            stats[pid] = stats.get(pid, 0) + 1
+    return stats
+
+
 # ---- Health ----
 
 @api_router.get("/health")
