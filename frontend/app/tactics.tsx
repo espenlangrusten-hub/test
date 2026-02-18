@@ -29,8 +29,8 @@ export default function TacticsScreen() {
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [customPositions, setCustomPositions] = useState<PositionSlot[] | null>(null);
 
-  // Lineup management
-  const [allPlayers, setAllPlayers] = useState<PlayerData[]>(currentTeam?.players || []);
+  // Lineup management — only show available players
+  const [allPlayers, setAllPlayers] = useState<PlayerData[]>((currentTeam?.players || []).filter(p => p.available !== false));
   const [showAddPlayer, setShowAddPlayer] = useState(false);
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerNumber, setNewPlayerNumber] = useState('');
@@ -91,9 +91,9 @@ export default function TacticsScreen() {
     setAssignments(buildAssignments(activeFormation, toAssign));
   }, []);
 
-  // Sync allPlayers when currentTeam changes
+  // Sync allPlayers when currentTeam changes — only available
   useEffect(() => {
-    if (currentTeam?.players) setAllPlayers(currentTeam.players);
+    if (currentTeam?.players) setAllPlayers(currentTeam.players.filter(p => p.available !== false));
   }, [currentTeam?.players]);
 
   const changeFormation = (f: Formation) => {
