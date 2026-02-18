@@ -9,6 +9,7 @@ export interface PlayerData {
   position: string;
   is_captain: boolean;
   is_starter: boolean;
+  available: boolean;
   set_piece_roles: string[];
 }
 
