@@ -134,6 +134,7 @@ export default function MatchScreen() {
   const { sport, format, currentTeam } = useApp();
   const formations = getFormations(sport, format);
   const startersCount = STARTERS_COUNT[format] || 5;
+  const coachingCategories = getCoachingCategories(format);
 
   // Halftime-based duration
   const defaultHalf = format === '11v11' ? 45 : format === '9v9' ? 35 : format === '7v7' ? 30 : 20;
