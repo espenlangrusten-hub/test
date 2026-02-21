@@ -323,18 +323,108 @@ async def get_player_notes(player_id: str, user: dict = Depends(get_current_user
 async def get_player_stats(team_id: str, user: dict = Depends(get_current_user)):
     matches = await db.matches.find(
         {"team_id": team_id, "user_id": user["user_id"], "status": "completed"},
-        {"_id": 0, "starters": 1, "subs": 1, "starting_lineup": 1, "events": 1}
+        {"_id": 0, "starters": 1, "subs": 1, "starting_lineup": 1, "events": 1, "duration_minutes": 1}
     ).to_list(500)
     stats = {}
     for match in matches:
         all_ids = set(match.get("starters", []))
         for ev in match.get("events", []):
-            pid = ev.get("player_in_id")
-            if pid:
-                all_ids.add(pid)
+            detail = ev.get("detail", "")
+            pid = ev.get("player_id", "")
+            if ev.get("player_in_id"):
+                all_ids.add(ev["player_in_id"])
+            if pid and "GOAL" in detail.upper():
+                stats.setdefault(pid, {"matches": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "minutes": 0})
+                stats[pid]["goals"] += 1
+            if pid and "ASSIST" in detail.upper():
+                stats.setdefault(pid, {"matches": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "minutes": 0})
+                stats[pid]["assists"] += 1
+            if pid and "YELLOW" in detail.upper():
+                stats.setdefault(pid, {"matches": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "minutes": 0})
+                stats[pid]["yellow"] += 1
+            if pid and "RED" in detail.upper():
+                stats.setdefault(pid, {"matches": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "minutes": 0})
+                stats[pid]["red"] += 1
+        dur = match.get("duration_minutes", 0)
         for pid in all_ids:
-            stats[pid] = stats.get(pid, 0) + 1
+            stats.setdefault(pid, {"matches": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "minutes": 0})
+            stats[pid]["matches"] += 1
+            stats[pid]["minutes"] += dur
+    # Add average rating
+    for pid in stats:
+        notes = await db.matches.find(
+            {"team_id": team_id, "user_id": user["user_id"], "player_notes.player_id": pid},
+            {"_id": 0, "player_notes": 1}
+        ).to_list(500)
+        ratings = []
+        for m in notes:
+            for n in m.get("player_notes", []):
+                if n.get("player_id") == pid and n.get("rating"):
+                    ratings.append(n["rating"])
+        stats[pid]["avg_rating"] = round(sum(ratings) / len(ratings), 1) if ratings else 0
     return stats
+
+
+@api_router.post("/teams/{team_id}/training-suggestions")
+async def get_training_suggestions(team_id: str, body: dict, user: dict = Depends(get_current_user)):
+    team = await db.teams.find_one({"id": team_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    llm_key = os.environ.get("EMERGENT_LLM_KEY", "")
+    category = body.get("category", "general")
+
+    matches = await db.matches.find(
+        {"team_id": team_id, "user_id": user["user_id"], "status": "completed"},
+        {"_id": 0, "opponent": 1, "score_home": 1, "score_away": 1, "formation": 1, "events": 1}
+    ).sort("created_at", -1).to_list(5)
+
+    match_summary = ""
+    for m in matches:
+        sh = m.get("score_home", 0)
+        sa = m.get("score_away", 0)
+        result = "W" if sh > sa else "L" if sh < sa else "D"
+        match_summary += f"vs {m.get('opponent','?')} {sh}-{sa} ({result}, {m.get('formation','?')})\n"
+
+    prompt = f"""You are a football/futsal coach. Generate 3 training session suggestions for a {team.get('age_group', 'youth')} team playing {team.get('format', '11v11')} {team.get('sport', 'football')}.
+
+Category: {category} (general/defensive/attacking)
+Preferred formation: {team.get('formation', 'not set')}
+
+Recent match results:
+{match_summary or 'No matches yet'}
+
+For each session provide:
+1. title: Short session name
+2. duration: How long (e.g. "60 min")
+3. focus: Key focus area
+4. description: 2-3 sentence overview
+5. drills: Array of 3-4 drills, each with:
+   - name: Drill name
+   - duration: e.g. "10 min"
+   - description: What to do
+   - setup: How to set up
+   - coaching_points: 2-3 key coaching points
+
+Return valid JSON array of 3 sessions. No markdown, just the JSON array."""
+
+    chat = LlmChat(api_key=llm_key, session_id=f"training-{team_id}-{category}", system_message="You are a professional football coach assistant. Return only valid JSON.")
+    chat.with_model("openai", "gpt-5.2")
+    response = await chat.send_message(UserMessage(text=prompt))
+
+    import json as json_mod
+    try:
+        sessions = json_mod.loads(response)
+    except:
+        try:
+            start = response.index('[')
+            end = response.rindex(']') + 1
+            sessions = json_mod.loads(response[start:end])
+        except:
+            sessions = [{"title": "Error", "description": response, "drills": []}]
+
+    return {"sessions": sessions, "category": category}
 
 
 # ---- Health ----
