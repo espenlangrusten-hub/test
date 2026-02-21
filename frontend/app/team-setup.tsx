@@ -97,6 +97,7 @@ export default function TeamSetupScreen() {
         name: teamName.trim(),
         sport,
         format,
+        age_group: ageGroup,
         players,
       });
       setCurrentTeam(saved);
