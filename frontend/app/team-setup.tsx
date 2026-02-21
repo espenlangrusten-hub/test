@@ -30,6 +30,7 @@ export default function TeamSetupScreen() {
   useEffect(() => {
     if (currentTeam) {
       setTeamName(currentTeam.name);
+      setAgeGroup(currentTeam.age_group || '');
       setPlayers(currentTeam.players || []);
     }
   }, [currentTeam]);
