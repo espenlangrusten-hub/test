@@ -68,6 +68,15 @@ export default function HomeScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
+          <View style={styles.topRow}>
+            <View style={styles.userInfo}>
+              <MaterialCommunityIcons name="account-circle" size={24} color={Colors.primary} />
+              <Text style={styles.userName}>{user?.name || user?.email || ''}</Text>
+            </View>
+            <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={logout}>
+              <MaterialCommunityIcons name="logout" size={18} color={Colors.textMuted} />
+            </TouchableOpacity>
+          </View>
           <View style={styles.logoRow}>
             <MaterialCommunityIcons name="strategy" size={36} color={Colors.primary} />
           </View>
