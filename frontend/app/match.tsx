@@ -131,10 +131,15 @@ function calculateRotationalSubs(
 
 export default function MatchScreen() {
   const router = useRouter();
-  const { sport, format, currentTeam } = useApp();
+  const { sport, format, currentTeam, token } = useApp();
   const formations = getFormations(sport, format);
   const startersCount = STARTERS_COUNT[format] || 5;
   const coachingCategories = getCoachingCategories(format);
+  const authHeaders = (): Record<string, string> => {
+    const h: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = `Bearer ${token}`;
+    return h;
+  };
 
   // Halftime-based duration
   const defaultHalf = format === '11v11' ? 45 : format === '9v9' ? 35 : format === '7v7' ? 30 : 20;
