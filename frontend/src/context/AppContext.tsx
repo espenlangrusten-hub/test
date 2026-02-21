@@ -152,6 +152,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         name: data.name || 'My Team',
         sport: data.sport || sport,
         format: data.format || format,
+        age_group: data.age_group || '',
         players: data.players || [],
         formation: data.formation || '',
         tactic_name: data.tactic_name || '',
