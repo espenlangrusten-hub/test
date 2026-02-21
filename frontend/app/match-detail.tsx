@@ -35,10 +35,16 @@ interface MatchData {
 
 export default function MatchDetailScreen() {
   const { matchId } = useLocalSearchParams<{ matchId: string }>();
+  const { token } = useApp();
   const [match, setMatch] = useState<MatchData | null>(null);
   const [loading, setLoading] = useState(true);
   const [matchNote, setMatchNote] = useState('');
   const [saving, setSaving] = useState(false);
+  const authHeaders = (): Record<string, string> => {
+    const h: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = `Bearer ${token}`;
+    return h;
+  };
 
   useEffect(() => {
     loadMatch();
@@ -48,7 +54,7 @@ export default function MatchDetailScreen() {
     if (!matchId) return;
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/matches/${matchId}`);
+      const res = await fetch(`${API_URL}/api/matches/${matchId}`, { headers: authHeaders() });
       const data = await res.json();
       setMatch(data);
     } catch {}
@@ -61,7 +67,7 @@ export default function MatchDetailScreen() {
     try {
       await fetch(`${API_URL}/api/matches/${matchId}/notes`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({
           player_id: 'match_general',
           player_name: 'Match Note',
