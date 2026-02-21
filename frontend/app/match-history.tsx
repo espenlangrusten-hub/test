@@ -29,10 +29,16 @@ interface MatchItem {
 
 export default function MatchHistoryScreen() {
   const router = useRouter();
+  const { token } = useApp();
   const { teamId } = useLocalSearchParams<{ teamId?: string }>();
   const [matches, setMatches] = useState<MatchItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [matchToDelete, setMatchToDelete] = useState<MatchItem | null>(null);
+  const authHeaders = (): Record<string, string> => {
+    const h: Record<string, string> = {};
+    if (token) h['Authorization'] = `Bearer ${token}`;
+    return h;
+  };
 
   useFocusEffect(
     useCallback(() => {
