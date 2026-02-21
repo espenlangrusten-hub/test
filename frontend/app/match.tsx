@@ -216,7 +216,7 @@ export default function MatchScreen() {
     try {
       const res = await fetch(`${API_URL}/api/matches`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({
           team_id: currentTeam?.id || '',
           opponent,
@@ -315,7 +315,7 @@ export default function MatchScreen() {
     if (matchId) {
       fetch(`${API_URL}/api/matches/${matchId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({
           status: 'completed',
           score_home: scoreHome,
@@ -421,7 +421,7 @@ export default function MatchScreen() {
         if (pr.note.trim() || pr.rating !== 5) {
           await fetch(`${API_URL}/api/matches/${matchId}/notes`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: authHeaders(),
             body: JSON.stringify({
               player_id: pr.playerId,
               player_name: pr.playerName,
