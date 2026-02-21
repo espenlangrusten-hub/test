@@ -6,6 +6,7 @@ import {
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../src/constants/colors';
+import { useApp } from '../src/context/AppContext';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
