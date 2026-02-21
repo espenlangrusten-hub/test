@@ -70,6 +70,7 @@ export default function TeamSetupScreen() {
         position: playerPosition,
         is_captain: false,
         is_starter: true,
+        available: true,
         set_piece_roles: [],
       };
       setPlayers(prev => [...prev, newPlayer]);
