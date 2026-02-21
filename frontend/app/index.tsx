@@ -10,7 +10,7 @@ import { Colors } from '../src/constants/colors';
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { setSport, setFormat, setCurrentTeam, loadTeams, deleteTeam } = useApp();
+  const { setSport, setFormat, setCurrentTeam, loadTeams, deleteTeam, user, logout } = useApp();
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [teamToDelete, setTeamToDelete] = useState<any>(null);
