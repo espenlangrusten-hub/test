@@ -14,10 +14,15 @@ const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'LWB', 'RWB', 'CDM', 'CM', 'CAM', 'LM
 
 export default function TeamPage() {
   const router = useRouter();
-  const { currentTeam, setCurrentTeam, saveTeam } = useApp();
+  const { currentTeam, setCurrentTeam, saveTeam, token } = useApp();
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [playerStats, setPlayerStats] = useState<Record<string, number>>({});
   const [saving, setSaving] = useState(false);
+  const authHeaders = (): Record<string, string> => {
+    const h: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = `Bearer ${token}`;
+    return h;
+  };
 
   // Add player modal
   const [showAdd, setShowAdd] = useState(false);
