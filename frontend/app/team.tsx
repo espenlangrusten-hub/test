@@ -48,7 +48,7 @@ export default function TeamPage() {
 
   const fetchStats = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/teams/${currentTeam!.id}/player-stats`);
+      const res = await fetch(`${API_URL}/api/teams/${currentTeam!.id}/player-stats`, { headers: authHeaders() });
       const data = await res.json();
       setPlayerStats(data);
     } catch {}
