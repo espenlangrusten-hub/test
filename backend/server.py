@@ -77,6 +77,7 @@ class TeamCreate(BaseModel):
     name: str
     sport: str
     format: str
+    age_group: str = ""
     players: List[Player] = []
     formation: str = ""
     tactic_name: str = ""
