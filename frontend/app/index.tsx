@@ -221,6 +221,16 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   scrollContent: { padding: 16, paddingBottom: 48 },
   header: { alignItems: 'center', paddingTop: 48, paddingBottom: 36 },
+  topRow: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    width: '100%', marginBottom: 10,
+  },
+  userInfo: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  userName: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
+  logoutBtn: {
+    padding: 8, borderRadius: 8,
+    backgroundColor: Colors.backgroundSecondary, borderWidth: 1, borderColor: Colors.border,
+  },
   logoRow: {
     width: 64, height: 64, borderRadius: 32,
     backgroundColor: 'rgba(0,200,83,0.1)',
