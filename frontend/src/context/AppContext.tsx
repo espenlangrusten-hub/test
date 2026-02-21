@@ -134,6 +134,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         name: data.name ?? currentTeam.name,
         sport: data.sport ?? currentTeam.sport,
         format: data.format ?? currentTeam.format,
+        age_group: data.age_group ?? currentTeam.age_group ?? '',
         players: data.players ?? currentTeam.players,
         formation: data.formation ?? currentTeam.formation ?? '',
         tactic_name: data.tactic_name ?? currentTeam.tactic_name ?? '',
