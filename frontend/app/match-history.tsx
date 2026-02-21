@@ -50,7 +50,7 @@ export default function MatchHistoryScreen() {
     setLoading(true);
     try {
       const query = teamId ? `?team_id=${teamId}` : '';
-      const res = await fetch(`${API_URL}/api/matches${query}`);
+      const res = await fetch(`${API_URL}/api/matches${query}`, { headers: authHeaders() });
       const data = await res.json();
       setMatches(Array.isArray(data) ? data : []);
     } catch {
