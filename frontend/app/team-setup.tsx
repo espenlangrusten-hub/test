@@ -15,6 +15,7 @@ export default function TeamSetupScreen() {
   const router = useRouter();
   const { sport, format, currentTeam, saveTeam, setCurrentTeam } = useApp();
   const [teamName, setTeamName] = useState('');
+  const [ageGroup, setAgeGroup] = useState('');
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<PlayerData | null>(null);
