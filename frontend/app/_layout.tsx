@@ -1,11 +1,27 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { AppProvider } from '../src/context/AppContext';
+import { AppProvider, useApp } from '../src/context/AppContext';
 import { Colors } from '../src/constants/colors';
+import { View, ActivityIndicator } from 'react-native';
+import AuthScreen from './auth';
 
-export default function RootLayout() {
+function AppContent() {
+  const { user, authLoading } = useApp();
+
+  if (authLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.background }}>
+        <ActivityIndicator size="large" color={Colors.primary} />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen />;
+  }
+
   return (
-    <AppProvider>
+    <>
       <StatusBar style="light" />
       <Stack
         screenOptions={{
@@ -17,8 +33,10 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="format" options={{ title: 'Select Format' }} />
         <Stack.Screen name="team-setup" options={{ title: 'Squad Setup' }} />
+        <Stack.Screen name="team" options={{ title: 'team' }} />
         <Stack.Screen name="tactics" options={{ title: 'Tactics Board' }} />
         <Stack.Screen name="match" options={{ title: 'Match Day' }} />
         <Stack.Screen name="tactic-guide" options={{ title: 'Tactic Guide' }} />
@@ -26,6 +44,14 @@ export default function RootLayout() {
         <Stack.Screen name="match-history" options={{ title: 'Match History' }} />
         <Stack.Screen name="match-detail" options={{ title: 'Match Review' }} />
       </Stack>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <AppProvider>
+      <AppContent />
     </AppProvider>
   );
 }
