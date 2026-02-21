@@ -61,7 +61,7 @@ export default function MatchHistoryScreen() {
 
   const deleteMatch = async (id: string) => {
     try {
-      await fetch(`${API_URL}/api/matches/${id}`, { method: 'DELETE' });
+      await fetch(`${API_URL}/api/matches/${id}`, { method: 'DELETE', headers: authHeaders() });
       setMatches(prev => prev.filter(m => m.id !== id));
     } catch {}
     setMatchToDelete(null);
