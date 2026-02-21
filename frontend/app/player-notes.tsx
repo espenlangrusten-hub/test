@@ -20,8 +20,13 @@ interface Note {
 
 export default function PlayerNotesScreen() {
   const { matchId } = useLocalSearchParams<{ matchId?: string }>();
-  const { currentTeam } = useApp();
+  const { currentTeam, token } = useApp();
   const allPlayers = currentTeam?.players || [];
+  const authHeaders = (): Record<string, string> => {
+    const h: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) h['Authorization'] = `Bearer ${token}`;
+    return h;
+  };
 
   const [selectedPlayer, setSelectedPlayer] = useState<PlayerData | null>(null);
   const [notes, setNotes] = useState<Note[]>([]);
@@ -33,7 +38,7 @@ export default function PlayerNotesScreen() {
     setSelectedPlayer(player);
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/api/players/${player.id}/notes`);
+      const res = await fetch(`${API_URL}/api/players/${player.id}/notes`, { headers: authHeaders() });
       const data = await res.json();
       setNotes(Array.isArray(data) ? data : []);
     } catch {
@@ -51,7 +56,7 @@ export default function PlayerNotesScreen() {
     try {
       await fetch(`${API_URL}/api/matches/${matchId}/notes`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: authHeaders(),
         body: JSON.stringify({
           player_id: selectedPlayer.id,
           player_name: selectedPlayer.name,
