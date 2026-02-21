@@ -134,6 +134,20 @@ export default function TeamSetupScreen() {
             placeholderTextColor={Colors.textMuted}
           />
 
+          <Text style={styles.label}>AGE GROUP</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+            {['U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18', 'U19', 'Senior'].map(age => (
+              <TouchableOpacity
+                key={age}
+                testID={`age-${age}`}
+                style={[styles.posChip, ageGroup === age && styles.posChipActive]}
+                onPress={() => setAgeGroup(age)}
+              >
+                <Text style={[styles.posChipText, ageGroup === age && styles.posChipTextActive]}>{age}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
           <View style={styles.sectionHeader}>
             <Text style={styles.label}>
               SQUAD ({players.length} / {startersCount}+ players)
