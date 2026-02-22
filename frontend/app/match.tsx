@@ -1492,4 +1492,9 @@ const styles = StyleSheet.create({
   eventBtnRow: { flexDirection: 'row', gap: 8 },
   eventBtn: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 10, gap: 4 },
   eventBtnText: { fontSize: 11, fontWeight: '700' },
+  // Formation picker
+  formPickerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 10, borderBottomWidth: 1, borderBottomColor: Colors.border },
+  formPickerRowActive: { backgroundColor: 'rgba(0,200,83,0.06)' },
+  formPickerName: { fontSize: 16, fontWeight: '800', color: Colors.white },
+  formPickerDesc: { fontSize: 11, color: Colors.textMuted, marginTop: 1 },
 });
