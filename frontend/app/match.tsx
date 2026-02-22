@@ -183,6 +183,9 @@ export default function MatchScreen() {
   const [coachingNotes, setCoachingNotes] = useState<string[]>([]);
   const [activeCoachingOverlay, setActiveCoachingOverlay] = useState<{category: string, suggestion: string, color: string, arrows: TacticalArrow[]} | null>(null);
 
+  // In-match event logging
+  const [eventPlayer, setEventPlayer] = useState<PlayerData | null>(null);
+
   const allPlayers = currentTeam?.players || [];
   const starters = allPlayers.filter(p => p.is_starter);
   const subs = allPlayers.filter(p => !p.is_starter);
