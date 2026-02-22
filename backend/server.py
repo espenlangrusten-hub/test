@@ -331,18 +331,19 @@ async def get_player_stats(team_id: str, user: dict = Depends(get_current_user))
         for ev in match.get("events", []):
             detail = ev.get("detail", "")
             pid = ev.get("player_id", "")
+            etype = ev.get("type", "")
             if ev.get("player_in_id"):
                 all_ids.add(ev["player_in_id"])
-            if pid and "GOAL" in detail.upper():
+            if pid and (etype == "goal" or "GOAL" in detail.upper()):
                 stats.setdefault(pid, {"matches": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "minutes": 0})
                 stats[pid]["goals"] += 1
-            if pid and "ASSIST" in detail.upper():
+            if pid and (etype == "assist" or "ASSIST" in detail.upper()):
                 stats.setdefault(pid, {"matches": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "minutes": 0})
                 stats[pid]["assists"] += 1
-            if pid and "YELLOW" in detail.upper():
+            if pid and (etype == "yellow" or "YELLOW" in detail.upper()):
                 stats.setdefault(pid, {"matches": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "minutes": 0})
                 stats[pid]["yellow"] += 1
-            if pid and "RED" in detail.upper():
+            if pid and (etype == "red" or "RED" in detail.upper()):
                 stats.setdefault(pid, {"matches": 0, "goals": 0, "assists": 0, "yellow": 0, "red": 0, "minutes": 0})
                 stats[pid]["red"] += 1
         dur = match.get("duration_minutes", 0)
