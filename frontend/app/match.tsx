@@ -445,6 +445,44 @@ export default function MatchScreen() {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
+  // Handle pitch player tap for event logging
+  const handlePitchTap = (index: number) => {
+    if (matchStatus !== 'live' && matchStatus !== 'paused') return;
+    const player = pitchAssignments[index];
+    if (player) setEventPlayer(player as PlayerData);
+  };
+
+  const logPlayerEvent = async (type: string) => {
+    if (!eventPlayer) return;
+    const minute = Math.floor(elapsedSec / 60);
+    let detail = '';
+    if (type === 'goal') {
+      setScoreHome(scoreHome + 1);
+      detail = `GOAL by ${eventPlayer.name}`;
+      addEvent(`GOAL! ${eventPlayer.name} (${scoreHome + 1}-${scoreAway})`);
+    } else if (type === 'yellow') {
+      detail = `YELLOW CARD: ${eventPlayer.name}`;
+      addEvent(`YELLOW CARD: ${eventPlayer.name}`);
+    } else if (type === 'red') {
+      detail = `RED CARD: ${eventPlayer.name}`;
+      addEvent(`RED CARD: ${eventPlayer.name}`);
+    } else if (type === 'sub') {
+      setEventPlayer(null);
+      setShowManualSub(true);
+      setManualSubOut(eventPlayer);
+      return;
+    }
+    // Save event to backend
+    if (matchId) {
+      fetch(`${API_URL}/api/matches/${matchId}/events`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ type, minute, player_id: eventPlayer.id, detail }),
+      }).catch(() => {});
+    }
+    setEventPlayer(null);
+  };
+
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
