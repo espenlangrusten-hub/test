@@ -896,8 +896,8 @@ export default function MatchScreen() {
         {/* Pitch with live updates */}
         <View>
           <PitchView
-            key={`live-${onPitch.map(p=>p.id).join('-')}`}
-            positions={formation.positions}
+            key={`live-${activeFormation.id}-${onPitch.map(p=>p.id).join('-')}`}
+            positions={activeFormation.positions}
             assignedPlayers={pitchAssignments}
             compact sport={sport}
             tacticalArrows={activeCoachingOverlay?.arrows || []}
