@@ -615,7 +615,7 @@ const styles = StyleSheet.create({
 
   actionRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 14, marginTop: 16, borderWidth: 1, borderColor: Colors.border },
   actionText: { flex: 1, fontSize: 14, fontWeight: '600', color: Colors.white },
-  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, paddingBottom: 32, backgroundColor: Colors.background, borderTopWidth: 1, borderTopColor: Colors.border },
+  bottomBar: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 16, paddingBottom: 32, backgroundColor: Colors.background, borderTopWidth: 1, borderTopColor: Colors.border, zIndex: 10 },
   bottomBtnRow: { flexDirection: 'row', gap: 8 },
   matchBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, height: 52, borderRadius: 12, gap: 8, width: '75%' },
   disabledBtn: { opacity: 0.4 },
