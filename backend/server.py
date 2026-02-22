@@ -365,6 +365,18 @@ async def get_player_stats(team_id: str, user: dict = Depends(get_current_user))
     return stats
 
 
+@api_router.post("/matches/{match_id}/events")
+async def add_match_event(match_id: str, event: MatchEvent, user: dict = Depends(get_current_user)):
+    event_dict = event.dict()
+    result = await db.matches.update_one(
+        {"id": match_id, "user_id": user["user_id"]},
+        {"$push": {"events": event_dict}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Match not found")
+    return event_dict
+
+
 @api_router.post("/teams/{team_id}/training-suggestions")
 async def get_training_suggestions(team_id: str, body: dict, user: dict = Depends(get_current_user)):
     team = await db.teams.find_one({"id": team_id, "user_id": user["user_id"]}, {"_id": 0})

@@ -43,6 +43,7 @@ function AppContent() {
         <Stack.Screen name="player-notes" options={{ title: 'Player Notes' }} />
         <Stack.Screen name="match-history" options={{ title: 'Match History' }} />
         <Stack.Screen name="match-detail" options={{ title: 'Match Review' }} />
+        <Stack.Screen name="training" options={{ title: 'Training Sessions' }} />
       </Stack>
     </>
   );
