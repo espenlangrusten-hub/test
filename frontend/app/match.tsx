@@ -1144,6 +1144,39 @@ export default function MatchScreen() {
         </TouchableOpacity>
       </Modal>
 
+      {/* Formation Picker Modal */}
+      <Modal visible={showFormationPicker} transparent animationType="slide">
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Change Formation</Text>
+              <TouchableOpacity onPress={() => setShowFormationPicker(false)}>
+                <MaterialCommunityIcons name="close" size={24} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <Text style={{ fontSize: 11, color: Colors.textMuted, marginBottom: 10 }}>
+              Current: {activeFormation.name} · Players will be auto-assigned by position
+            </Text>
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {formations.map(f => (
+                <TouchableOpacity
+                  key={f.id}
+                  testID={`match-formation-${f.id}`}
+                  style={[styles.formPickerRow, activeFormation.id === f.id && styles.formPickerRowActive]}
+                  onPress={() => changeFormationLive(f)}
+                >
+                  <View>
+                    <Text style={[styles.formPickerName, activeFormation.id === f.id && { color: Colors.primary }]}>{f.name}</Text>
+                    <Text style={styles.formPickerDesc}>{f.displayName}</Text>
+                  </View>
+                  {activeFormation.id === f.id && <MaterialCommunityIcons name="check-circle" size={20} color={Colors.primary} />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       {/* Coaching Panel Modal */}
       <Modal visible={showCoaching} transparent animationType="slide">
         <View style={styles.modalOverlay}>
