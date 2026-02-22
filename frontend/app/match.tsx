@@ -861,6 +861,7 @@ export default function MatchScreen() {
             assignedPlayers={pitchAssignments}
             compact sport={sport}
             tacticalArrows={activeCoachingOverlay?.arrows || []}
+            onPositionPress={handlePitchTap}
           />
           {activeCoachingOverlay && (
             <View style={styles.coachOverlayBanner}>
