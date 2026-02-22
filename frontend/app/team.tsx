@@ -194,9 +194,9 @@ export default function TeamPage() {
               <Text style={[s.tdNum, { width: 26 }]}>{p.number}</Text>
               <Text style={[s.tdName, { flex: 1 }]} numberOfLines={1}>{p.name}</Text>
               <Text style={[s.tdPos, { width: 34, textAlign: 'center' }]}>{p.position}</Text>
-              <View style={{ width: 40, alignItems: 'center' }}>
+              <TouchableOpacity testID={`avl-toggle-${p.id}`} style={{ width: 40, alignItems: 'center', padding: 4 }} onPress={(e) => { e.stopPropagation?.(); toggleAvailable(p.id); }}>
                 <View style={[s.dot, { backgroundColor: p.available ? Colors.primary : Colors.destructive }]} />
-              </View>
+              </TouchableOpacity>
             </TouchableOpacity>
           ))}
           {players.length === 0 && (

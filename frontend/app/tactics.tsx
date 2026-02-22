@@ -237,21 +237,31 @@ export default function TacticsScreen() {
     if (assignedCount < startersCount) return;
     setSaving(true);
     try {
-      const starters = Object.values(assignments).filter(Boolean) as PlayerData[];
-      const starterIds = starters.map(p => p.id);
-      const updatedPlayers = allPlayers.map(p => ({
-        ...p,
-        is_starter: starterIds.includes(p.id),
-        is_captain: starters.find(s => s.id === p.id)?.is_captain || false,
-        set_piece_roles: starters.find(s => s.id === p.id)?.set_piece_roles || p.set_piece_roles,
-      }));
-      await saveTeam({
-        players: updatedPlayers,
-        formation: isCustomizing ? `${selectedFormation.name} (Custom)` : selectedFormation.name,
-        tactic_name: isCustomizing ? `Custom ${selectedFormation.displayName}` : selectedFormation.displayName,
-      });
+      await doSave();
       router.push('/match');
     } catch { }
+    setSaving(false);
+  };
+
+  const doSave = async () => {
+    const starters = Object.values(assignments).filter(Boolean) as PlayerData[];
+    const starterIds = starters.map(p => p.id);
+    const updatedPlayers = allPlayers.map(p => ({
+      ...p,
+      is_starter: starterIds.includes(p.id),
+      is_captain: starters.find(s => s.id === p.id)?.is_captain || false,
+      set_piece_roles: starters.find(s => s.id === p.id)?.set_piece_roles || p.set_piece_roles,
+    }));
+    await saveTeam({
+      players: updatedPlayers,
+      formation: isCustomizing ? `${selectedFormation.name} (Custom)` : selectedFormation.name,
+      tactic_name: isCustomizing ? `Custom ${selectedFormation.displayName}` : selectedFormation.displayName,
+    });
+  };
+
+  const handleSaveOnly = async () => {
+    setSaving(true);
+    try { await doSave(); } catch { }
     setSaving(false);
   };
 
