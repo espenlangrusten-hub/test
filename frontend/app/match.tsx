@@ -1121,10 +1121,16 @@ export default function MatchScreen() {
                 <MaterialCommunityIcons name="soccer" size={20} color={Colors.primary} />
                 <Text style={[styles.eventBtnText, { color: Colors.primary }]}>Goal</Text>
               </TouchableOpacity>
+              <TouchableOpacity testID="event-assist-btn" style={[styles.eventBtn, { backgroundColor: 'rgba(139,92,246,0.15)' }]} onPress={() => logPlayerEvent('assist')}>
+                <MaterialCommunityIcons name="shoe-cleat" size={20} color="#8B5CF6" />
+                <Text style={[styles.eventBtnText, { color: '#8B5CF6' }]}>Assist</Text>
+              </TouchableOpacity>
               <TouchableOpacity testID="event-yellow-btn" style={[styles.eventBtn, { backgroundColor: 'rgba(245,158,11,0.15)' }]} onPress={() => logPlayerEvent('yellow')}>
                 <View style={{ width: 14, height: 18, backgroundColor: '#F59E0B', borderRadius: 2 }} />
                 <Text style={[styles.eventBtnText, { color: '#F59E0B' }]}>Yellow</Text>
               </TouchableOpacity>
+            </View>
+            <View style={[styles.eventBtnRow, { marginTop: 6 }]}>
               <TouchableOpacity testID="event-red-btn" style={[styles.eventBtn, { backgroundColor: 'rgba(239,68,68,0.15)' }]} onPress={() => logPlayerEvent('red')}>
                 <View style={{ width: 14, height: 18, backgroundColor: '#EF4444', borderRadius: 2 }} />
                 <Text style={[styles.eventBtnText, { color: '#EF4444' }]}>Red</Text>
