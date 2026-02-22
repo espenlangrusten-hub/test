@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
   matchBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, height: 52, borderRadius: 12, gap: 8, flex: 3 },
   disabledBtn: { opacity: 0.4 },
   matchBtnText: { fontSize: 15, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
-  saveOnlyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 52, borderRadius: 12, gap: 6, paddingHorizontal: 20, borderWidth: 1.5, borderColor: Colors.primary, flexShrink: 0 },
+  saveOnlyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 52, borderRadius: 12, gap: 6, paddingHorizontal: 20, borderWidth: 1.5, borderColor: Colors.primary, flex: 1 },
   saveOnlyBtnText: { fontSize: 13, fontWeight: '800', color: Colors.primary, letterSpacing: 1 },
   modalOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: 'flex-end' },
   modalContent: { backgroundColor: Colors.backgroundSecondary, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40, maxHeight: '70%' },
