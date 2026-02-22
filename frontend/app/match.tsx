@@ -1396,4 +1396,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(139,92,246,0.08)', borderRadius: 6, marginTop: 4,
   },
   coachNoteText: { flex: 1, fontSize: 11, color: '#C4B5FD' },
+  // Event popup
+  eventPopup: { backgroundColor: Colors.backgroundSecondary, borderRadius: 16, padding: 16, width: '85%', maxWidth: 340, borderWidth: 1.5, borderColor: Colors.border },
+  eventPlayerInfo: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
+  eventAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center' },
+  eventAvatarText: { fontSize: 14, fontWeight: '900', color: Colors.white },
+  eventPlayerName: { fontSize: 16, fontWeight: '800', color: Colors.white, flex: 1 },
+  eventBtnRow: { flexDirection: 'row', gap: 8 },
+  eventBtn: { flex: 1, alignItems: 'center', paddingVertical: 10, borderRadius: 10, gap: 4 },
+  eventBtnText: { fontSize: 11, fontWeight: '700' },
 });
