@@ -1058,6 +1058,38 @@ export default function MatchScreen() {
         </View>
       </Modal>
 
+      {/* Player Event Popup */}
+      <Modal visible={eventPlayer !== null} transparent animationType="fade">
+        <TouchableOpacity style={styles.alertOverlay} activeOpacity={1} onPress={() => setEventPlayer(null)}>
+          <View style={styles.eventPopup}>
+            <View style={styles.eventPlayerInfo}>
+              <View style={styles.eventAvatar}>
+                <Text style={styles.eventAvatarText}>{eventPlayer?.number}</Text>
+              </View>
+              <Text style={styles.eventPlayerName}>{eventPlayer?.name}</Text>
+            </View>
+            <View style={styles.eventBtnRow}>
+              <TouchableOpacity testID="event-goal-btn" style={[styles.eventBtn, { backgroundColor: 'rgba(0,200,83,0.15)' }]} onPress={() => logPlayerEvent('goal')}>
+                <MaterialCommunityIcons name="soccer" size={20} color={Colors.primary} />
+                <Text style={[styles.eventBtnText, { color: Colors.primary }]}>Goal</Text>
+              </TouchableOpacity>
+              <TouchableOpacity testID="event-yellow-btn" style={[styles.eventBtn, { backgroundColor: 'rgba(245,158,11,0.15)' }]} onPress={() => logPlayerEvent('yellow')}>
+                <View style={{ width: 14, height: 18, backgroundColor: '#F59E0B', borderRadius: 2 }} />
+                <Text style={[styles.eventBtnText, { color: '#F59E0B' }]}>Yellow</Text>
+              </TouchableOpacity>
+              <TouchableOpacity testID="event-red-btn" style={[styles.eventBtn, { backgroundColor: 'rgba(239,68,68,0.15)' }]} onPress={() => logPlayerEvent('red')}>
+                <View style={{ width: 14, height: 18, backgroundColor: '#EF4444', borderRadius: 2 }} />
+                <Text style={[styles.eventBtnText, { color: '#EF4444' }]}>Red</Text>
+              </TouchableOpacity>
+              <TouchableOpacity testID="event-sub-btn" style={[styles.eventBtn, { backgroundColor: 'rgba(59,130,246,0.15)' }]} onPress={() => logPlayerEvent('sub')}>
+                <MaterialCommunityIcons name="swap-horizontal-bold" size={20} color="#3B82F6" />
+                <Text style={[styles.eventBtnText, { color: '#3B82F6' }]}>Sub</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
       {/* Coaching Panel Modal */}
       <Modal visible={showCoaching} transparent animationType="slide">
         <View style={styles.modalOverlay}>
