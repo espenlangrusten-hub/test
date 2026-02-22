@@ -194,6 +194,13 @@ export default function MatchScreen() {
     f => f.name === currentTeam?.formation || f.id === currentTeam?.formation
   ) || formations[0];
 
+  // Live formation (can be changed during match)
+  const [activeFormation, setActiveFormation] = useState(formation);
+  const [showFormationPicker, setShowFormationPicker] = useState(false);
+
+  // Track last position each player held on pitch (for smart auto-fill)
+  const lastPositionRef = useRef<Record<string, string>>({});
+
   // Compute auto-subs synchronously using useMemo - avoids stale closure issues
   const { computedPlan, computedPlaytimes } = useMemo(() => {
     if (subMode === 'auto' && subs.length > 0 && starters.length > 0) {
