@@ -797,7 +797,7 @@ export default function MatchScreen() {
             {/* Halftime marker */}
             <View style={styles.halfMarker} />
           </View>
-          <Text style={styles.timerMeta}>{opponent ? `vs ${opponent}` : ''} · {halfDuration}m x 2</Text>
+          <Text style={styles.timerMeta}>{opponent ? `vs ${opponent}` : ''} · {activeFormation.name} · {halfDuration}m x 2</Text>
         </View>
 
         {/* Scoreboard */}
