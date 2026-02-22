@@ -619,6 +619,8 @@ const styles = StyleSheet.create({
   matchBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, height: 52, borderRadius: 12, gap: 8 },
   disabledBtn: { opacity: 0.4 },
   matchBtnText: { fontSize: 15, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
+  saveOnlyBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', height: 52, borderRadius: 12, gap: 6, paddingHorizontal: 16, borderWidth: 1.5, borderColor: Colors.primary },
+  saveOnlyBtnText: { fontSize: 13, fontWeight: '800', color: Colors.primary, letterSpacing: 1 },
   modalOverlay: { flex: 1, backgroundColor: Colors.overlay, justifyContent: 'flex-end' },
   modalContent: { backgroundColor: Colors.backgroundSecondary, borderTopLeftRadius: 20, borderTopRightRadius: 20, padding: 20, paddingBottom: 40, maxHeight: '70%' },
   modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 },
