@@ -1345,8 +1345,8 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', backgroundColor: Colors.primary, borderRadius: 2 },
   halfMarker: { position: 'absolute', left: '50%', top: -2, width: 2, height: 8, backgroundColor: Colors.textMuted, borderRadius: 1 },
   timerMeta: { fontSize: 13, color: Colors.textMuted, marginTop: 6 },
-  controlRow: { flexDirection: 'row', justifyContent: 'center', gap: 24, marginBottom: 12 },
-  controlBtn: { alignItems: 'center', padding: 10, minWidth: 60 },
+  controlRow: { flexDirection: 'row', justifyContent: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' },
+  controlBtn: { alignItems: 'center', padding: 6, minWidth: 52 },
   controlLabel: { fontSize: 10, fontWeight: '700', marginTop: 4, letterSpacing: 1 },
   benchRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
   benchChip: {
