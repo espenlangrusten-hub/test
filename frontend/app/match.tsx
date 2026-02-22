@@ -473,6 +473,9 @@ export default function MatchScreen() {
     } else if (type === 'red') {
       detail = `RED CARD: ${eventPlayer.name}`;
       addEvent(`RED CARD: ${eventPlayer.name}`);
+    } else if (type === 'assist') {
+      detail = `ASSIST by ${eventPlayer.name}`;
+      addEvent(`ASSIST: ${eventPlayer.name}`);
     } else if (type === 'sub') {
       setEventPlayer(null);
       setShowManualSub(true);
