@@ -877,6 +877,10 @@ export default function MatchScreen() {
                 <MaterialCommunityIcons name="clipboard-text" size={28} color="#8B5CF6" />
                 <Text style={[styles.controlLabel, { color: '#8B5CF6' }]}>COACH</Text>
               </TouchableOpacity>
+              <TouchableOpacity testID="formation-btn-paused" style={styles.controlBtn} onPress={() => setShowFormationPicker(true)}>
+                <MaterialCommunityIcons name="strategy" size={28} color="#F59E0B" />
+                <Text style={[styles.controlLabel, { color: '#F59E0B' }]}>FORM</Text>
+              </TouchableOpacity>
               <TouchableOpacity testID="end-btn-paused" style={styles.controlBtn} onPress={() => setShowEndConfirm(true)}>
                 <MaterialCommunityIcons name="stop" size={28} color={Colors.destructive} />
                 <Text style={[styles.controlLabel, { color: Colors.destructive }]}>END</Text>
