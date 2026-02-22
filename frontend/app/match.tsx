@@ -323,6 +323,12 @@ export default function MatchScreen() {
     setMatchStatus('ended');
     addEvent(`FULL TIME -- ${scoreHome}-${scoreAway}`);
     if (matchId) {
+      // Push final event and update status/score — do NOT overwrite events array
+      fetch(`${API_URL}/api/matches/${matchId}/events`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ type: 'full_time', minute: Math.floor(elapsedSec / 60), detail: `FULL TIME ${scoreHome}-${scoreAway}` }),
+      }).catch(() => {});
       fetch(`${API_URL}/api/matches/${matchId}`, {
         method: 'PUT',
         headers: authHeaders(),
@@ -330,7 +336,6 @@ export default function MatchScreen() {
           status: 'completed',
           score_home: scoreHome,
           score_away: scoreAway,
-          events: [...events, `${formatTime(elapsedSec)} -- FULL TIME`].map((e, i) => ({ type: 'event', minute: i, detail: e })),
           coaching_notes: coachingNotes.map(n => ({ note: n })),
         }),
       }).catch(() => {});
