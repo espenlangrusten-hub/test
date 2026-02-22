@@ -426,7 +426,7 @@ export default function TacticsScreen() {
 
       {/* Bottom Bar */}
       <View style={styles.bottomBar}>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
+        <View style={styles.bottomBtnRow}>
           <TouchableOpacity testID="save-formation-btn"
             style={[styles.saveOnlyBtn, saving && styles.disabledBtn]}
             onPress={handleSaveOnly} disabled={saving}>
@@ -434,7 +434,7 @@ export default function TacticsScreen() {
             <Text style={styles.saveOnlyBtnText}>{saving ? 'SAVING...' : 'SAVE'}</Text>
           </TouchableOpacity>
           <TouchableOpacity testID="save-match-btn"
-            style={[styles.matchBtn, { flex: 1 }, saving && styles.disabledBtn]}
+            style={[styles.matchBtn, saving && styles.disabledBtn]}
             onPress={handleSaveAndMatch} disabled={saving}>
             <MaterialCommunityIcons name="whistle" size={20} color={Colors.white} />
             <Text style={styles.matchBtnText}>{saving ? 'SAVING...' : 'MATCH MODE'}</Text>
