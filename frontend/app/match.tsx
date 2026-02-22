@@ -493,11 +493,32 @@ export default function MatchScreen() {
     setEventPlayer(null);
   };
 
+  // Formation change during match with smart auto-fill
+  const changeFormationLive = (newFormation: typeof formation) => {
+    // Save current positions for each player before changing
+    Object.entries(pitchAssignments).forEach(([idx, player]) => {
+      if (player) {
+        const slot = activeFormation.positions[Number(idx)];
+        if (slot) lastPositionRef.current[player.id] = slot.role;
+      }
+    });
+    setActiveFormation(newFormation);
+    addEvent(`FORMATION CHANGE: ${activeFormation.name} -> ${newFormation.name}`);
+    if (matchId) {
+      fetch(`${API_URL}/api/matches/${matchId}/events`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ type: 'formation_change', minute: Math.floor(elapsedSec / 60), detail: `${activeFormation.name} -> ${newFormation.name}` }),
+      }).catch(() => {});
+    }
+    setShowFormationPicker(false);
+  };
+
   useEffect(() => {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
-  // Build pitch assignments
+  // Build pitch assignments using activeFormation with smart auto-fill
   const pitchAssignments: { [key: number]: PlayerData | null } = {};
   const pitchPlayers = matchStatus === 'setup' ? starters : onPitch;
   const POSITION_GROUPS: Record<string, string[]> = {
@@ -513,17 +534,26 @@ export default function MatchScreen() {
     return 'MID';
   };
   const usedIds = new Set<string>();
-  formation.positions.forEach((slot, idx) => {
+  // Pass 0: exact last-position match (for mid-match formation changes)
+  activeFormation.positions.forEach((slot, idx) => {
+    const m = pitchPlayers.find(p => !usedIds.has(p.id) && lastPositionRef.current[p.id] === slot.role);
+    if (m) { pitchAssignments[idx] = m; usedIds.add(m.id); }
+  });
+  // Pass 1: exact preferred position match
+  activeFormation.positions.forEach((slot, idx) => {
+    if (pitchAssignments[idx]) return;
     const m = pitchPlayers.find(p => !usedIds.has(p.id) && p.position === slot.role);
     if (m) { pitchAssignments[idx] = m; usedIds.add(m.id); }
   });
-  formation.positions.forEach((slot, idx) => {
+  // Pass 2: group match
+  activeFormation.positions.forEach((slot, idx) => {
     if (pitchAssignments[idx]) return;
     const g = getGroup(slot.role);
     const m = pitchPlayers.find(p => !usedIds.has(p.id) && getGroup(p.position) === g);
     if (m) { pitchAssignments[idx] = m; usedIds.add(m.id); }
   });
-  formation.positions.forEach((_, idx) => {
+  // Pass 3: any remaining
+  activeFormation.positions.forEach((_, idx) => {
     if (pitchAssignments[idx]) return;
     const m = pitchPlayers.find(p => !usedIds.has(p.id));
     if (m) { pitchAssignments[idx] = m; usedIds.add(m.id); }
