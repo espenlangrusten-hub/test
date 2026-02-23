@@ -16,6 +16,7 @@ export default function TeamSetupScreen() {
   const { sport, format, currentTeam, saveTeam, setCurrentTeam } = useApp();
   const [teamName, setTeamName] = useState('');
   const [ageGroup, setAgeGroup] = useState('');
+  const [country, setCountry] = useState('');
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [showModal, setShowModal] = useState(false);
   const [editingPlayer, setEditingPlayer] = useState<PlayerData | null>(null);
@@ -31,6 +32,7 @@ export default function TeamSetupScreen() {
     if (currentTeam) {
       setTeamName(currentTeam.name);
       setAgeGroup(currentTeam.age_group || '');
+      setCountry(currentTeam.country || '');
       setPlayers(currentTeam.players || []);
     }
   }, [currentTeam]);
@@ -99,6 +101,7 @@ export default function TeamSetupScreen() {
         sport,
         format,
         age_group: ageGroup,
+        country,
         players,
       });
       setCurrentTeam(saved);
