@@ -629,30 +629,19 @@ export default function MatchScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Expected Playing Time */}
-          {playtimePreview.length > 0 && (
-            <>
-              <Text style={styles.label}>EXPECTED PLAYING TIME</Text>
-              <View style={styles.playtimeList}>
-                {playtimePreview.map(pt => (
-                  <View key={pt.id} style={styles.playtimeRow}>
-                    <View style={styles.playtimeLeft}>
-                      <View style={[styles.playtimeDot, pt.isGK && styles.playtimeDotGK]}>
-                        <Text style={styles.playtimeDotText}>{pt.number}</Text>
-                      </View>
-                      <Text style={styles.playtimeName} numberOfLines={1}>{pt.name}</Text>
-                    </View>
-                    <View style={styles.playtimeRight}>
-                      <View style={styles.playtimeBarBg}>
-                        <View style={[styles.playtimeBarFill, { width: `${Math.min(100, (pt.expectedMinutes / totalMatchMinutes) * 100)}%` }]} />
-                      </View>
-                      <Text style={styles.playtimeMinText}>{pt.expectedMinutes} min</Text>
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </>
-          )}
+          {/* Compact Starting Lineup on Pitch */}
+          <Text style={styles.label}>STARTING LINEUP ({starters.length})</Text>
+          <PitchView
+            key={`setup-${formation.id}`}
+            positions={formation.positions}
+            assignedPlayers={pitchAssignments}
+            compact sport={sport}
+          />
+          <TouchableOpacity testID="change-tactics-link" style={styles.tacticsLink} onPress={() => router.push('/tactics')}>
+            <MaterialCommunityIcons name="strategy" size={18} color={Colors.primary} />
+            <Text style={styles.tacticsLinkText}>Change Lineup & Tactics</Text>
+            <MaterialCommunityIcons name="chevron-right" size={18} color={Colors.textMuted} />
+          </TouchableOpacity>
 
           {/* Sub Plan Preview */}
           {subPlan.length > 0 && (
