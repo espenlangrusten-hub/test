@@ -279,7 +279,7 @@ export default function FriendlyMatchesScreen() {
                     <TouchableOpacity onPress={nextMonth}><MaterialCommunityIcons name="chevron-right" size={22} color={Colors.white} /></TouchableOpacity>
                   </View>
                   <View style={st.calWeekRow}>
-                    {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <Text key={d} style={st.calWeekDay}>{d}</Text>)}
+                    {['Su','Mo','Tu','We','Th','Fr','Sa'].map(day => <Text key={day} style={st.calWeekDay}>{day}</Text>)}
                   </View>
                   <View style={st.calGrid}>
                     {Array.from({ length: getFirstDayOfWeek(calMonth) }, (_, i) => <View key={`e${i}`} style={st.calDayEmpty} />)}
@@ -293,7 +293,7 @@ export default function FriendlyMatchesScreen() {
                           style={[st.calDay, isSelected && st.calDaySelected, isPast && st.calDayPast]}
                           disabled={isPast}
                           onPress={() => {
-                            if (isSelected) { setDates(prev => prev.filter(d => d.date !== ds)); }
+                            if (isSelected) { setDates(prev => prev.filter(dd => dd.date !== ds)); }
                             else { setDates(prev => [...prev, { date: ds, time_slots: [] }]); }
                           }}
                         >
@@ -305,38 +305,38 @@ export default function FriendlyMatchesScreen() {
                 </View>
               )}
 
-              {/* Time input for selected dates */}
-              {dates.length > 0 && (
+              {dates.length > 0 ? (
                 <View style={st.timeInputRow}>
                   <TextInput testID="time-input" style={[st.input, { flex: 1 }]} value={newTime} onChangeText={setNewTime} placeholder="HH:MM (optional)" placeholderTextColor={Colors.textMuted} />
-                  <TouchableOpacity testID="add-time-btn" style={st.addDateBtn} onPress={() => {
-                    if (newTime && dates.length > 0) {
-                      const lastDate = dates[dates.length - 1].date;
-                      setDates(prev => prev.map(d => d.date === lastDate ? { ...d, time_slots: [...d.time_slots, newTime] } : d));
-                      setNewTime('');
-                    }
-                  }}>
+                  <TouchableOpacity testID="add-time-btn" style={st.addDateBtn}
+                    onPress={() => {
+                      if (newTime && dates.length > 0) {
+                        const lastDate = dates[dates.length - 1].date;
+                        setDates(prev => prev.map(dd => dd.date === lastDate ? { ...dd, time_slots: [...dd.time_slots, newTime] } : dd));
+                        setNewTime('');
+                      }
+                    }}>
                     <MaterialCommunityIcons name="clock-plus-outline" size={16} color={Colors.white} />
                   </TouchableOpacity>
                 </View>
-              )}
+              ) : null}
 
-              {dates.map((d, idx) => (
+              {dates.map((dateItem, idx) => (
                 <View key={idx} style={st.dateChip}>
                   <View style={{ flex: 1 }}>
-                    <Text style={st.dateText}>{d.date}</Text>
-                    {d.time_slots.length > 0 && (
+                    <Text style={st.dateText}>{dateItem.date}</Text>
+                    {dateItem.time_slots.length > 0 ? (
                       <View style={st.timeRow}>
-                        {d.time_slots.map((t, ti) => (
-                          <TouchableOpacity key={ti} style={st.timeChip} onPress={() => removeDateSlot(d.date, ti)}>
+                        {dateItem.time_slots.map((t, ti) => (
+                          <TouchableOpacity key={ti} style={st.timeChip} onPress={() => removeDateSlot(dateItem.date, ti)}>
                             <Text style={st.timeText}>{t}</Text>
                             <MaterialCommunityIcons name="close" size={10} color={Colors.textMuted} />
                           </TouchableOpacity>
                         ))}
                       </View>
-                    )}
+                    ) : null}
                   </View>
-                  <TouchableOpacity onPress={() => removeDateSlot(d.date)}>
+                  <TouchableOpacity onPress={() => removeDateSlot(dateItem.date)}>
                     <MaterialCommunityIcons name="trash-can-outline" size={14} color={Colors.destructive} />
                   </TouchableOpacity>
                 </View>
