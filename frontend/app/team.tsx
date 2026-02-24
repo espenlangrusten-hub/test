@@ -166,7 +166,7 @@ export default function TeamPage() {
       {menuItems.map(item => (
         <TouchableOpacity key={item.key} testID={`menu-${item.key}`} style={[s.sideItem, !isWide && s.sideItemHoriz]} onPress={() => navigateMenu(item.key)}>
           <View style={[s.sideIcon, { backgroundColor: item.color + '18' }]}>
-            <MaterialCommunityIcons name={item.icon as any} size={26} color={item.color} />
+            <MaterialCommunityIcons name={item.icon as any} size={30} color={item.color} />
           </View>
           <Text style={s.sideLabel}>{item.label}</Text>
         </TouchableOpacity>
@@ -459,8 +459,8 @@ const s = StyleSheet.create({
   sidebarHoriz: { width: '100%', flexDirection: 'row', gap: 4, marginBottom: 10, flexWrap: 'wrap' },
   sideItem: { alignItems: 'center', backgroundColor: Colors.backgroundSecondary, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 4, borderWidth: 1, borderColor: Colors.border },
   sideItemHoriz: { flex: 1, minWidth: 60 },
-  sideIcon: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 3 },
-  sideLabel: { fontSize: 9, fontWeight: '700', color: Colors.textMuted, textAlign: 'center' },
+  sideIcon: { width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 3 },
+  sideLabel: { fontSize: 10, fontWeight: '700', color: Colors.textMuted, textAlign: 'center' },
   // Squad tab
   squadHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   squadTabs: { flexDirection: 'row', gap: 4 },
