@@ -155,7 +155,7 @@ export default function FriendlyMatchesScreen() {
         <Text style={st.headerTitle}>Friendly Matches</Text>
         <TouchableOpacity testID="new-invite-btn" style={st.newBtn} onPress={() => setShowInvite(true)}>
           <MaterialCommunityIcons name="plus" size={14} color={Colors.white} />
-          <Text style={st.newBtnText}>INVITER</Text>
+          <Text style={st.newBtnText}>INVITE</Text>
         </TouchableOpacity>
       </View>
 
@@ -173,7 +173,7 @@ export default function FriendlyMatchesScreen() {
                     <Text style={[st.statusText, { color: '#10B981' }]}>Accepted</Text>
                   </View>
                 </View>
-                <Text style={st.matchInfo}>{inv.accepted_date} {inv.accepted_time ? `kl. ${inv.accepted_time}` : ''}</Text>
+                <Text style={st.matchInfo}>{inv.accepted_date} {inv.accepted_time ? inv.accepted_time : ''}</Text>
                 <Text style={st.matchInfo}>{inv.home_away === 'home' ? 'Home' : 'Away'}{inv.pitch_name ? ` · ${inv.pitch_name}` : ''}</Text>
                 {inv.pitch_address ? <Text style={st.matchAddr}>{inv.pitch_address}</Text> : null}
                 <View style={st.managerRow}>
@@ -195,7 +195,7 @@ export default function FriendlyMatchesScreen() {
                 activeOpacity={isSent(inv) ? 1 : 0.7}
               >
                 <View style={st.matchTop}>
-                  <Text style={st.matchTeam}>{isSent(inv) ? `Til: ${inv.to_team_name}` : `Fra: ${inv.from_team_name}`}</Text>
+                  <Text style={st.matchTeam}>{isSent(inv) ? `To: ${inv.to_team_name}` : `From: ${inv.from_team_name}`}</Text>
                   <View style={[st.statusTag, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
                     <Text style={[st.statusText, { color: '#F59E0B' }]}>{isSent(inv) ? 'Sent' : 'Received'}</Text>
                   </View>
@@ -301,7 +301,7 @@ export default function FriendlyMatchesScreen() {
             </View>
             {respondInvite && (
               <>
-                <Text style={st.respTeam}>Fra: {respondInvite.from_team_name}</Text>
+                <Text style={st.respTeam}>From: {respondInvite.from_team_name}</Text>
                 <View style={st.managerRow}>
                   <MaterialCommunityIcons name="account" size={12} color={Colors.textMuted} />
                   <Text style={st.managerText}>{respondInvite.from_manager_name} {respondInvite.from_manager_phone}</Text>

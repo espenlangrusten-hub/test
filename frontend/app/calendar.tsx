@@ -86,7 +86,7 @@ export default function CalendarScreen() {
   });
 
   const monthLabel = (key: string) => {
-    if (key === 'unknown') return 'Uten dato';
+    if (key === 'unknown') return 'No date';
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const [y, m] = key.split('-');
     return `${months[parseInt(m) - 1] || m} ${y}`;
@@ -156,7 +156,7 @@ export default function CalendarScreen() {
                       {ev.time ? (
                         <View style={st.detailChip}>
                           <MaterialCommunityIcons name="clock-outline" size={11} color={Colors.textMuted} />
-                          <Text style={st.detailText}>kl. {ev.time}</Text>
+                          <Text style={st.detailText}>{ev.time}</Text>
                         </View>
                       ) : null}
                       {ev.home_away ? (

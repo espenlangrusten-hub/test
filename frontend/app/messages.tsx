@@ -81,14 +81,14 @@ export default function MessagesScreen() {
         <TouchableOpacity onPress={() => router.back()} style={st.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={20} color={Colors.white} />
         </TouchableOpacity>
-        <Text style={st.headerTitle}>Meldinger</Text>
+        <Text style={st.headerTitle}>Messages</Text>
       </View>
 
       <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
         {messages.length === 0 && !loading && (
           <View style={st.emptyBox}>
             <MaterialCommunityIcons name="email-outline" size={40} color={Colors.textMuted} />
-            <Text style={st.emptyText}>Ingen meldinger</Text>
+            <Text style={st.emptyText}>No messages</Text>
           </View>
         )}
         {messages.map(msg => (
@@ -108,7 +108,7 @@ export default function MessagesScreen() {
             <View style={{ flex: 1 }}>
               <Text style={st.msgTitle}>{msg.title}</Text>
               <Text style={st.msgBody}>{msg.body}</Text>
-              <Text style={st.msgTime}>{new Date(msg.created_at).toLocaleDateString('nb-NO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</Text>
+              <Text style={st.msgTime}>{new Date(msg.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</Text>
             </View>
             {!msg.read && <View style={st.dot} />}
           </TouchableOpacity>
