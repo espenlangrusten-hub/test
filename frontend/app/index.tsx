@@ -216,14 +216,14 @@ export default function HomeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
             <MaterialCommunityIcons name="account-plus" size={32} color={Colors.primary} />
-            <Text style={styles.modalTitle}>Legg til lag</Text>
-            <Text style={styles.modalDesc}>Skriv inn lagets unike kode for a legge til i nettverket</Text>
-            <TextInput testID="network-code-input" style={styles.codeInput} value={networkCode} onChangeText={setNetworkCode} placeholder="F.eks. ABC123" placeholderTextColor={Colors.textMuted} autoCapitalize="characters" autoFocus />
+            <Text style={styles.modalTitle}>Add Team</Text>
+            <Text style={styles.modalDesc}>Enter the team's unique code to add to your network</Text>
+            <TextInput testID="network-code-input" style={styles.codeInput} value={networkCode} onChangeText={setNetworkCode} placeholder="e.g. ABC123" placeholderTextColor={Colors.textMuted} autoCapitalize="characters" autoFocus />
             <View style={styles.modalActions}>
               <TouchableOpacity testID="confirm-add-network" style={[styles.addConfirmBtn, addingNetwork && { opacity: 0.5 }]} onPress={addToNetwork} disabled={addingNetwork}>
-                <Text style={styles.deleteConfirmText}>{addingNetwork ? 'LEGGER TIL...' : 'LEGG TIL'}</Text>
+                <Text style={styles.deleteConfirmText}>{addingNetwork ? 'ADDING...' : 'ADD'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => { setShowAddNetwork(false); setNetworkCode(''); }}><Text style={styles.cancelBtnText}>AVBRYT</Text></TouchableOpacity>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => { setShowAddNetwork(false); setNetworkCode(''); }}><Text style={styles.cancelBtnText}>CANCEL</Text></TouchableOpacity>
             </View>
           </View>
         </View>
