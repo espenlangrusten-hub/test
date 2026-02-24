@@ -319,7 +319,7 @@ export default function FriendlyMatchesScreen() {
                     <MaterialCommunityIcons name="clock-plus-outline" size={16} color={Colors.white} />
                   </TouchableOpacity>
                 </View>
-              )
+              )}
 
               {dates.map((d, idx) => (
                 <View key={idx} style={st.dateChip}>
