@@ -671,14 +671,14 @@ async def respond_to_invite(invite_id: str, body: FriendlyInviteRespond, user: d
         update["accepted_date"] = body.accepted_date
         update["accepted_time"] = body.accepted_time
     await db.friendly_invites.update_one({"id": invite_id}, {"$set": update})
-    # Create message for the sender
+    # Create message for the other party
     status_text = "accepted" if body.status == "accepted" else "declined"
     msg = {
         "id": str(uuid.uuid4()),
-        "team_id": invite["from_team_id"],
-        "user_id": invite["from_user_id"],
+        "team_id": notified_team_id,
+        "user_id": notified_user_id,
         "type": f"invite_{body.status}",
-        "title": f"Invitation {status_text} by {invite.get('to_team_name', '')}",
+        "title": f"Invitation {status_text} by {responder_team_name}",
         "body": f"Date: {body.accepted_date} {body.accepted_time}" if body.status == "accepted" else "The invitation was declined.",
         "related_invite_id": invite_id,
         "read": False,
