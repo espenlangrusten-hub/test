@@ -20,7 +20,11 @@ export interface TeamData {
   sport: string;
   format: string;
   age_group: string;
+  gender: string;
   country: string;
+  manager_name: string;
+  manager_phone: string;
+  team_code: string;
   players: PlayerData[];
   formation: string;
   tactic_name: string;
@@ -136,7 +140,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         sport: data.sport ?? currentTeam.sport,
         format: data.format ?? currentTeam.format,
         age_group: data.age_group ?? currentTeam.age_group ?? '',
+        gender: data.gender ?? currentTeam.gender ?? '',
         country: data.country ?? currentTeam.country ?? '',
+        manager_name: data.manager_name ?? currentTeam.manager_name ?? '',
+        manager_phone: data.manager_phone ?? currentTeam.manager_phone ?? '',
         players: data.players ?? currentTeam.players,
         formation: data.formation ?? currentTeam.formation ?? '',
         tactic_name: data.tactic_name ?? currentTeam.tactic_name ?? '',
@@ -155,7 +162,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         sport: data.sport || sport,
         format: data.format || format,
         age_group: data.age_group || '',
+        gender: data.gender || '',
         country: data.country || '',
+        manager_name: data.manager_name || '',
+        manager_phone: data.manager_phone || '',
         players: data.players || [],
         formation: data.formation || '',
         tactic_name: data.tactic_name || '',
