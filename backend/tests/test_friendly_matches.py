@@ -60,7 +60,7 @@ class TestFriendlyMatchSystem:
         # Create invite with proposed dates
         payload = {
             "from_team_id": self.team_id,
-            "to_team_code": "MUH227",  # Monolitten 2012's code from context
+            "to_team_code": "MUH2Z7",  # Monolitten 2012's code from network
             "proposed_dates": [
                 {"date": "2026-02-15", "time_slots": ["10:00", "14:00"]},
                 {"date": "2026-02-16", "time_slots": ["11:00"]}
@@ -197,7 +197,7 @@ class TestFriendlyMatchSystem:
         # Create new invite
         payload = {
             "from_team_id": self.team_id,
-            "to_team_code": "MUH227",
+            "to_team_code": "MUH2Z7",
             "proposed_dates": [
                 {"date": "2026-03-10", "time_slots": ["15:00"]}
             ],
@@ -268,7 +268,7 @@ class TestFriendlyMatchSystem:
         # Create invite
         payload = {
             "from_team_id": self.team_id,
-            "to_team_code": "MUH227",
+            "to_team_code": "MUH2Z7",
             "proposed_dates": [{"date": "2026-04-01", "time_slots": ["09:00"]}],
             "home_away": "home",
             "pitch_name": "",
@@ -303,7 +303,7 @@ class TestFriendlyMatchSystem:
         # Create invite
         payload = {
             "from_team_id": self.team_id,
-            "to_team_code": "MUH227",
+            "to_team_code": "MUH2Z7",
             "proposed_dates": [{"date": "2026-05-01", "time_slots": ["12:00"]}],
             "home_away": "home",
             "pitch_name": "",
@@ -340,16 +340,16 @@ class TestFriendlyMatchSystem:
         network = resp.json()
         print(f"Network contains {len(network)} teams")
         
-        # Look for Monolitten 2012 with code MUH227
+        # Look for Monolitten 2012 with code MUH2Z7
         monolitten = None
         for n in network:
             print(f"  - {n.get('friend_team_name', '?')} ({n.get('friend_team_code', '?')})")
-            if n.get("friend_team_code") == "MUH227":
+            if n.get("friend_team_code") == "MUH2Z7":
                 monolitten = n
         
         if monolitten:
             print(f"Found Monolitten 2012 in network: {monolitten['friend_team_name']}")
-            assert monolitten["friend_team_code"] == "MUH227"
+            assert monolitten["friend_team_code"] == "MUH2Z7"
 
 
 if __name__ == "__main__":
