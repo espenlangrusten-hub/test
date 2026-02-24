@@ -25,11 +25,22 @@ interface InviteData {
   created_at: string;
 }
 
+interface NetworkFriend {
+  id: string;
+  friend_team_id: string;
+  friend_team_name: string;
+  friend_team_code: string;
+  friend_team_format: string;
+  friend_team_gender: string;
+  friend_team_age_group: string;
+}
+
 export default function FriendlyMatchesScreen() {
   const router = useRouter();
   const { teamId } = useLocalSearchParams<{ teamId: string }>();
   const { currentTeam, token } = useApp();
   const activeTeamId = teamId || currentTeam?.id;
+  const myTeamName = currentTeam?.name || '';
 
   const [invites, setInvites] = useState<InviteData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,19 +50,24 @@ export default function FriendlyMatchesScreen() {
   const [pitchName, setPitchName] = useState('');
   const [pitchAddress, setPitchAddress] = useState('');
   const [dates, setDates] = useState<{ date: string; time_slots: string[] }[]>([]);
-  const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
   const [sending, setSending] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [calMonth, setCalMonth] = useState(new Date());
+  const [network, setNetwork] = useState<NetworkFriend[]>([]);
+  const [showNetworkPicker, setShowNetworkPicker] = useState(false);
 
+  // Amend modal
+  const [amendInvite, setAmendInvite] = useState<InviteData | null>(null);
+  const [amendDates, setAmendDates] = useState<{ date: string; time_slots: string[] }[]>([]);
+  const [amendTime, setAmendTime] = useState('');
+  const [showAmendCalendar, setShowAmendCalendar] = useState(false);
+  const [amendCalMonth, setAmendCalMonth] = useState(new Date());
+
+  // Calendar helpers
   const getDaysInMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
   const getFirstDayOfWeek = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1).getDay();
   const formatDateStr = (y: number, m: number, d: number) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-  const prevMonth = () => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1));
-  const nextMonth = () => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1));
-  const calMonthName = calMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const selectedDateStrs = dates.map(d => d.date);
   const today = new Date();
   const todayStr = formatDateStr(today.getFullYear(), today.getMonth(), today.getDate());
 
@@ -66,7 +82,7 @@ export default function FriendlyMatchesScreen() {
     return h;
   };
 
-  useEffect(() => { if (activeTeamId) fetchInvites(); }, [activeTeamId]);
+  useEffect(() => { if (activeTeamId) { fetchInvites(); fetchNetwork(); } }, [activeTeamId]);
 
   const fetchInvites = async () => {
     setLoading(true);
@@ -77,28 +93,21 @@ export default function FriendlyMatchesScreen() {
     setLoading(false);
   };
 
-  const addDateSlot = () => {
-    if (!newDate) return;
-    const existing = dates.find(d => d.date === newDate);
-    if (existing && newTime) {
-      setDates(prev => prev.map(d => d.date === newDate
-        ? { ...d, time_slots: [...d.time_slots, newTime] }
-        : d
-      ));
-    } else if (!existing) {
-      setDates(prev => [...prev, { date: newDate, time_slots: newTime ? [newTime] : [] }]);
-    }
-    setNewTime('');
+  const fetchNetwork = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/network`, { headers: authHeaders() });
+      if (res.ok) setNetwork(await res.json());
+    } catch {}
   };
 
-  const removeDateSlot = (date: string, timeIdx?: number) => {
+  const removeDateSlot = (dateList: any[], setDateList: any, date: string, timeIdx?: number) => {
     if (timeIdx !== undefined) {
-      setDates(prev => prev.map(d => d.date === date
-        ? { ...d, time_slots: d.time_slots.filter((_, i) => i !== timeIdx) }
+      setDateList((prev: any[]) => prev.map((d: any) => d.date === date
+        ? { ...d, time_slots: d.time_slots.filter((_: any, i: number) => i !== timeIdx) }
         : d
       ));
     } else {
-      setDates(prev => prev.filter(d => d.date !== date));
+      setDateList((prev: any[]) => prev.filter((d: any) => d.date !== date));
     }
   };
 
@@ -132,7 +141,7 @@ export default function FriendlyMatchesScreen() {
 
   const resetForm = () => {
     setOpponentCode(''); setHomeAway('home'); setPitchName(''); setPitchAddress('');
-    setDates([]); setNewDate(''); setNewTime('');
+    setDates([]); setNewTime(''); setShowCalendar(false); setShowNetworkPicker(false);
   };
 
   const respondToInvite = async (status: 'accepted' | 'declined') => {
@@ -141,22 +150,88 @@ export default function FriendlyMatchesScreen() {
     try {
       const res = await fetch(`${API_URL}/api/friendly-invites/${respondInvite.id}/respond`, {
         method: 'PUT', headers: authHeaders(),
-        body: JSON.stringify({
-          status,
-          accepted_date: selectedDate,
-          accepted_time: selectedTime,
-        }),
+        body: JSON.stringify({ status, accepted_date: selectedDate, accepted_time: selectedTime }),
       });
-      if (res.ok) {
-        setRespondInvite(null);
-        fetchInvites();
-      }
+      if (res.ok) { setRespondInvite(null); fetchInvites(); }
     } catch { Alert.alert('Error', 'Network error'); }
+  };
+
+  const cancelInvite = async (inv: InviteData) => {
+    Alert.alert('Cancel Match', `Cancel ${inv.from_team_name} vs ${inv.to_team_name}?`, [
+      { text: 'No' },
+      { text: 'Yes, Cancel', style: 'destructive', onPress: async () => {
+        try {
+          const res = await fetch(`${API_URL}/api/friendly-invites/${inv.id}/cancel`, {
+            method: 'PUT', headers: authHeaders(),
+          });
+          if (res.ok) fetchInvites();
+          else Alert.alert('Error', 'Could not cancel');
+        } catch { Alert.alert('Error', 'Network error'); }
+      }},
+    ]);
+  };
+
+  const amendDate = async () => {
+    if (!amendInvite || amendDates.length === 0) return Alert.alert('Error', 'Select at least one new date');
+    try {
+      const res = await fetch(`${API_URL}/api/friendly-invites/${amendInvite.id}/amend`, {
+        method: 'PUT', headers: authHeaders(),
+        body: JSON.stringify({ proposed_dates: amendDates }),
+      });
+      if (res.ok) { setAmendInvite(null); setAmendDates([]); setShowAmendCalendar(false); fetchInvites(); }
+      else Alert.alert('Error', 'Could not amend');
+    } catch { Alert.alert('Error', 'Network error'); }
+  };
+
+  const deleteInvite = async (inv: InviteData) => {
+    try {
+      const res = await fetch(`${API_URL}/api/friendly-invites/${inv.id}`, {
+        method: 'DELETE', headers: authHeaders(),
+      });
+      if (res.ok) fetchInvites();
+    } catch {}
   };
 
   const isSent = (inv: InviteData) => inv.from_team_id === activeTeamId;
   const accepted = invites.filter(i => i.status === 'accepted');
   const pending = invites.filter(i => i.status === 'pending');
+  const cancelled = invites.filter(i => i.status === 'cancelled' || i.status === 'declined');
+  const isExpired = (inv: InviteData) => inv.accepted_date && inv.accepted_date < todayStr;
+
+  const renderCalendar = (calM: Date, setCalM: (d: Date) => void, selectedDts: string[], onDayPress: (ds: string) => void) => (
+    <View style={st.calendarBox}>
+      <View style={st.calNavRow}>
+        <TouchableOpacity onPress={() => setCalM(new Date(calM.getFullYear(), calM.getMonth() - 1, 1))}>
+          <MaterialCommunityIcons name="chevron-left" size={22} color={Colors.white} />
+        </TouchableOpacity>
+        <Text style={st.calMonthText}>{calM.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</Text>
+        <TouchableOpacity onPress={() => setCalM(new Date(calM.getFullYear(), calM.getMonth() + 1, 1))}>
+          <MaterialCommunityIcons name="chevron-right" size={22} color={Colors.white} />
+        </TouchableOpacity>
+      </View>
+      <View style={st.calWeekRow}>
+        {['Su','Mo','Tu','We','Th','Fr','Sa'].map(day => <Text key={day} style={st.calWeekDay}>{day}</Text>)}
+      </View>
+      <View style={st.calGrid}>
+        {Array.from({ length: getFirstDayOfWeek(calM) }, (_, i) => <View key={`e${i}`} style={st.calDayEmpty} />)}
+        {Array.from({ length: getDaysInMonth(calM) }, (_, i) => {
+          const day = i + 1;
+          const ds = formatDateStr(calM.getFullYear(), calM.getMonth(), day);
+          const isSel = selectedDts.includes(ds);
+          const isPast = ds < todayStr;
+          return (
+            <TouchableOpacity key={day} testID={`cal-day-${ds}`}
+              style={[st.calDay, isSel && st.calDaySelected, isPast && st.calDayPast]}
+              disabled={isPast}
+              onPress={() => onDayPress(ds)}
+            >
+              <Text style={[st.calDayText, isSel && st.calDayTextSelected, isPast && st.calDayTextPast]}>{day}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
 
   return (
     <View style={st.container}>
@@ -177,20 +252,28 @@ export default function FriendlyMatchesScreen() {
           <>
             <Text style={st.section}>UPCOMING MATCHES</Text>
             {accepted.map(inv => (
-              <View key={inv.id} testID={`accepted-${inv.id}`} style={st.matchCard}>
-                <View style={st.matchTop}>
-                  {inv.from_country ? <Text style={{ fontSize: 14 }}>{getFlagForCode(isSent(inv) ? '' : inv.from_country)}</Text> : null}
-                  <Text style={st.matchTeam}>{isSent(inv) ? inv.to_team_name : inv.from_team_name}</Text>
-                  <View style={[st.statusTag, { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
-                    <Text style={[st.statusText, { color: '#10B981' }]}>Accepted</Text>
-                  </View>
-                </View>
-                <Text style={st.matchInfo}>{inv.accepted_date} {inv.accepted_time ? inv.accepted_time : ''}</Text>
+              <View key={inv.id} testID={`accepted-${inv.id}`} style={[st.matchCard, isExpired(inv) && st.matchExpired]}>
+                <Text style={st.matchHeadline}>{inv.from_team_name} vs {inv.to_team_name}</Text>
+                <Text style={st.matchInfo}>{inv.accepted_date} {inv.accepted_time || ''}</Text>
                 <Text style={st.matchInfo}>{inv.home_away === 'home' ? 'Home' : 'Away'}{inv.pitch_name ? ` · ${inv.pitch_name}` : ''}</Text>
                 {inv.pitch_address ? <Text style={st.matchAddr}>{inv.pitch_address}</Text> : null}
                 <View style={st.managerRow}>
                   <MaterialCommunityIcons name="account" size={12} color={Colors.textMuted} />
                   <Text style={st.managerText}>{isSent(inv) ? inv.to_manager_name : inv.from_manager_name} {isSent(inv) ? inv.to_manager_phone : inv.from_manager_phone}</Text>
+                </View>
+                <View style={st.actionRow}>
+                  <TouchableOpacity testID={`goto-match-${inv.id}`} style={st.goMatchBtn} onPress={() => router.push(`/match?teamId=${activeTeamId}`)}>
+                    <MaterialCommunityIcons name="whistle" size={14} color={Colors.white} />
+                    <Text style={st.goMatchText}>GO TO MATCH</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity testID={`amend-${inv.id}`} style={st.amendBtn} onPress={() => { setAmendInvite(inv); setAmendDates([]); setShowAmendCalendar(true); }}>
+                    <MaterialCommunityIcons name="calendar-edit" size={14} color={Colors.primary} />
+                    <Text style={st.amendText}>AMEND</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity testID={`cancel-${inv.id}`} style={st.cancelMatchBtn} onPress={() => cancelInvite(inv)}>
+                    <MaterialCommunityIcons name="close-circle-outline" size={14} color={Colors.destructive} />
+                    <Text style={st.cancelMatchText}>CANCEL</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             ))}
@@ -203,25 +286,37 @@ export default function FriendlyMatchesScreen() {
             <Text style={st.section}>PENDING INVITATIONS</Text>
             {pending.map(inv => (
               <TouchableOpacity key={inv.id} testID={`pending-${inv.id}`} style={st.inviteCard}
-                onPress={() => !isSent(inv) ? setRespondInvite(inv) : null}
-                activeOpacity={isSent(inv) ? 1 : 0.7}
+                onPress={() => { setRespondInvite(inv); setSelectedDate(''); setSelectedTime(''); }}
+                activeOpacity={0.7}
               >
+                <Text style={st.matchHeadline}>{inv.from_team_name} vs {inv.to_team_name}</Text>
                 <View style={st.matchTop}>
-                  <Text style={st.matchTeam}>{isSent(inv) ? `To: ${inv.to_team_name}` : `From: ${inv.from_team_name}`}</Text>
                   <View style={[st.statusTag, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
-                    <Text style={[st.statusText, { color: '#F59E0B' }]}>{isSent(inv) ? 'Sent' : 'Received'}</Text>
+                    <Text style={[st.statusText, { color: '#F59E0B' }]}>{isSent(inv) ? 'Awaiting response' : 'Action needed'}</Text>
                   </View>
                 </View>
                 <Text style={st.matchInfo}>{inv.proposed_dates.length} date proposals · {inv.home_away === 'home' ? 'Home' : 'Away'}</Text>
                 {inv.pitch_name ? <Text style={st.matchAddr}>{inv.pitch_name}</Text> : null}
-                {!isSent(inv) && (
-                  <View style={st.managerRow}>
-                    <MaterialCommunityIcons name="account" size={12} color={Colors.textMuted} />
-                    <Text style={st.managerText}>{inv.from_manager_name} {inv.from_manager_phone}</Text>
-                  </View>
-                )}
-                {!isSent(inv) && <Text style={st.tapHint}>Tap to respond</Text>}
+                <Text style={st.tapHint}>Tap to respond</Text>
               </TouchableOpacity>
+            ))}
+          </>
+        )}
+
+        {/* Cancelled / Declined */}
+        {cancelled.length > 0 && (
+          <>
+            <Text style={st.section}>CANCELLED / DECLINED</Text>
+            {cancelled.map(inv => (
+              <View key={inv.id} testID={`cancelled-${inv.id}`} style={st.cancelledCard}>
+                <View style={{ flex: 1 }}>
+                  <Text style={st.cancelledTitle}>{inv.from_team_name} vs {inv.to_team_name}</Text>
+                  <Text style={st.cancelledStatus}>{inv.status === 'cancelled' ? 'Cancelled' : 'Declined'}</Text>
+                </View>
+                <TouchableOpacity testID={`delete-${inv.id}`} onPress={() => deleteInvite(inv)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <MaterialCommunityIcons name="trash-can-outline" size={18} color={Colors.destructive} />
+                </TouchableOpacity>
+              </View>
             ))}
           </>
         )}
@@ -247,8 +342,27 @@ export default function FriendlyMatchesScreen() {
                 </TouchableOpacity>
               </View>
 
-              <Text style={st.fieldLabel}>OPPONENT TEAM CODE</Text>
-              <TextInput testID="opponent-code-input" style={st.codeInput} value={opponentCode} onChangeText={setOpponentCode} placeholder="E.g. ABC123" placeholderTextColor={Colors.textMuted} autoCapitalize="characters" />
+              <Text style={st.fieldLabel}>OPPONENT</Text>
+              <TextInput testID="opponent-code-input" style={st.codeInput} value={opponentCode} onChangeText={setOpponentCode} placeholder="Team code (e.g. ABC123)" placeholderTextColor={Colors.textMuted} autoCapitalize="characters" />
+
+              {network.length > 0 && (
+                <>
+                  <TouchableOpacity testID="show-network-picker" style={st.networkPickerToggle} onPress={() => setShowNetworkPicker(!showNetworkPicker)}>
+                    <MaterialCommunityIcons name="account-group" size={16} color={Colors.primary} />
+                    <Text style={st.networkPickerText}>Or pick from My Network</Text>
+                    <MaterialCommunityIcons name={showNetworkPicker ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.textMuted} />
+                  </TouchableOpacity>
+                  {showNetworkPicker && network.map(n => (
+                    <TouchableOpacity key={n.id} testID={`pick-network-${n.friend_team_code}`}
+                      style={[st.networkOption, opponentCode === n.friend_team_code && st.networkOptionActive]}
+                      onPress={() => { setOpponentCode(n.friend_team_code); setShowNetworkPicker(false); }}
+                    >
+                      <Text style={st.networkOptName}>{n.friend_team_name}</Text>
+                      <Text style={st.networkOptCode}>#{n.friend_team_code}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </>
+              )}
 
               <Text style={st.fieldLabel}>HOME / AWAY</Text>
               <View style={st.toggleRow}>
@@ -271,39 +385,10 @@ export default function FriendlyMatchesScreen() {
                 <MaterialCommunityIcons name={showCalendar ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textMuted} />
               </TouchableOpacity>
 
-              {showCalendar && (
-                <View style={st.calendarBox}>
-                  <View style={st.calNavRow}>
-                    <TouchableOpacity onPress={prevMonth}><MaterialCommunityIcons name="chevron-left" size={22} color={Colors.white} /></TouchableOpacity>
-                    <Text style={st.calMonthText}>{calMonthName}</Text>
-                    <TouchableOpacity onPress={nextMonth}><MaterialCommunityIcons name="chevron-right" size={22} color={Colors.white} /></TouchableOpacity>
-                  </View>
-                  <View style={st.calWeekRow}>
-                    {['Su','Mo','Tu','We','Th','Fr','Sa'].map(day => <Text key={day} style={st.calWeekDay}>{day}</Text>)}
-                  </View>
-                  <View style={st.calGrid}>
-                    {Array.from({ length: getFirstDayOfWeek(calMonth) }, (_, i) => <View key={`e${i}`} style={st.calDayEmpty} />)}
-                    {Array.from({ length: getDaysInMonth(calMonth) }, (_, i) => {
-                      const day = i + 1;
-                      const ds = formatDateStr(calMonth.getFullYear(), calMonth.getMonth(), day);
-                      const isSelected = selectedDateStrs.includes(ds);
-                      const isPast = ds < todayStr;
-                      return (
-                        <TouchableOpacity key={day} testID={`cal-day-${ds}`}
-                          style={[st.calDay, isSelected && st.calDaySelected, isPast && st.calDayPast]}
-                          disabled={isPast}
-                          onPress={() => {
-                            if (isSelected) { setDates(prev => prev.filter(dd => dd.date !== ds)); }
-                            else { setDates(prev => [...prev, { date: ds, time_slots: [] }]); }
-                          }}
-                        >
-                          <Text style={[st.calDayText, isSelected && st.calDayTextSelected, isPast && st.calDayTextPast]}>{day}</Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
-              )}
+              {showCalendar && renderCalendar(calMonth, setCalMonth, dates.map(d => d.date), (ds) => {
+                if (dates.find(d => d.date === ds)) setDates(prev => prev.filter(d => d.date !== ds));
+                else setDates(prev => [...prev, { date: ds, time_slots: [] }]);
+              })}
 
               {dates.length > 0 ? (
                 <View style={st.timeInputRow}>
@@ -328,7 +413,7 @@ export default function FriendlyMatchesScreen() {
                     {dateItem.time_slots.length > 0 ? (
                       <View style={st.timeRow}>
                         {dateItem.time_slots.map((t, ti) => (
-                          <TouchableOpacity key={ti} style={st.timeChip} onPress={() => removeDateSlot(dateItem.date, ti)}>
+                          <TouchableOpacity key={ti} style={st.timeChip} onPress={() => removeDateSlot(dates, setDates, dateItem.date, ti)}>
                             <Text style={st.timeText}>{t}</Text>
                             <MaterialCommunityIcons name="close" size={10} color={Colors.textMuted} />
                           </TouchableOpacity>
@@ -336,7 +421,7 @@ export default function FriendlyMatchesScreen() {
                       </View>
                     ) : null}
                   </View>
-                  <TouchableOpacity onPress={() => removeDateSlot(dateItem.date)}>
+                  <TouchableOpacity onPress={() => removeDateSlot(dates, setDates, dateItem.date)}>
                     <MaterialCommunityIcons name="trash-can-outline" size={14} color={Colors.destructive} />
                   </TouchableOpacity>
                 </View>
@@ -361,7 +446,7 @@ export default function FriendlyMatchesScreen() {
             </View>
             {respondInvite && (
               <>
-                <Text style={st.respTeam}>From: {respondInvite.from_team_name}</Text>
+                <Text style={st.matchHeadline}>{respondInvite.from_team_name} vs {respondInvite.to_team_name}</Text>
                 <View style={st.managerRow}>
                   <MaterialCommunityIcons name="account" size={12} color={Colors.textMuted} />
                   <Text style={st.managerText}>{respondInvite.from_manager_name} {respondInvite.from_manager_phone}</Text>
@@ -404,6 +489,76 @@ export default function FriendlyMatchesScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Amend Date Modal */}
+      <Modal visible={amendInvite !== null} transparent animationType="slide">
+        <View style={st.modalOverlay}>
+          <ScrollView contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}>
+            <View style={st.modalContent}>
+              <View style={st.modalHead}>
+                <Text style={st.modalTitle}>Propose New Dates</Text>
+                <TouchableOpacity onPress={() => { setAmendInvite(null); setAmendDates([]); }}>
+                  <MaterialCommunityIcons name="close" size={22} color={Colors.textMuted} />
+                </TouchableOpacity>
+              </View>
+              {amendInvite && (
+                <>
+                  <Text style={st.matchHeadline}>{amendInvite.from_team_name} vs {amendInvite.to_team_name}</Text>
+                  <Text style={st.respInfo}>Current: {amendInvite.accepted_date} {amendInvite.accepted_time || ''}</Text>
+
+                  <Text style={st.fieldLabel}>SELECT NEW DATES</Text>
+                  {renderCalendar(amendCalMonth, setAmendCalMonth, amendDates.map(d => d.date), (ds) => {
+                    if (amendDates.find(d => d.date === ds)) setAmendDates(prev => prev.filter(d => d.date !== ds));
+                    else setAmendDates(prev => [...prev, { date: ds, time_slots: [] }]);
+                  })}
+
+                  {amendDates.length > 0 ? (
+                    <View style={st.timeInputRow}>
+                      <TextInput style={[st.input, { flex: 1 }]} value={amendTime} onChangeText={setAmendTime} placeholder="HH:MM (optional)" placeholderTextColor={Colors.textMuted} />
+                      <TouchableOpacity style={st.addDateBtn}
+                        onPress={() => {
+                          if (amendTime && amendDates.length > 0) {
+                            const lastDate = amendDates[amendDates.length - 1].date;
+                            setAmendDates(prev => prev.map(dd => dd.date === lastDate ? { ...dd, time_slots: [...dd.time_slots, amendTime] } : dd));
+                            setAmendTime('');
+                          }
+                        }}>
+                        <MaterialCommunityIcons name="clock-plus-outline" size={16} color={Colors.white} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : null}
+
+                  {amendDates.map((dateItem, idx) => (
+                    <View key={idx} style={st.dateChip}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={st.dateText}>{dateItem.date}</Text>
+                        {dateItem.time_slots.length > 0 ? (
+                          <View style={st.timeRow}>
+                            {dateItem.time_slots.map((t, ti) => (
+                              <TouchableOpacity key={ti} style={st.timeChip} onPress={() => removeDateSlot(amendDates, setAmendDates, dateItem.date, ti)}>
+                                <Text style={st.timeText}>{t}</Text>
+                                <MaterialCommunityIcons name="close" size={10} color={Colors.textMuted} />
+                              </TouchableOpacity>
+                            ))}
+                          </View>
+                        ) : null}
+                      </View>
+                      <TouchableOpacity onPress={() => removeDateSlot(amendDates, setAmendDates, dateItem.date)}>
+                        <MaterialCommunityIcons name="trash-can-outline" size={14} color={Colors.destructive} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+
+                  <TouchableOpacity testID="amend-submit-btn" style={[st.sendBtn, amendDates.length === 0 && { opacity: 0.5 }]} onPress={amendDate} disabled={amendDates.length === 0}>
+                    <MaterialCommunityIcons name="send" size={16} color={Colors.white} />
+                    <Text style={st.sendBtnText}>PROPOSE NEW DATES</Text>
+                  </TouchableOpacity>
+                </>
+              )}
+            </View>
+          </ScrollView>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -419,14 +574,28 @@ const st = StyleSheet.create({
   section: { fontSize: 11, fontWeight: '700', color: Colors.textMuted, letterSpacing: 2, marginBottom: 8, marginTop: 12 },
   // Match cards
   matchCard: { backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: Colors.border },
+  matchExpired: { opacity: 0.6 },
+  matchHeadline: { fontSize: 15, fontWeight: '800', color: Colors.white, marginBottom: 4 },
   matchTop: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 4 },
   matchTeam: { fontSize: 14, fontWeight: '700', color: Colors.white, flex: 1 },
   statusTag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   statusText: { fontSize: 9, fontWeight: '700' },
   matchInfo: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
   matchAddr: { fontSize: 11, color: Colors.textMuted, marginTop: 2 },
-  managerRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 6 },
+  managerRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
   managerText: { fontSize: 11, color: Colors.textMuted },
+  // Action row
+  actionRow: { flexDirection: 'row', gap: 6, marginTop: 8, flexWrap: 'wrap' },
+  goMatchBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.primary, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
+  goMatchText: { fontSize: 10, fontWeight: '700', color: Colors.white },
+  amendBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(0,200,83,0.1)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: Colors.primary },
+  amendText: { fontSize: 10, fontWeight: '700', color: Colors.primary },
+  cancelMatchBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(239,68,68,0.08)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, borderWidth: 1, borderColor: Colors.destructive },
+  cancelMatchText: { fontSize: 10, fontWeight: '700', color: Colors.destructive },
+  // Cancelled
+  cancelledCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: 'rgba(239,68,68,0.15)', opacity: 0.7 },
+  cancelledTitle: { fontSize: 13, fontWeight: '700', color: Colors.textMuted },
+  cancelledStatus: { fontSize: 10, color: Colors.destructive, fontWeight: '600', marginTop: 2 },
   // Invite cards
   inviteCard: { backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(245,158,11,0.2)' },
   tapHint: { fontSize: 10, color: Colors.primary, marginTop: 4, fontWeight: '600' },
@@ -441,14 +610,20 @@ const st = StyleSheet.create({
   modalTitle: { fontSize: 16, fontWeight: '800', color: Colors.white },
   fieldLabel: { fontSize: 9, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1.5, marginBottom: 5, marginTop: 10 },
   input: { height: 42, backgroundColor: Colors.card, borderRadius: 8, paddingHorizontal: 12, color: Colors.white, fontSize: 13, borderWidth: 1, borderColor: Colors.border, marginBottom: 6 },
-  codeInput: { height: 52, backgroundColor: Colors.card, borderRadius: 10, paddingHorizontal: 16, color: Colors.white, fontSize: 20, fontWeight: '800', textAlign: 'center', letterSpacing: 4, borderWidth: 1, borderColor: Colors.border, marginBottom: 8 },
+  codeInput: { height: 52, backgroundColor: Colors.card, borderRadius: 10, paddingHorizontal: 16, color: Colors.white, fontSize: 20, fontWeight: '800', textAlign: 'center', letterSpacing: 4, borderWidth: 1, borderColor: Colors.border, marginBottom: 4 },
+  // Network picker
+  networkPickerToggle: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8, marginBottom: 4 },
+  networkPickerText: { flex: 1, fontSize: 12, fontWeight: '600', color: Colors.primary },
+  networkOption: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Colors.card, borderRadius: 8, padding: 10, marginBottom: 4, borderWidth: 1, borderColor: Colors.border },
+  networkOptionActive: { borderColor: Colors.primary, backgroundColor: 'rgba(0,200,83,0.08)' },
+  networkOptName: { fontSize: 13, fontWeight: '700', color: Colors.white },
+  networkOptCode: { fontSize: 11, color: Colors.textMuted, fontWeight: '600' },
   toggleRow: { flexDirection: 'row', gap: 6, marginBottom: 10 },
   toggleBtn: { flex: 1, paddingVertical: 8, borderRadius: 8, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border, alignItems: 'center' },
   toggleActive: { borderColor: Colors.primary, backgroundColor: 'rgba(0,200,83,0.1)' },
   toggleText: { fontSize: 12, fontWeight: '700', color: Colors.textMuted },
   toggleTextActive: { color: Colors.primary },
   // Date management
-  dateRow: { flexDirection: 'row', gap: 6, alignItems: 'center', marginBottom: 8 },
   addDateBtn: { width: 42, height: 42, borderRadius: 8, backgroundColor: Colors.primary, justifyContent: 'center', alignItems: 'center' },
   dateChip: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.card, borderRadius: 8, padding: 8, marginBottom: 4, borderWidth: 1, borderColor: Colors.border },
   dateText: { fontSize: 13, fontWeight: '700', color: Colors.white },
@@ -462,10 +637,10 @@ const st = StyleSheet.create({
   calNavRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   calMonthText: { fontSize: 14, fontWeight: '700', color: Colors.white },
   calWeekRow: { flexDirection: 'row', marginBottom: 4 },
-  calWeekDay: { width: '14.28%', textAlign: 'center', fontSize: 10, fontWeight: '700', color: Colors.textMuted },
+  calWeekDay: { width: '14.28%' as any, textAlign: 'center', fontSize: 10, fontWeight: '700', color: Colors.textMuted },
   calGrid: { flexDirection: 'row', flexWrap: 'wrap' },
-  calDayEmpty: { width: '14.28%', height: 36 },
-  calDay: { width: '14.28%', height: 36, justifyContent: 'center', alignItems: 'center', borderRadius: 18 },
+  calDayEmpty: { width: '14.28%' as any, height: 36 },
+  calDay: { width: '14.28%' as any, height: 36, justifyContent: 'center', alignItems: 'center', borderRadius: 18 },
   calDaySelected: { backgroundColor: Colors.primary },
   calDayPast: { opacity: 0.3 },
   calDayText: { fontSize: 13, fontWeight: '600', color: Colors.white },
