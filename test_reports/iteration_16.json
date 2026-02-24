@@ -35,7 +35,7 @@
   "seed_data_creation": "Existing test data used: accepted friendly invite between Ørn FK and Rival FC on 2026-03-15",
   "retest_needed": false,
   "should_main_agent_self_test": false,
-  "context_for_next_testing_agent": "Calendar feature fully tested and working. Test data: Ørn FK (team_id=13c5157b-86a7-4fbb-af7f-63e239d81f7d) has 1 accepted friendly match with Rival FC on March 15, 2026. Empty state also verified with Storm G14 team.",
+  "context_for_next_testing_agent": "Calendar feature fully tested and working. Test data: Ørn FK (team_id=match-network-1) has 1 accepted friendly match with Rival FC on March 15, 2026. Empty state also verified with Storm G14 team.",
   "verified_features": {
     "backend_api": {
       "GET /api/teams/{team_id}/calendar returns 200": "PASS",
