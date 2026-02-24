@@ -112,9 +112,9 @@ export default function FriendlyMatchesScreen() {
         fetchInvites();
       } else {
         const err = await res.json().catch(() => ({ detail: 'Error' }));
-        Alert.alert('Feil', err.detail || 'Could not send invite');
+        Alert.alert('Error', err.detail || 'Could not send invite');
       }
-    } catch { Alert.alert('Feil', 'Network error'); }
+    } catch { Alert.alert('Error', 'Network error'); }
     setSending(false);
   };
 
