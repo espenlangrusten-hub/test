@@ -96,14 +96,30 @@ export default function TacticsScreen() {
     if (currentTeam?.players) setAllPlayers(currentTeam.players.filter(p => p.available !== false));
   }, [currentTeam?.players]);
 
-  const changeFormation = (f: Formation) => {
+  const changeFormation = async (f: Formation) => {
     setSelectedFormation(f);
     setIsCustomizing(false);
     setCustomPositions(null);
-    // Use allPlayers as the source to ensure we always have a full roster
     const currentAssigned = Object.values(assignments).filter(Boolean) as PlayerData[];
     const playersToAssign = currentAssigned.length > 0 ? currentAssigned : allPlayers.filter(p => p.is_starter).length > 0 ? allPlayers.filter(p => p.is_starter) : allPlayers.slice(0, f.positions.length);
-    setAssignments(buildAssignments(f, playersToAssign));
+    const newAssignments = buildAssignments(f, playersToAssign);
+    setAssignments(newAssignments);
+    // Auto-save formation
+    const starters = Object.values(newAssignments).filter(Boolean) as PlayerData[];
+    const starterIds = starters.map(p => p.id);
+    const updatedPlayers = allPlayers.map(p => ({
+      ...p,
+      is_starter: starterIds.includes(p.id),
+      is_captain: starters.find(s => s.id === p.id)?.is_captain || false,
+      set_piece_roles: starters.find(s => s.id === p.id)?.set_piece_roles || p.set_piece_roles,
+    }));
+    try {
+      await saveTeam({
+        players: updatedPlayers,
+        formation: f.name,
+        tactic_name: f.displayName,
+      });
+    } catch {}
   };
 
   const activePositions = customPositions || selectedFormation.positions;
