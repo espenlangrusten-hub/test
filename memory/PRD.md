@@ -32,13 +32,13 @@ Build a subscription-based football and futsal team management application for i
 - View friend teams: name, age/gender, country, manager contact info
 - Remove from network
 
-### Match Calendar (Kampkalender)
+### Match Calendar
 - Chronological list of all upcoming matches per team
-- Grouped by month with Norwegian month names
-- Shows: date, day of week, type badge (Vennskap/Kamp), opponent, time, home/away, pitch, manager contact
-- Days-until countdown (e.g. "Om 19 dager", "I dag", "I morgen")
+- Grouped by month with English month names
+- Shows: date, day of week, type badge (Friendly/Match), opponent, time, home/away, pitch, manager contact
+- Days-until countdown (e.g. "Today", "Tomorrow", "In 19 days")
 - Refresh button, empty state for teams without matches
-- Accessible from team page menu (Kalender icon)
+- Accessible from team page menu (Calendar icon)
 
 ### Friendly Matches
 - Send invite via opponent's team code
@@ -109,6 +109,7 @@ Build a subscription-based football and futsal team management application for i
 - **P3**: Match analytics dashboard, subscription/payment integration, training drill illustrations
 
 ## Changelog
+- 2026-02-24 (Session 7): Full English translation across all pages. Bigger sidebar icons (52x52/size 30). MESSAGE BOARD section at bottom of team page with "No new messages" empty state. Backend messages translated to English. Gender display mapping: Gutter→Boys, Jenter→Girls.
 - 2026-02-24 (Session 6): Added Match Calendar (Kampkalender) - chronological list of all upcoming matches per team, grouped by month with Norwegian labels, countdown, opponent/pitch/manager details.
 - 2026-02-24 (Session 5): Implemented gender selection (Gutter/Jenter/Mixed), manager registration, unique team codes, My Network, friendly matches invite system, message board. Simplified team page overview.
 - 2026-02-24 (Session 4): Country Selection with flag display.
