@@ -108,6 +108,9 @@ class FriendlyInviteRespond(BaseModel):
     accepted_time: str = ""
     status: str = "accepted"
 
+class FriendlyInviteAmend(BaseModel):
+    proposed_dates: List[ProposedDate] = []
+
 class SubPlan(BaseModel):
     minute: int
     player_out_id: str
