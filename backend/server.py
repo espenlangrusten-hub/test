@@ -238,6 +238,21 @@ async def get_teams(sport: Optional[str] = None, user: dict = Depends(get_curren
     return teams
 
 
+# IMPORTANT: /teams/lookup must be defined BEFORE /teams/{team_id} for correct routing
+@api_router.get("/teams/lookup")
+async def lookup_team_by_code(code: str, user: dict = Depends(get_current_user)):
+    """Lookup a team by its unique 6-character code (public info)"""
+    team = await db.teams.find_one(
+        {"team_code": code.strip().upper()},
+        {"_id": 0, "id": 1, "name": 1, "sport": 1, "format": 1, "age_group": 1,
+         "gender": 1, "country": 1, "manager_name": 1, "manager_phone": 1,
+         "team_code": 1, "user_id": 1}
+    )
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+    return team
+
+
 @api_router.get("/teams/{team_id}")
 async def get_team(team_id: str, user: dict = Depends(get_current_user)):
     team = await db.teams.find_one({"id": team_id, "user_id": user["user_id"]}, {"_id": 0})
