@@ -656,11 +656,16 @@ async def get_friendly_invite(invite_id: str, user: dict = Depends(get_current_u
 @api_router.put("/friendly-invites/{invite_id}/respond")
 async def respond_to_invite(invite_id: str, body: FriendlyInviteRespond, user: dict = Depends(get_current_user)):
     invite = await db.friendly_invites.find_one(
-        {"id": invite_id, "to_user_id": user["user_id"], "status": "pending"},
+        {"id": invite_id, "$or": [{"to_user_id": user["user_id"]}, {"from_user_id": user["user_id"]}], "status": "pending"},
         {"_id": 0}
     )
     if not invite:
         raise HTTPException(status_code=404, detail="Invite not found or already responded")
+    # Determine who is the responder
+    is_original_receiver = invite["to_user_id"] == user["user_id"]
+    responder_team_name = invite["to_team_name"] if is_original_receiver else invite["from_team_name"]
+    notified_user_id = invite["from_user_id"] if is_original_receiver else invite["to_user_id"]
+    notified_team_id = invite["from_team_id"] if is_original_receiver else invite["to_team_id"]
     update = {"status": body.status}
     if body.status == "accepted":
         update["accepted_date"] = body.accepted_date
