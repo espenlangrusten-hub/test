@@ -684,6 +684,85 @@ async def respond_to_invite(invite_id: str, body: FriendlyInviteRespond, user: d
     return updated
 
 
+@api_router.put("/friendly-invites/{invite_id}/cancel")
+async def cancel_friendly_invite(invite_id: str, user: dict = Depends(get_current_user)):
+    invite = await db.friendly_invites.find_one(
+        {"id": invite_id, "$or": [{"from_user_id": user["user_id"]}, {"to_user_id": user["user_id"]}],
+         "status": {"$in": ["accepted", "pending"]}},
+        {"_id": 0}
+    )
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invite not found")
+    await db.friendly_invites.update_one({"id": invite_id}, {"$set": {"status": "cancelled"}})
+    # Determine who to notify (the other party)
+    is_sender = invite["from_user_id"] == user["user_id"]
+    other_user_id = invite["to_user_id"] if is_sender else invite["from_user_id"]
+    other_team_id = invite["to_team_id"] if is_sender else invite["from_team_id"]
+    canceller_name = invite["from_team_name"] if is_sender else invite["to_team_name"]
+    msg = {
+        "id": str(uuid.uuid4()),
+        "team_id": other_team_id,
+        "user_id": other_user_id,
+        "type": "invite_cancelled",
+        "title": f"Match cancelled by {canceller_name}",
+        "body": f"The friendly match {invite.get('from_team_name','')} vs {invite.get('to_team_name','')} has been cancelled.",
+        "related_invite_id": invite_id,
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.messages.insert_one(msg)
+    return {"message": "Match cancelled"}
+
+
+@api_router.put("/friendly-invites/{invite_id}/amend")
+async def amend_friendly_invite(invite_id: str, body: FriendlyInviteAmend, user: dict = Depends(get_current_user)):
+    invite = await db.friendly_invites.find_one(
+        {"id": invite_id, "$or": [{"from_user_id": user["user_id"]}, {"to_user_id": user["user_id"]}],
+         "status": "accepted"},
+        {"_id": 0}
+    )
+    if not invite:
+        raise HTTPException(status_code=404, detail="Invite not found or not accepted")
+    await db.friendly_invites.update_one({"id": invite_id}, {"$set": {
+        "status": "pending",
+        "proposed_dates": [d.dict() for d in body.proposed_dates],
+        "accepted_date": "",
+        "accepted_time": "",
+    }})
+    # Notify the other party
+    is_sender = invite["from_user_id"] == user["user_id"]
+    other_user_id = invite["to_user_id"] if is_sender else invite["from_user_id"]
+    other_team_id = invite["to_team_id"] if is_sender else invite["from_team_id"]
+    amender_name = invite["from_team_name"] if is_sender else invite["to_team_name"]
+    msg = {
+        "id": str(uuid.uuid4()),
+        "team_id": other_team_id,
+        "user_id": other_user_id,
+        "type": "invite_amended",
+        "title": f"New dates proposed by {amender_name}",
+        "body": f"{amender_name} proposed {len(body.proposed_dates)} new date(s) for {invite.get('from_team_name','')} vs {invite.get('to_team_name','')}. Please select your preferred date.",
+        "related_invite_id": invite_id,
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.messages.insert_one(msg)
+    updated = await db.friendly_invites.find_one({"id": invite_id}, {"_id": 0})
+    return updated
+
+
+@api_router.delete("/friendly-invites/{invite_id}")
+async def delete_friendly_invite(invite_id: str, user: dict = Depends(get_current_user)):
+    invite = await db.friendly_invites.find_one(
+        {"id": invite_id, "$or": [{"from_user_id": user["user_id"]}, {"to_user_id": user["user_id"]}],
+         "status": {"$in": ["cancelled", "declined"]}},
+        {"_id": 0}
+    )
+    if not invite:
+        raise HTTPException(status_code=404, detail="Can only delete cancelled or declined matches")
+    await db.friendly_invites.delete_one({"id": invite_id})
+    return {"message": "Deleted"}
+
+
 # ---- Messages (Team Board) ----
 
 @api_router.get("/messages")
