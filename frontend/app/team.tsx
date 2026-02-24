@@ -152,7 +152,10 @@ export default function TeamPage() {
           <MaterialCommunityIcons name="shield-half-full" size={24} color={Colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={s.teamName}>{currentTeam?.name}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            {currentTeam?.country ? <Text style={{ fontSize: 18 }}>{getFlagForCode(currentTeam.country)}</Text> : null}
+            <Text style={s.teamName}>{currentTeam?.name}</Text>
+          </View>
           <View style={s.tagRow}>
             <View style={s.tag}><Text style={s.tagText}>{currentTeam?.format}</Text></View>
             <View style={s.tag}><Text style={s.tagText}>{currentTeam?.sport}</Text></View>
@@ -167,7 +170,7 @@ export default function TeamPage() {
           <Text style={[s.miniNum, { color: Colors.primary }]}>{availableCount}</Text>
           <Text style={s.miniLbl}>AVL</Text>
         </View>
-        <TouchableOpacity testID="team-settings-btn" style={s.settingsBtn} onPress={() => { setEditFormat(currentTeam?.format || ''); setEditAge(ageGroup); setShowSettings(true); }}>
+        <TouchableOpacity testID="team-settings-btn" style={s.settingsBtn} onPress={() => { setEditFormat(currentTeam?.format || ''); setEditAge(ageGroup); setEditCountry(currentTeam?.country || ''); setShowSettings(true); }}>
           <MaterialCommunityIcons name="cog" size={16} color={Colors.textMuted} />
         </TouchableOpacity>
       </View>
@@ -322,8 +325,12 @@ export default function TeamPage() {
               {FORMATS.map(f => <TouchableOpacity key={f} style={[s.chip, editFormat === f && s.chipActive]} onPress={() => setEditFormat(f)}><Text style={[s.chipText, editFormat === f && s.chipTextActive]}>{f}</Text></TouchableOpacity>)}
             </ScrollView>
             <Text style={s.fieldLabel}>AGE GROUP</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
               {AGE_GROUPS.map(a => <TouchableOpacity key={a} style={[s.chip, editAge === a && s.chipActive]} onPress={() => setEditAge(a)}><Text style={[s.chipText, editAge === a && s.chipTextActive]}>{a}</Text></TouchableOpacity>)}
+            </ScrollView>
+            <Text style={s.fieldLabel}>COUNTRY</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
+              {COUNTRIES.map(c => <TouchableOpacity key={c.code} testID={`settings-country-${c.code}`} style={[s.countryChip, editCountry === c.code && s.countryChipActive]} onPress={() => setEditCountry(c.code)}><Text style={{ fontSize: 16 }}>{c.flag}</Text><Text style={[s.chipText, editCountry === c.code && s.chipTextActive]}>{c.name}</Text></TouchableOpacity>)}
             </ScrollView>
             <TouchableOpacity testID="save-settings-btn" style={s.confirmBtn} onPress={saveSettings}><Text style={s.confirmBtnText}>SAVE CHANGES</Text></TouchableOpacity>
           </View>
