@@ -1262,6 +1262,8 @@ const styles = StyleSheet.create({
   setupSub: { fontSize: 13, color: Colors.textMuted, marginTop: 4 },
   label: { fontSize: 12, fontWeight: '700', color: Colors.textMuted, letterSpacing: 2, marginBottom: 8, marginTop: 10 },
   totalTimeHint: { fontSize: 12, color: Colors.primary, fontWeight: '600', marginTop: 2, marginBottom: 4 },
+  tacticsLink: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 12, marginTop: 8, borderWidth: 1, borderColor: Colors.border },
+  tacticsLinkText: { flex: 1, fontSize: 13, fontWeight: '600', color: Colors.primary },
   input: {
     height: 48, backgroundColor: Colors.backgroundSecondary, borderWidth: 1,
     borderColor: Colors.border, borderRadius: 10, paddingHorizontal: 14,
