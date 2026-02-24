@@ -91,8 +91,8 @@ export default function FriendlyMatchesScreen() {
   };
 
   const sendInvite = async () => {
-    if (!opponentCode.trim()) return Alert.alert('Feil', 'Skriv inn motstanderens lagkode');
-    if (dates.length === 0) return Alert.alert('Feil', 'Legg til minst en dato');
+    if (!opponentCode.trim()) return Alert.alert('Error', 'Enter opponent team code');
+    if (dates.length === 0) return Alert.alert('Error', 'Add at least one date');
     setSending(true);
     try {
       const res = await fetch(`${API_URL}/api/friendly-invites`, {
@@ -125,7 +125,7 @@ export default function FriendlyMatchesScreen() {
 
   const respondToInvite = async (status: 'accepted' | 'declined') => {
     if (!respondInvite) return;
-    if (status === 'accepted' && !selectedDate) return Alert.alert('Feil', 'Velg en dato');
+    if (status === 'accepted' && !selectedDate) return Alert.alert('Error', 'Select a date');
     try {
       const res = await fetch(`${API_URL}/api/friendly-invites/${respondInvite.id}/respond`, {
         method: 'PUT', headers: authHeaders(),
@@ -152,7 +152,7 @@ export default function FriendlyMatchesScreen() {
         <TouchableOpacity onPress={() => router.back()} style={st.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={20} color={Colors.white} />
         </TouchableOpacity>
-        <Text style={st.headerTitle}>Vennskapskamper</Text>
+        <Text style={st.headerTitle}>Friendly Matches</Text>
         <TouchableOpacity testID="new-invite-btn" style={st.newBtn} onPress={() => setShowInvite(true)}>
           <MaterialCommunityIcons name="plus" size={14} color={Colors.white} />
           <Text style={st.newBtnText}>INVITER</Text>
@@ -163,18 +163,18 @@ export default function FriendlyMatchesScreen() {
         {/* Accepted / Upcoming */}
         {accepted.length > 0 && (
           <>
-            <Text style={st.section}>KOMMENDE KAMPER</Text>
+            <Text style={st.section}>UPCOMING MATCHES</Text>
             {accepted.map(inv => (
               <View key={inv.id} testID={`accepted-${inv.id}`} style={st.matchCard}>
                 <View style={st.matchTop}>
                   {inv.from_country ? <Text style={{ fontSize: 14 }}>{getFlagForCode(isSent(inv) ? '' : inv.from_country)}</Text> : null}
                   <Text style={st.matchTeam}>{isSent(inv) ? inv.to_team_name : inv.from_team_name}</Text>
                   <View style={[st.statusTag, { backgroundColor: 'rgba(16,185,129,0.15)' }]}>
-                    <Text style={[st.statusText, { color: '#10B981' }]}>Akseptert</Text>
+                    <Text style={[st.statusText, { color: '#10B981' }]}>Accepted</Text>
                   </View>
                 </View>
                 <Text style={st.matchInfo}>{inv.accepted_date} {inv.accepted_time ? `kl. ${inv.accepted_time}` : ''}</Text>
-                <Text style={st.matchInfo}>{inv.home_away === 'home' ? 'Hjemme' : 'Borte'}{inv.pitch_name ? ` · ${inv.pitch_name}` : ''}</Text>
+                <Text style={st.matchInfo}>{inv.home_away === 'home' ? 'Home' : 'Away'}{inv.pitch_name ? ` · ${inv.pitch_name}` : ''}</Text>
                 {inv.pitch_address ? <Text style={st.matchAddr}>{inv.pitch_address}</Text> : null}
                 <View style={st.managerRow}>
                   <MaterialCommunityIcons name="account" size={12} color={Colors.textMuted} />
@@ -188,7 +188,7 @@ export default function FriendlyMatchesScreen() {
         {/* Pending */}
         {pending.length > 0 && (
           <>
-            <Text style={st.section}>VENTENDE INVITASJONER</Text>
+            <Text style={st.section}>PENDING INVITATIONS</Text>
             {pending.map(inv => (
               <TouchableOpacity key={inv.id} testID={`pending-${inv.id}`} style={st.inviteCard}
                 onPress={() => !isSent(inv) ? setRespondInvite(inv) : null}
@@ -197,10 +197,10 @@ export default function FriendlyMatchesScreen() {
                 <View style={st.matchTop}>
                   <Text style={st.matchTeam}>{isSent(inv) ? `Til: ${inv.to_team_name}` : `Fra: ${inv.from_team_name}`}</Text>
                   <View style={[st.statusTag, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
-                    <Text style={[st.statusText, { color: '#F59E0B' }]}>{isSent(inv) ? 'Sendt' : 'Mottatt'}</Text>
+                    <Text style={[st.statusText, { color: '#F59E0B' }]}>{isSent(inv) ? 'Sent' : 'Received'}</Text>
                   </View>
                 </View>
-                <Text style={st.matchInfo}>{inv.proposed_dates.length} datoforslag · {inv.home_away === 'home' ? 'Hjemme' : 'Borte'}</Text>
+                <Text style={st.matchInfo}>{inv.proposed_dates.length} date proposals · {inv.home_away === 'home' ? 'Home' : 'Away'}</Text>
                 {inv.pitch_name ? <Text style={st.matchAddr}>{inv.pitch_name}</Text> : null}
                 {!isSent(inv) && (
                   <View style={st.managerRow}>
@@ -208,7 +208,7 @@ export default function FriendlyMatchesScreen() {
                     <Text style={st.managerText}>{inv.from_manager_name} {inv.from_manager_phone}</Text>
                   </View>
                 )}
-                {!isSent(inv) && <Text style={st.tapHint}>Trykk for a svare</Text>}
+                {!isSent(inv) && <Text style={st.tapHint}>Tap to respond</Text>}
               </TouchableOpacity>
             ))}
           </>
@@ -217,8 +217,8 @@ export default function FriendlyMatchesScreen() {
         {invites.length === 0 && !loading && (
           <View style={st.emptyBox}>
             <MaterialCommunityIcons name="handshake" size={40} color={Colors.textMuted} />
-            <Text style={st.emptyText}>Ingen vennskapskamper enna</Text>
-            <Text style={st.emptyHint}>Trykk INVITER for a sende en kamputfordring</Text>
+            <Text style={st.emptyText}>No friendly matches yet</Text>
+            <Text style={st.emptyHint}>Tap INVITE to send a match challenge</Text>
           </View>
         )}
       </ScrollView>
@@ -229,30 +229,30 @@ export default function FriendlyMatchesScreen() {
           <ScrollView contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}>
             <View style={st.modalContent}>
               <View style={st.modalHead}>
-                <Text style={st.modalTitle}>Send invitasjon</Text>
+                <Text style={st.modalTitle}>Send Invitation</Text>
                 <TouchableOpacity onPress={() => { setShowInvite(false); resetForm(); }}>
                   <MaterialCommunityIcons name="close" size={22} color={Colors.textMuted} />
                 </TouchableOpacity>
               </View>
 
-              <Text style={st.fieldLabel}>MOTSTANDERENS LAGKODE</Text>
-              <TextInput testID="opponent-code-input" style={st.codeInput} value={opponentCode} onChangeText={setOpponentCode} placeholder="F.eks. ABC123" placeholderTextColor={Colors.textMuted} autoCapitalize="characters" />
+              <Text style={st.fieldLabel}>OPPONENT TEAM CODE</Text>
+              <TextInput testID="opponent-code-input" style={st.codeInput} value={opponentCode} onChangeText={setOpponentCode} placeholder="E.g. ABC123" placeholderTextColor={Colors.textMuted} autoCapitalize="characters" />
 
-              <Text style={st.fieldLabel}>HJEMME / BORTE</Text>
+              <Text style={st.fieldLabel}>HOME / AWAY</Text>
               <View style={st.toggleRow}>
                 <TouchableOpacity testID="home-toggle" style={[st.toggleBtn, homeAway === 'home' && st.toggleActive]} onPress={() => setHomeAway('home')}>
-                  <Text style={[st.toggleText, homeAway === 'home' && st.toggleTextActive]}>Hjemme</Text>
+                  <Text style={[st.toggleText, homeAway === 'home' && st.toggleTextActive]}>Home</Text>
                 </TouchableOpacity>
                 <TouchableOpacity testID="away-toggle" style={[st.toggleBtn, homeAway === 'away' && st.toggleActive]} onPress={() => setHomeAway('away')}>
-                  <Text style={[st.toggleText, homeAway === 'away' && st.toggleTextActive]}>Borte</Text>
+                  <Text style={[st.toggleText, homeAway === 'away' && st.toggleTextActive]}>Away</Text>
                 </TouchableOpacity>
               </View>
 
-              <Text style={st.fieldLabel}>BANE / STED</Text>
-              <TextInput testID="pitch-name-input" style={st.input} value={pitchName} onChangeText={setPitchName} placeholder="Banenavn" placeholderTextColor={Colors.textMuted} />
-              <TextInput testID="pitch-address-input" style={st.input} value={pitchAddress} onChangeText={setPitchAddress} placeholder="Adresse" placeholderTextColor={Colors.textMuted} />
+              <Text style={st.fieldLabel}>PITCH / VENUE</Text>
+              <TextInput testID="pitch-name-input" style={st.input} value={pitchName} onChangeText={setPitchName} placeholder="Pitch name" placeholderTextColor={Colors.textMuted} />
+              <TextInput testID="pitch-address-input" style={st.input} value={pitchAddress} onChangeText={setPitchAddress} placeholder="Address" placeholderTextColor={Colors.textMuted} />
 
-              <Text style={st.fieldLabel}>DATOFORSLAG</Text>
+              <Text style={st.fieldLabel}>PROPOSED DATES</Text>
               <View style={st.dateRow}>
                 <TextInput testID="date-input" style={[st.input, { flex: 1 }]} value={newDate} onChangeText={setNewDate} placeholder="YYYY-MM-DD" placeholderTextColor={Colors.textMuted} />
                 <TextInput testID="time-input" style={[st.input, { width: 80 }]} value={newTime} onChangeText={setNewTime} placeholder="HH:MM" placeholderTextColor={Colors.textMuted} />
@@ -284,7 +284,7 @@ export default function FriendlyMatchesScreen() {
 
               <TouchableOpacity testID="send-invite-btn" style={[st.sendBtn, sending && { opacity: 0.5 }]} onPress={sendInvite} disabled={sending}>
                 <MaterialCommunityIcons name="send" size={16} color={Colors.white} />
-                <Text style={st.sendBtnText}>{sending ? 'SENDER...' : 'SEND INVITASJON'}</Text>
+                <Text style={st.sendBtnText}>{sending ? 'SENDING...' : 'SEND INVITATION'}</Text>
               </TouchableOpacity>
             </View>
           </ScrollView>
@@ -296,7 +296,7 @@ export default function FriendlyMatchesScreen() {
         <View style={st.modalOverlay}>
           <View style={st.modalContent}>
             <View style={st.modalHead}>
-              <Text style={st.modalTitle}>Svar pa invitasjon</Text>
+              <Text style={st.modalTitle}>Respond to Invitation</Text>
               <TouchableOpacity onPress={() => setRespondInvite(null)}><MaterialCommunityIcons name="close" size={22} color={Colors.textMuted} /></TouchableOpacity>
             </View>
             {respondInvite && (
@@ -306,10 +306,10 @@ export default function FriendlyMatchesScreen() {
                   <MaterialCommunityIcons name="account" size={12} color={Colors.textMuted} />
                   <Text style={st.managerText}>{respondInvite.from_manager_name} {respondInvite.from_manager_phone}</Text>
                 </View>
-                <Text style={st.respInfo}>{respondInvite.home_away === 'home' ? 'Hjemme' : 'Borte'}{respondInvite.pitch_name ? ` · ${respondInvite.pitch_name}` : ''}</Text>
+                <Text style={st.respInfo}>{respondInvite.home_away === 'home' ? 'Home' : 'Away'}{respondInvite.pitch_name ? ` · ${respondInvite.pitch_name}` : ''}</Text>
                 {respondInvite.pitch_address ? <Text style={st.respAddr}>{respondInvite.pitch_address}</Text> : null}
 
-                <Text style={st.fieldLabel}>VELG DATO</Text>
+                <Text style={st.fieldLabel}>SELECT DATE</Text>
                 {respondInvite.proposed_dates.map((d, idx) => (
                   <TouchableOpacity key={idx} testID={`select-date-${idx}`}
                     style={[st.dateOption, selectedDate === d.date && st.dateOptionActive]}
@@ -333,10 +333,10 @@ export default function FriendlyMatchesScreen() {
 
                 <View style={st.respActions}>
                   <TouchableOpacity testID="accept-invite-btn" style={st.acceptBtn} onPress={() => respondToInvite('accepted')}>
-                    <Text style={st.acceptBtnText}>AKSEPTER</Text>
+                    <Text style={st.acceptBtnText}>ACCEPT</Text>
                   </TouchableOpacity>
                   <TouchableOpacity testID="decline-invite-btn" style={st.declineBtn} onPress={() => respondToInvite('declined')}>
-                    <Text style={st.declineBtnText}>AVSLÅ</Text>
+                    <Text style={st.declineBtnText}>DECLINE</Text>
                   </TouchableOpacity>
                 </View>
               </>
