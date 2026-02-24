@@ -109,6 +109,7 @@ Build a subscription-based football and futsal team management application for i
 - **P3**: Match analytics dashboard, subscription/payment integration, training drill illustrations
 
 ## Changelog
+- 2026-02-24 (Session 8): Five new features: (1) Network Add Alert - messages sent when team added to network with Add Back button, (2) Network Contact Details - click-to-expand manager info in network list, (3) Calendar Popup - visual date picker replacing text input in friendly match invites, (4) Match Mode rework - compact pitch lineup replacing play time bars with Change Tactics link, (5) Tactics auto-save on formation click with Save button removed.
 - 2026-02-24 (Session 7): Full English translation across all pages. Bigger sidebar icons (52x52/size 30). MESSAGE BOARD section at bottom of team page with "No new messages" empty state. Backend messages translated to English. Gender display mapping: Gutter→Boys, Jenter→Girls.
 - 2026-02-24 (Session 6): Added Match Calendar (Kampkalender) - chronological list of all upcoming matches per team, grouped by month with Norwegian labels, countdown, opponent/pitch/manager details.
 - 2026-02-24 (Session 5): Implemented gender selection (Gutter/Jenter/Mixed), manager registration, unique team codes, My Network, friendly matches invite system, message board. Simplified team page overview.
@@ -118,6 +119,7 @@ Build a subscription-based football and futsal team management application for i
 - 2026-02-22 (Session 1): Compact team hub, in-match event logging, AI training backend.
 
 ## Test Reports
+- `/app/test_reports/iteration_18.json` (5 new features - 100% pass, all features working)
 - `/app/test_reports/iteration_17.json` (English translation + UI changes - 100% pass, 16 test cases)
 - `/app/test_reports/iteration_16.json` (Calendar feature - 100% pass)
 - `/app/test_reports/iteration_15.json` (All new features - 100% pass)
