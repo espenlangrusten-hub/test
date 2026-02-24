@@ -13,6 +13,7 @@ const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const FORMATS = ['5v5', '7v7', '9v9', '11v11'];
 const AGE_GROUPS = ['U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18', 'U19', 'Senior'];
 const GENDERS = ['Gutter', 'Jenter', 'Mixed'];
+const GENDER_DISPLAY: Record<string, string> = { 'Gutter': 'Boys', 'Jenter': 'Girls', 'Mixed': 'Mixed' };
 const isUnder13 = (age: string) => ['U8', 'U9', 'U10', 'U11', 'U12'].includes(age);
 const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'LWB', 'RWB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'ST', 'CF'];
 
@@ -138,7 +139,7 @@ export default function TeamPage() {
   const gender = currentTeam?.gender || '';
   const under13 = isUnder13(ageGroup);
   const availableCount = players.filter(p => p.available).length;
-  const genderShort = gender === 'Gutter' ? 'G' : gender === 'Jenter' ? 'J' : gender === 'Mixed' ? 'M' : '';
+  const genderShort = gender === 'Gutter' ? 'B' : gender === 'Jenter' ? 'G' : gender === 'Mixed' ? 'M' : '';
 
   const menuItems = [
     { key: 'squad', icon: 'account-group', label: 'Squad', color: '#3B82F6' },
@@ -368,7 +369,7 @@ export default function TeamPage() {
               </ScrollView>
               <Text style={s.fieldLabel}>GENDER</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-                {GENDERS.map(g => <TouchableOpacity key={g} testID={`settings-gender-${g}`} style={[s.chip, editGender === g && s.chipActive]} onPress={() => setEditGender(g)}><Text style={[s.chipText, editGender === g && s.chipTextActive]}>{g}</Text></TouchableOpacity>)}
+                {GENDERS.map(g => <TouchableOpacity key={g} testID={`settings-gender-${g}`} style={[s.chip, editGender === g && s.chipActive]} onPress={() => setEditGender(g)}><Text style={[s.chipText, editGender === g && s.chipTextActive]}>{GENDER_DISPLAY[g] || g}</Text></TouchableOpacity>)}
               </ScrollView>
               <Text style={s.fieldLabel}>AGE GROUP</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
