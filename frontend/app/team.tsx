@@ -305,7 +305,10 @@ export default function TeamPage() {
           <MaterialCommunityIcons name="arrow-left" size={20} color={Colors.white} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={s.headerTitle} numberOfLines={1}>{currentTeam?.name || 'Team'}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            {currentTeam?.country ? <Text style={{ fontSize: 16 }}>{getFlagForCode(currentTeam.country)}</Text> : null}
+            <Text style={s.headerTitle} numberOfLines={1}>{currentTeam?.name || 'Team'}</Text>
+          </View>
           <Text style={s.headerSub}>
             {tab === 'overview' ? `${currentTeam?.format} · ${currentTeam?.sport}` : tab === 'squad' ? 'Availability' : 'Statistics'}
           </Text>
