@@ -635,7 +635,8 @@ export default function MatchScreen() {
             key={`setup-${formation.id}`}
             positions={formation.positions}
             assignedPlayers={pitchAssignments}
-            compact sport={sport}
+            compact
+            sport={sport}
           />
           <TouchableOpacity testID="change-tactics-link" style={styles.tacticsLink} onPress={() => router.push('/tactics')}>
             <MaterialCommunityIcons name="strategy" size={18} color={Colors.primary} />
@@ -901,7 +902,8 @@ export default function MatchScreen() {
             key={`live-${activeFormation.id}-${onPitch.map(p=>p.id).join('-')}`}
             positions={activeFormation.positions}
             assignedPlayers={pitchAssignments}
-            compact sport={sport}
+            compact
+            sport={sport}
             tacticalArrows={activeCoachingOverlay?.arrows || []}
             onPositionPress={handlePitchTap}
           />
