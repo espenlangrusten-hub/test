@@ -4,6 +4,8 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import string
+import random
 from pathlib import Path
 from pydantic import BaseModel, Field
 from typing import List, Optional
@@ -78,10 +80,33 @@ class TeamCreate(BaseModel):
     sport: str
     format: str
     age_group: str = ""
+    gender: str = ""
     country: str = ""
+    manager_name: str = ""
+    manager_phone: str = ""
     players: List[Player] = []
     formation: str = ""
     tactic_name: str = ""
+
+class NetworkAdd(BaseModel):
+    team_code: str
+
+class ProposedDate(BaseModel):
+    date: str
+    time_slots: List[str] = []
+
+class FriendlyInviteCreate(BaseModel):
+    from_team_id: str
+    to_team_code: str
+    proposed_dates: List[ProposedDate] = []
+    home_away: str = "home"
+    pitch_name: str = ""
+    pitch_address: str = ""
+
+class FriendlyInviteRespond(BaseModel):
+    accepted_date: str = ""
+    accepted_time: str = ""
+    status: str = "accepted"
 
 class SubPlan(BaseModel):
     minute: int
