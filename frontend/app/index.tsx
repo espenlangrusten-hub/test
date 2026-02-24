@@ -7,6 +7,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useApp } from '../src/context/AppContext';
 import { Colors } from '../src/constants/colors';
+import { getFlagForCode } from '../src/constants/countries';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -100,7 +101,10 @@ export default function HomeScreen() {
               <MaterialCommunityIcons name={team.sport === 'futsal' ? 'soccer' : 'shield-half-full'} size={22} color={Colors.primary} />
             </View>
             <View style={styles.teamInfo}>
-              <Text style={styles.teamName}>{team.name}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                {team.country ? <Text style={{ fontSize: 18 }}>{getFlagForCode(team.country)}</Text> : null}
+                <Text style={styles.teamName}>{team.name}</Text>
+              </View>
               <View style={styles.teamMeta}>
                 <View style={styles.badge}><Text style={styles.badgeText}>{team.format}</Text></View>
                 {team.age_group ? <View style={styles.badge}><Text style={styles.badgeText}>{team.age_group}</Text></View> : null}
