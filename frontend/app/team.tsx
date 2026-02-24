@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useApp, PlayerData } from '../src/context/AppContext';
 import { Colors } from '../src/constants/colors';
+import { COUNTRIES, getFlagForCode } from '../src/constants/countries';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const FORMATS = ['5v5', '7v7', '9v9', '11v11'];
@@ -30,6 +31,7 @@ export default function TeamPage() {
   const [showSettings, setShowSettings] = useState(false);
   const [editFormat, setEditFormat] = useState('');
   const [editAge, setEditAge] = useState('');
+  const [editCountry, setEditCountry] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
@@ -97,7 +99,7 @@ export default function TeamPage() {
 
   const saveSettings = async () => {
     setSaving(true);
-    try { await saveTeam({ format: editFormat, age_group: editAge }); } catch {}
+    try { await saveTeam({ format: editFormat, age_group: editAge, country: editCountry }); } catch {}
     setSaving(false);
     setShowSettings(false);
   };
