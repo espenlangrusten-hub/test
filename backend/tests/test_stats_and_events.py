@@ -10,7 +10,7 @@ import uuid
 
 BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', '').rstrip('/')
 if not BASE_URL:
-    BASE_URL = "https://squad-formations.preview.emergentagent.com"
+    BASE_URL = "https://match-network-1.preview.emergentagent.com"
 
 
 class TestStatsAndEvents:
