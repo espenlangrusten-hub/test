@@ -42,6 +42,18 @@ export default function FriendlyMatchesScreen() {
   const [newDate, setNewDate] = useState('');
   const [newTime, setNewTime] = useState('');
   const [sending, setSending] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [calMonth, setCalMonth] = useState(new Date());
+
+  const getDaysInMonth = (d: Date) => new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  const getFirstDayOfWeek = (d: Date) => new Date(d.getFullYear(), d.getMonth(), 1).getDay();
+  const formatDateStr = (y: number, m: number, d: number) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const prevMonth = () => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1));
+  const nextMonth = () => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1));
+  const calMonthName = calMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const selectedDateStrs = dates.map(d => d.date);
+  const today = new Date();
+  const todayStr = formatDateStr(today.getFullYear(), today.getMonth(), today.getDate());
 
   // Response modal
   const [respondInvite, setRespondInvite] = useState<InviteData | null>(null);
@@ -253,13 +265,61 @@ export default function FriendlyMatchesScreen() {
               <TextInput testID="pitch-address-input" style={st.input} value={pitchAddress} onChangeText={setPitchAddress} placeholder="Address" placeholderTextColor={Colors.textMuted} />
 
               <Text style={st.fieldLabel}>PROPOSED DATES</Text>
-              <View style={st.dateRow}>
-                <TextInput testID="date-input" style={[st.input, { flex: 1 }]} value={newDate} onChangeText={setNewDate} placeholder="YYYY-MM-DD" placeholderTextColor={Colors.textMuted} />
-                <TextInput testID="time-input" style={[st.input, { width: 80 }]} value={newTime} onChangeText={setNewTime} placeholder="HH:MM" placeholderTextColor={Colors.textMuted} />
-                <TouchableOpacity testID="add-date-btn" style={st.addDateBtn} onPress={addDateSlot}>
-                  <MaterialCommunityIcons name="plus" size={16} color={Colors.white} />
-                </TouchableOpacity>
-              </View>
+              <TouchableOpacity testID="open-calendar-btn" style={st.calendarToggle} onPress={() => setShowCalendar(!showCalendar)}>
+                <MaterialCommunityIcons name="calendar" size={18} color={Colors.primary} />
+                <Text style={st.calendarToggleText}>{dates.length > 0 ? `${dates.length} date(s) selected` : 'Tap to select dates'}</Text>
+                <MaterialCommunityIcons name={showCalendar ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textMuted} />
+              </TouchableOpacity>
+
+              {showCalendar && (
+                <View style={st.calendarBox}>
+                  <View style={st.calNavRow}>
+                    <TouchableOpacity onPress={prevMonth}><MaterialCommunityIcons name="chevron-left" size={22} color={Colors.white} /></TouchableOpacity>
+                    <Text style={st.calMonthText}>{calMonthName}</Text>
+                    <TouchableOpacity onPress={nextMonth}><MaterialCommunityIcons name="chevron-right" size={22} color={Colors.white} /></TouchableOpacity>
+                  </View>
+                  <View style={st.calWeekRow}>
+                    {['Su','Mo','Tu','We','Th','Fr','Sa'].map(d => <Text key={d} style={st.calWeekDay}>{d}</Text>)}
+                  </View>
+                  <View style={st.calGrid}>
+                    {Array.from({ length: getFirstDayOfWeek(calMonth) }, (_, i) => <View key={`e${i}`} style={st.calDayEmpty} />)}
+                    {Array.from({ length: getDaysInMonth(calMonth) }, (_, i) => {
+                      const day = i + 1;
+                      const ds = formatDateStr(calMonth.getFullYear(), calMonth.getMonth(), day);
+                      const isSelected = selectedDateStrs.includes(ds);
+                      const isPast = ds < todayStr;
+                      return (
+                        <TouchableOpacity key={day} testID={`cal-day-${ds}`}
+                          style={[st.calDay, isSelected && st.calDaySelected, isPast && st.calDayPast]}
+                          disabled={isPast}
+                          onPress={() => {
+                            if (isSelected) { setDates(prev => prev.filter(d => d.date !== ds)); }
+                            else { setDates(prev => [...prev, { date: ds, time_slots: [] }]); }
+                          }}
+                        >
+                          <Text style={[st.calDayText, isSelected && st.calDayTextSelected, isPast && st.calDayTextPast]}>{day}</Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </View>
+              )}
+
+              {/* Time input for selected dates */}
+              {dates.length > 0 && (
+                <View style={st.timeInputRow}>
+                  <TextInput testID="time-input" style={[st.input, { flex: 1 }]} value={newTime} onChangeText={setNewTime} placeholder="HH:MM (optional)" placeholderTextColor={Colors.textMuted} />
+                  <TouchableOpacity testID="add-time-btn" style={st.addDateBtn} onPress={() => {
+                    if (newTime && dates.length > 0) {
+                      const lastDate = dates[dates.length - 1].date;
+                      setDates(prev => prev.map(d => d.date === lastDate ? { ...d, time_slots: [...d.time_slots, newTime] } : d));
+                      setNewTime('');
+                    }
+                  }}>
+                    <MaterialCommunityIcons name="clock-plus-outline" size={16} color={Colors.white} />
+                  </TouchableOpacity>
+                </View>
+              )
 
               {dates.map((d, idx) => (
                 <View key={idx} style={st.dateChip}>
