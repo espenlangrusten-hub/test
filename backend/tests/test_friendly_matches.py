@@ -80,7 +80,7 @@ class TestFriendlyMatchSystem:
         data = resp.json()
         assert "id" in data, "Response missing 'id'"
         assert data["from_team_id"] == self.team_id
-        assert data["to_team_code"] == "MUH227"
+        assert data["to_team_code"] == "MUH2Z7"
         assert data["status"] == "pending"
         assert len(data["proposed_dates"]) == 2
         assert data["home_away"] == "home"
