@@ -1,7 +1,7 @@
 # PRD — Tactical Lineup (Football & Futsal Coach Assistant)
 
 ## Original Problem Statement
-Build a subscription-based football and futsal team management application for iOS and Android with team setup, tactics board, live match management, substitution planning, coaching suggestions, AI training sessions, and match history.
+Build a subscription-based football and futsal team management application for iOS and Android with team setup, tactics board, live match management, substitution planning, coaching suggestions, AI training sessions, match history, and social features (network + friendly matches).
 
 ## Core Features (Implemented)
 
@@ -12,14 +12,39 @@ Build a subscription-based football and futsal team management application for i
 
 ### Team Management
 - Create, edit, delete teams (Football 5v5/7v7/9v9/11v11, Futsal 5v5)
-- Mandatory age group selection (U8-U19, Senior)
-- **Country selection** with flag emoji display (15 countries: NO, SE, DK, FI, GB-ENG, GB-SCT, IE, GB-WLS, DE, NL, BE, FR, ES, IT, PT)
-- Format, age group, and country editable via team settings modal
+- **Gender selection**: Gutter / Jenter / Mixed
+- **Age group**: U8-U19, Senior
+- **Country selection** with flag emoji display (15 countries)
+- **Manager registration**: Name + phone number stored with team
+- **Unique team code**: 6-char alphanumeric, auto-generated, used for network/invites
+- Format, age group, gender, country, manager editable via team settings modal
 
-### Team Hub Page (Compact Sidebar Layout)
-- Compact info bar with team name, flag, tags, player/available counts, settings gear
-- Sidebar navigation (left) with Squad, Tactics, Training, History, Match
-- Compact player table (right) with clickable availability dots
+### Team Hub Page (Simplified)
+- Overview tab: team info bar with flag, name, tags, player/available counts, settings
+- Team code display with sharing hint
+- Manager info display
+- Unread messages badge with link to messages
+- Navigation menu: Squad, Tactics, Friendly, Training, History, Match
+- Squad management moved to separate tab (not on overview)
+
+### My Network (Home Page)
+- Add teams by unique code
+- View friend teams: name, age/gender, country, manager contact info
+- Remove from network
+
+### Friendly Matches
+- Send invite via opponent's team code
+- Multiple date/time proposals
+- Home/away selection
+- Pitch name and address
+- Respond to invites: select date, accept/decline
+- Accepted matches show with full details and manager contact info
+
+### Message Board
+- Per-team messages for invite events
+- Types: invite_received, invite_sent, invite_accepted, invite_declined
+- Unread indicator (blue dot)
+- Click message to navigate to friendly matches
 
 ### Squad Management
 - Availability toggles per player
@@ -30,27 +55,20 @@ Build a subscription-based football and futsal team management application for i
 ### Tactics Board
 - Formation selection and persistence (SAVE button + MATCH MODE)
 - Player placement, drag-to-reposition, tap-to-swap
-- Formation saved and remembered between sessions
 
 ### Match Mode
 - Halftime-based duration, opponent entry
 - Auto/manual substitution modes
 - Mid-match formation change with smart auto-fill
-- In-match event logging: Tap player → Goal / Assist / Yellow / Red / Sub
+- In-match event logging: Goal / Assist / Yellow / Red / Sub
 
 ### Match History & Amendments
 - Match list with opponent, score, date
 - Editable match detail page: edit score, view/add/delete events, player ratings, notes
-- All amendments reflected in player statistics
-
-### In-Match Coaching Panel
-- Format-specific tactics (11v11/9v9/7v7/5v5)
-- 3 categories x 2 tactics, tactical arrows on pitch
 
 ### AI Training Sessions
-- Categories: General, Defensive, Attacking
-- Uses OpenAI GPT via Emergent LLM Key
-- Backend endpoint complete, frontend UI exists
+- Backend endpoint complete (`/api/teams/{team_id}/training-suggestions`)
+- Frontend UI exists (training.tsx)
 
 ## Architecture
 - **Frontend**: React Native (Expo) + TypeScript + Expo Router, web mode
@@ -58,28 +76,38 @@ Build a subscription-based football and futsal team management application for i
 - **AI**: OpenAI via Emergent LLM Key
 
 ## Key API Endpoints
-- `POST /api/auth/register`, `POST /api/auth/login`
-- `GET/POST /api/teams`, `GET/PUT/DELETE /api/teams/{team_id}`
-- `GET /api/teams/{team_id}/player-stats`
-- `POST /api/teams/{team_id}/training-suggestions`
-- `GET/POST /api/matches`, `GET/PUT/DELETE /api/matches/{match_id}`
-- `POST /api/matches/{match_id}/events`
-- `POST /api/matches/{match_id}/notes`
+- Auth: `POST /api/auth/register`, `POST /api/auth/login`
+- Teams: `GET/POST /api/teams`, `GET /api/teams/lookup?code=X`, `GET/PUT/DELETE /api/teams/{team_id}`
+- Stats: `GET /api/teams/{team_id}/player-stats`
+- Training: `POST /api/teams/{team_id}/training-suggestions`
+- Network: `GET/POST /api/network`, `DELETE /api/network/{id}`
+- Friendly: `GET/POST /api/friendly-invites`, `GET /api/friendly-invites/{id}`, `PUT /api/friendly-invites/{id}/respond`
+- Messages: `GET /api/messages`, `PUT /api/messages/{id}/read`
+- Matches: `GET/POST /api/matches`, `GET/PUT/DELETE /api/matches/{match_id}`, `POST /api/matches/{match_id}/events`
+
+## DB Collections
+- `users`: id, email, hashed_password, name
+- `teams`: id, user_id, name, sport, format, age_group, gender, country, manager_name, manager_phone, team_code, players, formation, tactic_name
+- `matches`: id, user_id, teamId, status, events, scores, ratings, notes
+- `network`: id, user_id, friend_team_id, friend_user_id, friend_team_name, friend_team_gender, friend_team_age_group, friend_team_country, friend_manager_name, friend_manager_phone
+- `friendly_invites`: id, from_user_id, from_team_id, to_user_id, to_team_id, proposed_dates, home_away, pitch_name, pitch_address, status, accepted_date, accepted_time
+- `messages`: id, team_id, user_id, type, title, body, related_invite_id, read
 
 ## Remaining Backlog
+- **P1**: Tournament page (similar flow to friendly matches but for multiple teams)
 - **P1**: AI Training Sessions UI polish & PDF download
 - **P2**: Pre-match page with formation/lineup + PDF download
-- **P2**: PDF exports for training sessions
-- **P2**: Training drill illustrations
-- **P3**: Match analytics dashboard, subscription/payment integration
+- **P2**: General search function for teams (deferred - user concerned about fake teams)
+- **P3**: Match analytics dashboard, subscription/payment integration, training drill illustrations
 
 ## Changelog
-- 2026-02-24 (Session 4): Implemented Country Selection (P0) - country picker on team-setup, flag display on home/team pages, country editing in team settings modal. Created shared countries.ts constants.
-- 2026-02-22 (Session 3): Fixed stats counting bug. Rebuilt match-detail.tsx with editable score, events, player ratings, match notes.
-- 2026-02-22 (Session 2): Team page availability toggle, formation persistence, mid-match formation change, assist event.
-- 2026-02-22 (Session 1): Compact team hub with sidebar, in-match event logging, AI training sessions UI.
-- 2026-02-21: JWT auth, data isolation, team creation with age groups, squad management.
+- 2026-02-24 (Session 5): Implemented gender selection (Gutter/Jenter/Mixed), manager registration, unique team codes, My Network, friendly matches invite system, message board. Simplified team page overview.
+- 2026-02-24 (Session 4): Country Selection with flag display.
+- 2026-02-22 (Session 3): Fixed stats bug, rebuilt match-detail with editable score/events/ratings/notes.
+- 2026-02-22 (Session 2): Availability toggle, formation persistence, mid-match formation change, assist event.
+- 2026-02-22 (Session 1): Compact team hub, in-match event logging, AI training backend.
 
-## Testing
-- Test reports: `/app/test_reports/iteration_14.json` (Country feature)
-- Backend tests: `/app/backend/tests/test_country_feature.py`
+## Test Reports
+- `/app/test_reports/iteration_15.json` (All new features - 100% pass)
+- `/app/test_reports/iteration_14.json` (Country feature)
+- `/app/test_reports/iteration_6.json` (Match stats/editing)
