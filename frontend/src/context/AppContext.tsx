@@ -20,6 +20,7 @@ export interface TeamData {
   sport: string;
   format: string;
   age_group: string;
+  country: string;
   players: PlayerData[];
   formation: string;
   tactic_name: string;
