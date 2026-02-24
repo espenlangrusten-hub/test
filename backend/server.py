@@ -429,6 +429,62 @@ async def add_match_event(match_id: str, event: MatchEvent, user: dict = Depends
     return event_dict
 
 
+# ---- Match Calendar ----
+
+@api_router.get("/teams/{team_id}/calendar")
+async def get_team_calendar(team_id: str, user: dict = Depends(get_current_user)):
+    team = await db.teams.find_one({"id": team_id, "user_id": user["user_id"]}, {"_id": 0, "id": 1})
+    if not team:
+        raise HTTPException(status_code=404, detail="Team not found")
+    events = []
+    # 1) Accepted friendly invites
+    friendly = await db.friendly_invites.find(
+        {"$or": [{"from_team_id": team_id}, {"to_team_id": team_id}], "status": "accepted"},
+        {"_id": 0}
+    ).to_list(200)
+    for inv in friendly:
+        is_home = inv["from_team_id"] == team_id
+        opponent = inv["to_team_name"] if is_home else inv["from_team_name"]
+        opponent_country = "" if is_home else inv.get("from_country", "")
+        events.append({
+            "id": inv["id"],
+            "type": "friendly",
+            "date": inv.get("accepted_date", ""),
+            "time": inv.get("accepted_time", ""),
+            "opponent": opponent,
+            "opponent_country": opponent_country,
+            "home_away": inv.get("home_away", ""),
+            "pitch_name": inv.get("pitch_name", ""),
+            "pitch_address": inv.get("pitch_address", ""),
+            "manager_name": inv.get("to_manager_name", "") if is_home else inv.get("from_manager_name", ""),
+            "manager_phone": inv.get("to_manager_phone", "") if is_home else inv.get("from_manager_phone", ""),
+            "status": "upcoming",
+        })
+    # 2) Scheduled matches (not completed)
+    matches = await db.matches.find(
+        {"team_id": team_id, "user_id": user["user_id"], "status": {"$ne": "completed"}},
+        {"_id": 0, "id": 1, "opponent": 1, "date": 1, "status": 1}
+    ).to_list(200)
+    for m in matches:
+        events.append({
+            "id": m["id"],
+            "type": "match",
+            "date": m.get("date", ""),
+            "time": "",
+            "opponent": m.get("opponent", "Unknown"),
+            "opponent_country": "",
+            "home_away": "",
+            "pitch_name": "",
+            "pitch_address": "",
+            "manager_name": "",
+            "manager_phone": "",
+            "status": m.get("status", "scheduled"),
+        })
+    # Sort by date
+    events.sort(key=lambda e: e.get("date", "") or "9999")
+    return events
+
+
 # ---- Network (Friends) ----
 
 @api_router.post("/network/add")
