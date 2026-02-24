@@ -52,12 +52,12 @@ export default function CalendarScreen() {
   };
 
   const formatDate = (dateStr: string) => {
-    if (!dateStr) return 'Dato ikke satt';
+    if (!dateStr) return 'Date not set';
     try {
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
-      const days = ['Son', 'Man', 'Tir', 'Ons', 'Tor', 'Fre', 'Lor'];
-      const months = ['jan', 'feb', 'mar', 'apr', 'mai', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'des'];
+      const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
       return `${days[d.getDay()]} ${d.getDate()}. ${months[d.getMonth()]}`;
     } catch { return dateStr; }
   };
@@ -70,10 +70,10 @@ export default function CalendarScreen() {
       now.setHours(0, 0, 0, 0);
       target.setHours(0, 0, 0, 0);
       const diff = Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-      if (diff === 0) return 'I dag';
-      if (diff === 1) return 'I morgen';
+      if (diff === 0) return 'Today';
+      if (diff === 1) return 'Tomorrow';
       if (diff < 0) return null;
-      return `Om ${diff} dager`;
+      return `In ${diff} days`;
     } catch { return null; }
   };
 
@@ -87,7 +87,7 @@ export default function CalendarScreen() {
 
   const monthLabel = (key: string) => {
     if (key === 'unknown') return 'Uten dato';
-    const months = ['Januar', 'Februar', 'Mars', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Desember'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
     const [y, m] = key.split('-');
     return `${months[parseInt(m) - 1] || m} ${y}`;
   };
@@ -99,7 +99,7 @@ export default function CalendarScreen() {
           <MaterialCommunityIcons name="arrow-left" size={20} color={Colors.white} />
         </TouchableOpacity>
         <View style={{ flex: 1 }}>
-          <Text style={st.headerTitle}>Kampkalender</Text>
+          <Text style={st.headerTitle}>Match Calendar</Text>
           <Text style={st.headerSub}>{currentTeam?.name || 'Team'}</Text>
         </View>
         <TouchableOpacity testID="refresh-calendar" onPress={fetchCalendar} style={st.refreshBtn}>
@@ -113,8 +113,8 @@ export default function CalendarScreen() {
         {!loading && events.length === 0 && (
           <View style={st.emptyBox}>
             <MaterialCommunityIcons name="calendar-blank" size={48} color={Colors.textMuted} />
-            <Text style={st.emptyTitle}>Ingen kommende kamper</Text>
-            <Text style={st.emptyHint}>Aksepterte vennskapskamper og planlagte kamper vises her</Text>
+            <Text style={st.emptyTitle}>No upcoming matches</Text>
+            <Text style={st.emptyHint}>Accepted friendly matches and scheduled games will appear here</Text>
           </View>
         )}
 
@@ -141,7 +141,7 @@ export default function CalendarScreen() {
                     <View style={st.eventTop}>
                       <View style={[st.typeBadge, { backgroundColor: ev.type === 'friendly' ? 'rgba(16,185,129,0.12)' : 'rgba(59,130,246,0.12)' }]}>
                         <Text style={[st.typeText, { color: ev.type === 'friendly' ? '#10B981' : '#3B82F6' }]}>
-                          {ev.type === 'friendly' ? 'Vennskap' : 'Kamp'}
+                          {ev.type === 'friendly' ? 'Friendly' : 'Match'}
                         </Text>
                       </View>
                       {daysUntil && <Text style={st.countdown}>{daysUntil}</Text>}
@@ -162,7 +162,7 @@ export default function CalendarScreen() {
                       {ev.home_away ? (
                         <View style={st.detailChip}>
                           <MaterialCommunityIcons name={ev.home_away === 'home' ? 'home' : 'bus'} size={11} color={Colors.textMuted} />
-                          <Text style={st.detailText}>{ev.home_away === 'home' ? 'Hjemme' : 'Borte'}</Text>
+                          <Text style={st.detailText}>{ev.home_away === 'home' ? 'Home' : 'Away'}</Text>
                         </View>
                       ) : null}
                     </View>
