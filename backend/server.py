@@ -519,6 +519,26 @@ async def add_to_network(body: NetworkAdd, user: dict = Depends(get_current_user
     }
     await db.network.insert_one(doc)
     doc.pop("_id", None)
+
+    # Send alert message to the added team's owner
+    adder_teams = await db.teams.find({"user_id": user["user_id"]}, {"_id": 0}).to_list(10)
+    adder_name = user.get("name", user.get("email", "Someone"))
+    adder_team_codes = [t.get("team_code", "") for t in adder_teams if t.get("team_code")]
+    msg = {
+        "id": str(uuid.uuid4()),
+        "team_id": team["id"],
+        "user_id": team.get("user_id", ""),
+        "type": "network_add",
+        "title": f"{adder_name} added your team to their network",
+        "body": f"Add them back to connect!",
+        "read": False,
+        "adder_user_id": user["user_id"],
+        "adder_team_codes": adder_team_codes,
+        "adder_teams": [{"id": t["id"], "name": t.get("name",""), "team_code": t.get("team_code",""), "format": t.get("format",""), "gender": t.get("gender",""), "age_group": t.get("age_group","")} for t in adder_teams],
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.messages.insert_one(msg)
+
     return doc
 
 
