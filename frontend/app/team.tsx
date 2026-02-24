@@ -461,4 +461,6 @@ const s = StyleSheet.create({
   chipTextActive: { color: Colors.primary },
   confirmBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, height: 42, borderRadius: 8, gap: 6 },
   confirmBtnText: { fontSize: 12, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
+  countryChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, marginRight: 5, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
+  countryChipActive: { borderColor: Colors.primary, backgroundColor: 'rgba(0,200,83,0.1)' },
 });
