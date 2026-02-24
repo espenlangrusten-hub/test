@@ -170,11 +170,15 @@ export default function HomeScreen() {
           </View>
         )}
         {network.map(n => (
-          <View key={n.id} testID={`network-${n.id}`} style={styles.networkCard}>
+          <TouchableOpacity key={n.id} testID={`network-${n.id}`} style={styles.networkCard}
+            onPress={() => setExpandedNetwork(expandedNetwork === n.id ? null : n.id)}
+            activeOpacity={0.7}
+          >
             <View style={{ flex: 1 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
                 {n.friend_team_country ? <Text style={{ fontSize: 16 }}>{getFlagForCode(n.friend_team_country)}</Text> : null}
                 <Text style={styles.netName}>{n.friend_team_name}</Text>
+                <MaterialCommunityIcons name={expandedNetwork === n.id ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.textMuted} />
               </View>
               <View style={styles.teamMeta}>
                 {n.friend_team_gender || n.friend_team_age_group ? (
@@ -182,17 +186,32 @@ export default function HomeScreen() {
                 ) : null}
                 <View style={styles.badge}><Text style={styles.badgeText}>{n.friend_team_format}</Text></View>
               </View>
-              {n.friend_manager_name ? (
-                <View style={styles.managerRow}>
-                  <MaterialCommunityIcons name="account" size={12} color={Colors.textMuted} />
-                  <Text style={styles.managerText}>{n.friend_manager_name}{n.friend_manager_phone ? ` · ${n.friend_manager_phone}` : ''}</Text>
+              {expandedNetwork === n.id && (
+                <View style={styles.contactDetails}>
+                  <View style={styles.contactRow}>
+                    <MaterialCommunityIcons name="account" size={14} color={Colors.primary} />
+                    <Text style={styles.contactLabel}>Manager:</Text>
+                    <Text style={styles.contactValue}>{n.friend_manager_name || 'Not provided'}</Text>
+                  </View>
+                  <View style={styles.contactRow}>
+                    <MaterialCommunityIcons name="phone" size={14} color={Colors.primary} />
+                    <Text style={styles.contactLabel}>Phone:</Text>
+                    <Text style={styles.contactValue}>{n.friend_manager_phone || 'Not provided'}</Text>
+                  </View>
+                  {n.friend_team_code ? (
+                    <View style={styles.contactRow}>
+                      <MaterialCommunityIcons name="pound" size={14} color={Colors.primary} />
+                      <Text style={styles.contactLabel}>Code:</Text>
+                      <Text style={styles.contactValue}>{n.friend_team_code}</Text>
+                    </View>
+                  ) : null}
                 </View>
-              ) : null}
+              )}
             </View>
             <TouchableOpacity testID={`remove-network-${n.id}`} onPress={() => removeFromNetwork(n.id)} hitSlop={{top:8,bottom:8,left:8,right:8}}>
               <MaterialCommunityIcons name="close-circle-outline" size={18} color={Colors.destructive} />
             </TouchableOpacity>
-          </View>
+          </TouchableOpacity>
         ))}
       </ScrollView>
 
