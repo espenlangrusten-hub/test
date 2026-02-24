@@ -89,7 +89,7 @@ export default function HomeScreen() {
     setTeamToDelete(null);
   };
 
-  const genderLabel = (g: string) => g === 'Gutter' ? 'G' : g === 'Jenter' ? 'J' : g === 'Mixed' ? 'M' : '';
+  const genderLabel = (g: string) => g === 'Gutter' ? 'B' : g === 'Jenter' ? 'G' : g === 'Mixed' ? 'M' : '';
 
   return (
     <SafeAreaView style={styles.container}>

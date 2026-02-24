@@ -12,6 +12,7 @@ import { COUNTRIES } from '../src/constants/countries';
 
 const genId = () => Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
 const GENDERS = ['Gutter', 'Jenter', 'Mixed'];
+const GENDER_DISPLAY: Record<string, string> = { 'Gutter': 'Boys', 'Jenter': 'Girls', 'Mixed': 'Mixed' };
 
 export default function TeamSetupScreen() {
   const router = useRouter();
@@ -129,7 +130,7 @@ export default function TeamSetupScreen() {
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
             {GENDERS.map(g => (
               <TouchableOpacity key={g} testID={`gender-${g}`} style={[styles.posChip, gender === g && styles.posChipActive]} onPress={() => setGender(g)}>
-                <Text style={[styles.posChipText, gender === g && styles.posChipTextActive]}>{g}</Text>
+                <Text style={[styles.posChipText, gender === g && styles.posChipTextActive]}>{GENDER_DISPLAY[g] || g}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
