@@ -32,6 +32,14 @@ Build a subscription-based football and futsal team management application for i
 - View friend teams: name, age/gender, country, manager contact info
 - Remove from network
 
+### Match Calendar (Kampkalender)
+- Chronological list of all upcoming matches per team
+- Grouped by month with Norwegian month names
+- Shows: date, day of week, type badge (Vennskap/Kamp), opponent, time, home/away, pitch, manager contact
+- Days-until countdown (e.g. "Om 19 dager", "I dag", "I morgen")
+- Refresh button, empty state for teams without matches
+- Accessible from team page menu (Kalender icon)
+
 ### Friendly Matches
 - Send invite via opponent's team code
 - Multiple date/time proposals
@@ -101,6 +109,7 @@ Build a subscription-based football and futsal team management application for i
 - **P3**: Match analytics dashboard, subscription/payment integration, training drill illustrations
 
 ## Changelog
+- 2026-02-24 (Session 6): Added Match Calendar (Kampkalender) - chronological list of all upcoming matches per team, grouped by month with Norwegian labels, countdown, opponent/pitch/manager details.
 - 2026-02-24 (Session 5): Implemented gender selection (Gutter/Jenter/Mixed), manager registration, unique team codes, My Network, friendly matches invite system, message board. Simplified team page overview.
 - 2026-02-24 (Session 4): Country Selection with flag display.
 - 2026-02-22 (Session 3): Fixed stats bug, rebuilt match-detail with editable score/events/ratings/notes.
@@ -108,6 +117,7 @@ Build a subscription-based football and futsal team management application for i
 - 2026-02-22 (Session 1): Compact team hub, in-match event logging, AI training backend.
 
 ## Test Reports
+- `/app/test_reports/iteration_16.json` (Calendar feature - 100% pass)
 - `/app/test_reports/iteration_15.json` (All new features - 100% pass)
 - `/app/test_reports/iteration_14.json` (Country feature)
 - `/app/test_reports/iteration_6.json` (Match stats/editing)
