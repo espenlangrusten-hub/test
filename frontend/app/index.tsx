@@ -283,8 +283,12 @@ const styles = StyleSheet.create({
   networkHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
   addNetBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Colors.primary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   addNetBtnText: { fontSize: 10, fontWeight: '700', color: Colors.white },
-  networkCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 10, marginBottom: 5, borderWidth: 1, borderColor: Colors.border, gap: 8 },
+  networkCard: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 10, marginBottom: 5, borderWidth: 1, borderColor: Colors.border, gap: 8 },
   netName: { fontSize: 14, fontWeight: '700', color: Colors.white },
+  contactDetails: { marginTop: 8, backgroundColor: 'rgba(0,200,83,0.05)', borderRadius: 8, padding: 10, gap: 6 },
+  contactRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  contactLabel: { fontSize: 11, fontWeight: '600', color: Colors.textMuted, width: 60 },
+  contactValue: { fontSize: 12, fontWeight: '600', color: Colors.white, flex: 1 },
   managerRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
   managerText: { fontSize: 11, color: Colors.textMuted },
   // Modals
