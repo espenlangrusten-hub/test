@@ -139,7 +139,7 @@ export default function FriendlyMatchesScreen() {
         setRespondInvite(null);
         fetchInvites();
       }
-    } catch { Alert.alert('Feil', 'Network error'); }
+    } catch { Alert.alert('Error', 'Network error'); }
   };
 
   const isSent = (inv: InviteData) => inv.from_team_id === activeTeamId;
