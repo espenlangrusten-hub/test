@@ -72,7 +72,7 @@
   "context_for_next_testing_agent": "COMPREHENSIVE FULL-APP TEST COMPLETE. All major features verified working. Backend API endpoints (health, teams CRUD, matches CRUD, player notes) operational with 93.1% test pass rate (2 transient network failures only). Frontend UI flows all working: HOME (sport cards, team display, edit/delete modals), FORMAT (5v5/7v7/11v11 selection), TEAM SETUP (name input, player add/edit/remove, SAVE CHANGES for edit mode), TACTICS (formation picker with 18 formations, pitch view, customize mode toggle, set piece modal, tactic guide navigation, team match history link, START MATCH button), TACTIC GUIDE (team/individual tabs, attacking/defensive phase toggles, expandable position cards), MATCH HISTORY (global and team-filtered views with 11 matches displayed). Known issue from iteration 2: drag-to-reposition in customize mode not working in web preview (PanResponder issue). All other features 100% functional. App ready for production use.",
   "test_details": {
     "test_type": "Full Comprehensive Backend + Frontend Testing",
-    "environment": "Backend: https://team-mgmt-hub-1.preview.emergentagent.com/api, Frontend: Expo web preview (mobile viewport 390x844)",
+    "environment": "Backend: https://squad-formations.preview.emergentagent.com/api, Frontend: Expo web preview (mobile viewport 390x844)",
     "backend_tests_executed": 29,
     "backend_tests_passed": 27,
     "backend_tests_failed": 1,

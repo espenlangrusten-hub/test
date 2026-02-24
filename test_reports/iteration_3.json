@@ -48,7 +48,7 @@
   "context_for_next_testing_agent": "Match screen major rewrite completed and fully tested. All Alert.alert replaced with Modal components. New features: (1) END match modal with confirmation (testID: confirm-end-btn, cancel-end-btn), (2) Manual substitution modal (testID: manual-sub-btn) with player selection, (3) Post-match review screen (testID: review-btn) with 1-10 rating selectors (testID: review-rating-{playerId}-{rating}) and notes input (testID: review-note-{playerId}), (4) SAVE & FINISH (testID: save-review-btn) and SKIP buttons (testID: skip-review-btn), (5) Team match history button on tactics page (testID: team-match-history-btn) navigates with teamId query param. Flow: Home → Team → Tactics → START MATCH → Setup (sub plan preview) → Live (PAUSE/SUB/END + BENCH + UPCOMING SUBS) → End modal → Post-match (RATE/HOME) → Review screen → Home. Backend endpoint /api/matches/{id}/notes working correctly. All previous features (Tactic Guide, Custom Formation) remain functional.",
   "test_details": {
     "test_type": "Backend API + Frontend UI & Integration Testing",
-    "environment": "Expo web preview (mobile viewport 375x667), Backend: https://team-mgmt-hub-1.preview.emergentagent.com",
+    "environment": "Expo web preview (mobile viewport 375x667), Backend: https://squad-formations.preview.emergentagent.com",
     "backend_tests_run": 29,
     "backend_tests_passed": 28,
     "frontend_features_tested": [
