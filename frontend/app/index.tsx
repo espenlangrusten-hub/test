@@ -21,6 +21,7 @@ export default function HomeScreen() {
   const [showAddNetwork, setShowAddNetwork] = useState(false);
   const [networkCode, setNetworkCode] = useState('');
   const [addingNetwork, setAddingNetwork] = useState(false);
+  const [expandedNetwork, setExpandedNetwork] = useState<string | null>(null);
 
   const authHeaders = (): Record<string, string> => {
     const h: Record<string, string> = { 'Content-Type': 'application/json' };
