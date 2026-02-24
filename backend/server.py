@@ -584,8 +584,8 @@ async def create_friendly_invite(body: FriendlyInviteCreate, user: dict = Depend
         "team_id": to_team["id"],
         "user_id": to_team.get("user_id", ""),
         "type": "invite_received",
-        "title": f"Vennskapskamp-invitasjon fra {from_team.get('name', '')}",
-        "body": f"{from_team.get('name', '')} inviterer til vennskapskamp. {len(body.proposed_dates)} datoforslag.",
+        "title": f"Friendly match invitation from {from_team.get('name', '')}",
+        "body": f"{from_team.get('name', '')} invites you to a friendly match. {len(body.proposed_dates)} date proposals.",
         "related_invite_id": doc["id"],
         "read": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -597,8 +597,8 @@ async def create_friendly_invite(body: FriendlyInviteCreate, user: dict = Depend
         "team_id": from_team["id"],
         "user_id": user["user_id"],
         "type": "invite_sent",
-        "title": f"Invitasjon sendt til {to_team.get('name', '')}",
-        "body": f"Vennskapskamp-invitasjon sendt. Venter på svar.",
+        "title": f"Invitation sent to {to_team.get('name', '')}",
+        "body": f"Friendly match invitation sent. Awaiting response.",
         "related_invite_id": doc["id"],
         "read": True,
         "created_at": datetime.now(timezone.utc).isoformat(),
@@ -644,14 +644,14 @@ async def respond_to_invite(invite_id: str, body: FriendlyInviteRespond, user: d
         update["accepted_time"] = body.accepted_time
     await db.friendly_invites.update_one({"id": invite_id}, {"$set": update})
     # Create message for the sender
-    status_text = "akseptert" if body.status == "accepted" else "avslatt"
+    status_text = "accepted" if body.status == "accepted" else "declined"
     msg = {
         "id": str(uuid.uuid4()),
         "team_id": invite["from_team_id"],
         "user_id": invite["from_user_id"],
         "type": f"invite_{body.status}",
-        "title": f"Invitasjon {status_text} av {invite.get('to_team_name', '')}",
-        "body": f"Dato: {body.accepted_date} {body.accepted_time}" if body.status == "accepted" else "Invitasjonen ble avslatt.",
+        "title": f"Invitation {status_text} by {invite.get('to_team_name', '')}",
+        "body": f"Date: {body.accepted_date} {body.accepted_time}" if body.status == "accepted" else "The invitation was declined.",
         "related_invite_id": invite_id,
         "read": False,
         "created_at": datetime.now(timezone.utc).isoformat(),
