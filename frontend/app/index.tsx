@@ -58,9 +58,9 @@ export default function HomeScreen() {
         fetchNetwork();
       } else {
         const err = await res.json().catch(() => ({ detail: 'Not found' }));
-        Alert.alert('Feil', err.detail || 'Team not found');
+        Alert.alert('Error', err.detail || 'Team not found');
       }
-    } catch { Alert.alert('Feil', 'Network error'); }
+    } catch { Alert.alert('Error', 'Network error'); }
     setAddingNetwork(false);
   };
 
