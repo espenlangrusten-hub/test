@@ -458,7 +458,7 @@ const s = StyleSheet.create({
   sidebarHoriz: { width: '100%', flexDirection: 'row', gap: 4, marginBottom: 10, flexWrap: 'wrap' },
   sideItem: { alignItems: 'center', backgroundColor: Colors.backgroundSecondary, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 4, borderWidth: 1, borderColor: Colors.border },
   sideItemHoriz: { flex: 1, minWidth: 60 },
-  sideIcon: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginBottom: 3 },
+  sideIcon: { width: 44, height: 44, borderRadius: 12, justifyContent: 'center', alignItems: 'center', marginBottom: 3 },
   sideLabel: { fontSize: 9, fontWeight: '700', color: Colors.textMuted, textAlign: 'center' },
   // Squad tab
   squadHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
@@ -503,4 +503,9 @@ const s = StyleSheet.create({
   confirmBtnText: { fontSize: 12, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
   countryChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, marginRight: 5, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
   countryChipActive: { borderColor: Colors.primary, backgroundColor: 'rgba(0,200,83,0.1)' },
+  // Board section
+  boardSection: { marginTop: 16, backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: Colors.border },
+  boardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  boardTitle: { fontSize: 12, fontWeight: '800', color: Colors.textSecondary, letterSpacing: 1.5, flex: 1 },
+  boardSubtext: { fontSize: 12, color: Colors.textMuted, marginTop: 6 },
 });
