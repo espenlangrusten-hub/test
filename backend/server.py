@@ -429,21 +429,6 @@ async def add_match_event(match_id: str, event: MatchEvent, user: dict = Depends
     return event_dict
 
 
-# ---- Team Lookup by Code ----
-
-@api_router.get("/teams/lookup")
-async def lookup_team_by_code(code: str, user: dict = Depends(get_current_user)):
-    team = await db.teams.find_one(
-        {"team_code": code.strip().upper()},
-        {"_id": 0, "id": 1, "name": 1, "sport": 1, "format": 1, "age_group": 1,
-         "gender": 1, "country": 1, "manager_name": 1, "manager_phone": 1,
-         "team_code": 1, "user_id": 1}
-    )
-    if not team:
-        raise HTTPException(status_code=404, detail="Team not found")
-    return team
-
-
 # ---- Network (Friends) ----
 
 @api_router.post("/network/add")
