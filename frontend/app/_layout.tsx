@@ -44,6 +44,8 @@ function AppContent() {
         <Stack.Screen name="match-history" options={{ title: 'Match History' }} />
         <Stack.Screen name="match-detail" options={{ title: 'Match Review' }} />
         <Stack.Screen name="training" options={{ title: 'Training Sessions' }} />
+        <Stack.Screen name="friendly-matches" options={{ title: 'Friendly Matches' }} />
+        <Stack.Screen name="messages" options={{ title: 'Messages' }} />
       </Stack>
     </>
   );
