@@ -442,20 +442,12 @@ export default function TacticsScreen() {
 
       {/* Bottom Bar */}
       <View style={styles.bottomBar}>
-        <View style={styles.bottomBtnRow}>
-          <TouchableOpacity testID="save-formation-btn"
-            style={[styles.saveOnlyBtn, saving && styles.disabledBtn]}
-            onPress={handleSaveOnly} disabled={saving}>
-            <MaterialCommunityIcons name="content-save" size={18} color={Colors.primary} />
-            <Text style={styles.saveOnlyBtnText}>{saving ? 'SAVING...' : 'SAVE'}</Text>
-          </TouchableOpacity>
-          <TouchableOpacity testID="save-match-btn"
-            style={[styles.matchBtn, saving && styles.disabledBtn]}
-            onPress={handleSaveAndMatch} disabled={saving}>
-            <MaterialCommunityIcons name="whistle" size={20} color={Colors.white} />
-            <Text style={styles.matchBtnText}>{saving ? 'SAVING...' : 'MATCH MODE'}</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity testID="save-match-btn"
+          style={[styles.matchBtn, { width: '100%' }, saving && styles.disabledBtn]}
+          onPress={handleSaveAndMatch} disabled={saving}>
+          <MaterialCommunityIcons name="whistle" size={20} color={Colors.white} />
+          <Text style={styles.matchBtnText}>{saving ? 'SAVING...' : 'MATCH MODE'}</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Player Picker Modal */}
