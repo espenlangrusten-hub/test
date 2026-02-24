@@ -143,7 +143,7 @@ export default function TeamPage() {
   const menuItems = [
     { key: 'squad', icon: 'account-group', label: 'Squad', color: '#3B82F6' },
     { key: 'tactics', icon: 'strategy', label: 'Tactics', color: Colors.primary },
-    { key: 'calendar', icon: 'calendar-month', label: 'Kalender', color: '#06B6D4' },
+    { key: 'calendar', icon: 'calendar-month', label: 'Calendar', color: '#06B6D4' },
     { key: 'friendly', icon: 'handshake', label: 'Friendly', color: '#10B981' },
     { key: 'training', icon: 'whistle', label: 'Training', color: '#8B5CF6' },
     { key: 'history', icon: 'history', label: 'History', color: '#F59E0B' },
@@ -165,7 +165,7 @@ export default function TeamPage() {
       {menuItems.map(item => (
         <TouchableOpacity key={item.key} testID={`menu-${item.key}`} style={[s.sideItem, !isWide && s.sideItemHoriz]} onPress={() => navigateMenu(item.key)}>
           <View style={[s.sideIcon, { backgroundColor: item.color + '18' }]}>
-            <MaterialCommunityIcons name={item.icon as any} size={18} color={item.color} />
+            <MaterialCommunityIcons name={item.icon as any} size={26} color={item.color} />
           </View>
           <Text style={s.sideLabel}>{item.label}</Text>
         </TouchableOpacity>
@@ -211,7 +211,7 @@ export default function TeamPage() {
           <MaterialCommunityIcons name="key-variant" size={14} color={Colors.primary} />
           <Text style={s.codeLabel}>TEAM CODE:</Text>
           <Text style={s.codeValue}>{currentTeam.team_code}</Text>
-          <Text style={s.codeHint}>Del denne koden for a invitere til nettverk og kamper</Text>
+          <Text style={s.codeHint}>Share this code to invite to network and matches</Text>
         </View>
       ) : null}
 
@@ -227,7 +227,7 @@ export default function TeamPage() {
       {unreadMessages > 0 && (
         <TouchableOpacity testID="messages-badge" style={s.msgBadge} onPress={() => router.push(`/messages?teamId=${currentTeam?.id}`)}>
           <MaterialCommunityIcons name="email" size={16} color="#F59E0B" />
-          <Text style={s.msgText}>{unreadMessages} ulest{unreadMessages > 1 ? 'e' : ''} melding{unreadMessages > 1 ? 'er' : ''}</Text>
+          <Text style={s.msgText}>{unreadMessages} unread message{unreadMessages > 1 ? 's' : ''}</Text>
           <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.textMuted} />
         </TouchableOpacity>
       )}
@@ -236,6 +236,20 @@ export default function TeamPage() {
       <View style={[s.mainRow, !isWide && { flexDirection: 'column' }]}>
         {renderSidebar()}
       </View>
+
+      {/* Message Board */}
+      <TouchableOpacity testID="message-board-section" style={s.boardSection} onPress={() => router.push(`/messages?teamId=${currentTeam?.id}`)} activeOpacity={0.7}>
+        <View style={s.boardHeader}>
+          <MaterialCommunityIcons name="bulletin-board" size={18} color={Colors.textSecondary} />
+          <Text style={s.boardTitle}>MESSAGE BOARD</Text>
+          <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.textMuted} />
+        </View>
+        <Text style={s.boardSubtext}>
+          {unreadMessages > 0
+            ? `${unreadMessages} new message${unreadMessages > 1 ? 's' : ''} - tap to view`
+            : 'No new messages'}
+        </Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 
