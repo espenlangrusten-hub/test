@@ -203,14 +203,24 @@ async def get_me(user: dict = Depends(get_current_user)):
     return u
 
 
+def generate_team_code(length=6):
+    chars = string.ascii_uppercase + string.digits
+    return ''.join(random.choices(chars, k=length))
+
+
 # ---- Team Endpoints (scoped to user) ----
 
 @api_router.post("/teams")
 async def create_team(team: TeamCreate, user: dict = Depends(get_current_user)):
+    # Generate unique team code
+    team_code = generate_team_code()
+    while await db.teams.find_one({"team_code": team_code}):
+        team_code = generate_team_code()
     doc = {
         "id": str(uuid.uuid4()),
         "user_id": user["user_id"],
         **team.dict(),
+        "team_code": team_code,
         "created_at": datetime.now(timezone.utc).isoformat(),
         "updated_at": datetime.now(timezone.utc).isoformat(),
     }
