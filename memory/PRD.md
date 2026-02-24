@@ -118,6 +118,7 @@ Build a subscription-based football and futsal team management application for i
 - 2026-02-22 (Session 1): Compact team hub, in-match event logging, AI training backend.
 
 ## Test Reports
+- `/app/test_reports/iteration_17.json` (English translation + UI changes - 100% pass, 16 test cases)
 - `/app/test_reports/iteration_16.json` (Calendar feature - 100% pass)
 - `/app/test_reports/iteration_15.json` (All new features - 100% pass)
 - `/app/test_reports/iteration_14.json` (Country feature)
