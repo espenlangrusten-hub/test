@@ -12,6 +12,7 @@ import { COUNTRIES, getFlagForCode } from '../src/constants/countries';
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const FORMATS = ['5v5', '7v7', '9v9', '11v11'];
 const AGE_GROUPS = ['U8', 'U9', 'U10', 'U11', 'U12', 'U13', 'U14', 'U15', 'U16', 'U17', 'U18', 'U19', 'Senior'];
+const GENDERS = ['Gutter', 'Jenter', 'Mixed'];
 const isUnder13 = (age: string) => ['U8', 'U9', 'U10', 'U11', 'U12'].includes(age);
 const POSITIONS = ['GK', 'CB', 'LB', 'RB', 'LWB', 'RWB', 'CDM', 'CM', 'CAM', 'LM', 'RM', 'LW', 'RW', 'ST', 'CF'];
 
@@ -27,11 +28,15 @@ export default function TeamPage() {
   const [playerStats, setPlayerStats] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<Tab>('overview');
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   const [showSettings, setShowSettings] = useState(false);
   const [editFormat, setEditFormat] = useState('');
   const [editAge, setEditAge] = useState('');
+  const [editGender, setEditGender] = useState('');
   const [editCountry, setEditCountry] = useState('');
+  const [editManagerName, setEditManagerName] = useState('');
+  const [editManagerPhone, setEditManagerPhone] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
@@ -51,7 +56,7 @@ export default function TeamPage() {
     if (currentTeam?.players) {
       setPlayers(currentTeam.players.map(p => ({ ...p, available: p.available !== undefined ? p.available : true })));
     }
-    if (currentTeam?.id) fetchStats();
+    if (currentTeam?.id) { fetchStats(); fetchUnread(); }
   }, [currentTeam?.id]);
 
   const fetchStats = async () => {
@@ -59,6 +64,16 @@ export default function TeamPage() {
       const res = await fetch(`${API_URL}/api/teams/${currentTeam!.id}/player-stats`, { headers: authHeaders() });
       const data = await res.json();
       setPlayerStats(data);
+    } catch {}
+  };
+
+  const fetchUnread = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/messages?team_id=${currentTeam!.id}`, { headers: authHeaders() });
+      if (res.ok) {
+        const msgs = await res.json();
+        setUnreadMessages(msgs.filter((m: any) => !m.read).length);
+      }
     } catch {}
   };
 
@@ -99,18 +114,36 @@ export default function TeamPage() {
 
   const saveSettings = async () => {
     setSaving(true);
-    try { await saveTeam({ format: editFormat, age_group: editAge, country: editCountry }); } catch {}
+    try {
+      await saveTeam({
+        format: editFormat, age_group: editAge, gender: editGender,
+        country: editCountry, manager_name: editManagerName, manager_phone: editManagerPhone,
+      });
+    } catch {}
     setSaving(false);
     setShowSettings(false);
   };
 
+  const openSettings = () => {
+    setEditFormat(currentTeam?.format || '');
+    setEditAge(currentTeam?.age_group || '');
+    setEditGender(currentTeam?.gender || '');
+    setEditCountry(currentTeam?.country || '');
+    setEditManagerName(currentTeam?.manager_name || '');
+    setEditManagerPhone(currentTeam?.manager_phone || '');
+    setShowSettings(true);
+  };
+
   const ageGroup = currentTeam?.age_group || '';
+  const gender = currentTeam?.gender || '';
   const under13 = isUnder13(ageGroup);
   const availableCount = players.filter(p => p.available).length;
+  const genderShort = gender === 'Gutter' ? 'G' : gender === 'Jenter' ? 'J' : gender === 'Mixed' ? 'M' : '';
 
   const menuItems = [
     { key: 'squad', icon: 'account-group', label: 'Squad', color: '#3B82F6' },
     { key: 'tactics', icon: 'strategy', label: 'Tactics', color: Colors.primary },
+    { key: 'friendly', icon: 'handshake', label: 'Friendly', color: '#10B981' },
     { key: 'training', icon: 'whistle', label: 'Training', color: '#8B5CF6' },
     { key: 'history', icon: 'history', label: 'History', color: '#F59E0B' },
     { key: 'match', icon: 'play-circle', label: 'Match', color: '#EF4444' },
@@ -119,21 +152,16 @@ export default function TeamPage() {
   const navigateMenu = (key: string) => {
     if (key === 'squad') setTab('squad');
     else if (key === 'tactics') router.push('/tactics');
+    else if (key === 'friendly') router.push(`/friendly-matches?teamId=${currentTeam?.id}`);
     else if (key === 'training') router.push('/training');
     else if (key === 'history') router.push(`/match-history?teamId=${currentTeam?.id}`);
     else if (key === 'match') router.push('/match');
   };
 
-  // =============== SIDEBAR NAV ===============
   const renderSidebar = () => (
     <View style={[s.sidebar, !isWide && s.sidebarHoriz]}>
       {menuItems.map(item => (
-        <TouchableOpacity
-          key={item.key}
-          testID={`menu-${item.key}`}
-          style={[s.sideItem, !isWide && s.sideItemHoriz]}
-          onPress={() => navigateMenu(item.key)}
-        >
+        <TouchableOpacity key={item.key} testID={`menu-${item.key}`} style={[s.sideItem, !isWide && s.sideItemHoriz]} onPress={() => navigateMenu(item.key)}>
           <View style={[s.sideIcon, { backgroundColor: item.color + '18' }]}>
             <MaterialCommunityIcons name={item.icon as any} size={18} color={item.color} />
           </View>
@@ -146,20 +174,20 @@ export default function TeamPage() {
   // =============== OVERVIEW TAB ===============
   const renderOverview = () => (
     <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-      {/* Compact team header */}
       <View style={s.infoBar}>
         <View style={s.badge}>
-          <MaterialCommunityIcons name="shield-half-full" size={24} color={Colors.primary} />
+          {currentTeam?.country ? (
+            <Text style={{ fontSize: 22 }}>{getFlagForCode(currentTeam.country)}</Text>
+          ) : (
+            <MaterialCommunityIcons name="shield-half-full" size={24} color={Colors.primary} />
+          )}
         </View>
         <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            {currentTeam?.country ? <Text style={{ fontSize: 18 }}>{getFlagForCode(currentTeam.country)}</Text> : null}
-            <Text style={s.teamName}>{currentTeam?.name}</Text>
-          </View>
+          <Text style={s.teamName}>{currentTeam?.name}</Text>
           <View style={s.tagRow}>
             <View style={s.tag}><Text style={s.tagText}>{currentTeam?.format}</Text></View>
             <View style={s.tag}><Text style={s.tagText}>{currentTeam?.sport}</Text></View>
-            {ageGroup ? <View style={s.tag}><Text style={s.tagText}>{ageGroup}</Text></View> : null}
+            {genderShort || ageGroup ? <View style={s.tag}><Text style={s.tagText}>{genderShort} {ageGroup}</Text></View> : null}
           </View>
         </View>
         <View style={s.miniStats}>
@@ -170,46 +198,41 @@ export default function TeamPage() {
           <Text style={[s.miniNum, { color: Colors.primary }]}>{availableCount}</Text>
           <Text style={s.miniLbl}>AVL</Text>
         </View>
-        <TouchableOpacity testID="team-settings-btn" style={s.settingsBtn} onPress={() => { setEditFormat(currentTeam?.format || ''); setEditAge(ageGroup); setEditCountry(currentTeam?.country || ''); setShowSettings(true); }}>
+        <TouchableOpacity testID="team-settings-btn" style={s.settingsBtn} onPress={openSettings}>
           <MaterialCommunityIcons name="cog" size={16} color={Colors.textMuted} />
         </TouchableOpacity>
       </View>
 
-      {/* Main content: sidebar + table */}
+      {/* Team Code */}
+      {currentTeam?.team_code ? (
+        <View style={s.codeBar}>
+          <MaterialCommunityIcons name="key-variant" size={14} color={Colors.primary} />
+          <Text style={s.codeLabel}>TEAM CODE:</Text>
+          <Text style={s.codeValue}>{currentTeam.team_code}</Text>
+          <Text style={s.codeHint}>Del denne koden for a invitere til nettverk og kamper</Text>
+        </View>
+      ) : null}
+
+      {/* Manager info */}
+      {currentTeam?.manager_name ? (
+        <View style={s.managerBar}>
+          <MaterialCommunityIcons name="account-tie" size={14} color={Colors.textMuted} />
+          <Text style={s.managerText}>Manager: {currentTeam.manager_name}{currentTeam.manager_phone ? ` · ${currentTeam.manager_phone}` : ''}</Text>
+        </View>
+      ) : null}
+
+      {/* Messages badge */}
+      {unreadMessages > 0 && (
+        <TouchableOpacity testID="messages-badge" style={s.msgBadge} onPress={() => router.push(`/messages?teamId=${currentTeam?.id}`)}>
+          <MaterialCommunityIcons name="email" size={16} color="#F59E0B" />
+          <Text style={s.msgText}>{unreadMessages} ulest{unreadMessages > 1 ? 'e' : ''} melding{unreadMessages > 1 ? 'er' : ''}</Text>
+          <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.textMuted} />
+        </TouchableOpacity>
+      )}
+
+      {/* Sidebar + empty area */}
       <View style={[s.mainRow, !isWide && { flexDirection: 'column' }]}>
         {renderSidebar()}
-
-        {/* Player table */}
-        <View style={s.tableWrap}>
-          <View style={s.tableHeader}>
-            <Text style={s.sectionTitle}>SQUAD ({players.length})</Text>
-            <TouchableOpacity testID="add-player-btn" style={s.addBtn} onPress={() => setShowAdd(true)}>
-              <MaterialCommunityIcons name="plus" size={12} color={Colors.white} />
-              <Text style={s.addBtnText}>ADD</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={s.tHead}>
-            <Text style={[s.th, { width: 26 }]}>#</Text>
-            <Text style={[s.th, { flex: 1 }]}>Name</Text>
-            <Text style={[s.th, { width: 34, textAlign: 'center' }]}>Pos</Text>
-            <Text style={[s.th, { width: 40, textAlign: 'center' }]}>Avl</Text>
-          </View>
-          {players.map(p => (
-            <TouchableOpacity key={p.id} testID={`player-row-${p.id}`} style={[s.tRow, !p.available && { opacity: 0.35 }]} onPress={() => openEdit(p)} activeOpacity={0.7}>
-              <Text style={[s.tdNum, { width: 26 }]}>{p.number}</Text>
-              <Text style={[s.tdName, { flex: 1 }]} numberOfLines={1}>{p.name}</Text>
-              <Text style={[s.tdPos, { width: 34, textAlign: 'center' }]}>{p.position}</Text>
-              <TouchableOpacity testID={`avl-toggle-${p.id}`} style={{ width: 40, alignItems: 'center', padding: 4 }} onPress={(e) => { e.stopPropagation?.(); toggleAvailable(p.id); }}>
-                <View style={[s.dot, { backgroundColor: p.available ? Colors.primary : Colors.destructive }]} />
-              </TouchableOpacity>
-            </TouchableOpacity>
-          ))}
-          {players.length === 0 && (
-            <View style={s.emptyBox}>
-              <Text style={s.emptyText}>No players yet. Add your first player.</Text>
-            </View>
-          )}
-        </View>
       </View>
     </ScrollView>
   );
@@ -299,7 +322,6 @@ export default function TeamPage() {
 
   return (
     <View style={s.container}>
-      {/* Header */}
       <View style={s.header}>
         <TouchableOpacity testID="back-btn" onPress={() => { if (tab !== 'overview') setTab('overview'); else router.back(); }} style={s.backBtn}>
           <MaterialCommunityIcons name="arrow-left" size={20} color={Colors.white} />
@@ -321,22 +343,32 @@ export default function TeamPage() {
       {/* Settings Modal */}
       <Modal visible={showSettings} transparent animationType="slide">
         <View style={s.modalOverlay}>
-          <View style={s.modalContent}>
-            <View style={s.modalHead}><Text style={s.modalTitle}>Team Settings</Text><TouchableOpacity onPress={() => setShowSettings(false)}><MaterialCommunityIcons name="close" size={22} color={Colors.textMuted} /></TouchableOpacity></View>
-            <Text style={s.fieldLabel}>FORMAT</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-              {FORMATS.map(f => <TouchableOpacity key={f} style={[s.chip, editFormat === f && s.chipActive]} onPress={() => setEditFormat(f)}><Text style={[s.chipText, editFormat === f && s.chipTextActive]}>{f}</Text></TouchableOpacity>)}
-            </ScrollView>
-            <Text style={s.fieldLabel}>AGE GROUP</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-              {AGE_GROUPS.map(a => <TouchableOpacity key={a} style={[s.chip, editAge === a && s.chipActive]} onPress={() => setEditAge(a)}><Text style={[s.chipText, editAge === a && s.chipTextActive]}>{a}</Text></TouchableOpacity>)}
-            </ScrollView>
-            <Text style={s.fieldLabel}>COUNTRY</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
-              {COUNTRIES.map(c => <TouchableOpacity key={c.code} testID={`settings-country-${c.code}`} style={[s.countryChip, editCountry === c.code && s.countryChipActive]} onPress={() => setEditCountry(c.code)}><Text style={{ fontSize: 16 }}>{c.flag}</Text><Text style={[s.chipText, editCountry === c.code && s.chipTextActive]}>{c.name}</Text></TouchableOpacity>)}
-            </ScrollView>
-            <TouchableOpacity testID="save-settings-btn" style={s.confirmBtn} onPress={saveSettings}><Text style={s.confirmBtnText}>SAVE CHANGES</Text></TouchableOpacity>
-          </View>
+          <ScrollView contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}>
+            <View style={s.modalContent}>
+              <View style={s.modalHead}><Text style={s.modalTitle}>Team Settings</Text><TouchableOpacity onPress={() => setShowSettings(false)}><MaterialCommunityIcons name="close" size={22} color={Colors.textMuted} /></TouchableOpacity></View>
+              <Text style={s.fieldLabel}>FORMAT</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                {FORMATS.map(f => <TouchableOpacity key={f} style={[s.chip, editFormat === f && s.chipActive]} onPress={() => setEditFormat(f)}><Text style={[s.chipText, editFormat === f && s.chipTextActive]}>{f}</Text></TouchableOpacity>)}
+              </ScrollView>
+              <Text style={s.fieldLabel}>GENDER</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                {GENDERS.map(g => <TouchableOpacity key={g} testID={`settings-gender-${g}`} style={[s.chip, editGender === g && s.chipActive]} onPress={() => setEditGender(g)}><Text style={[s.chipText, editGender === g && s.chipTextActive]}>{g}</Text></TouchableOpacity>)}
+              </ScrollView>
+              <Text style={s.fieldLabel}>AGE GROUP</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                {AGE_GROUPS.map(a => <TouchableOpacity key={a} style={[s.chip, editAge === a && s.chipActive]} onPress={() => setEditAge(a)}><Text style={[s.chipText, editAge === a && s.chipTextActive]}>{a}</Text></TouchableOpacity>)}
+              </ScrollView>
+              <Text style={s.fieldLabel}>COUNTRY</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+                {COUNTRIES.map(c => <TouchableOpacity key={c.code} testID={`settings-country-${c.code}`} style={[s.countryChip, editCountry === c.code && s.countryChipActive]} onPress={() => setEditCountry(c.code)}><Text style={{ fontSize: 16 }}>{c.flag}</Text><Text style={[s.chipText, editCountry === c.code && s.chipTextActive]}>{c.name}</Text></TouchableOpacity>)}
+              </ScrollView>
+              <Text style={s.fieldLabel}>MANAGER NAME</Text>
+              <TextInput style={s.input} value={editManagerName} onChangeText={setEditManagerName} placeholder="Manager name" placeholderTextColor={Colors.textMuted} />
+              <Text style={s.fieldLabel}>PHONE</Text>
+              <TextInput style={s.input} value={editManagerPhone} onChangeText={setEditManagerPhone} placeholder="Phone number" placeholderTextColor={Colors.textMuted} keyboardType="phone-pad" />
+              <TouchableOpacity testID="save-settings-btn" style={s.confirmBtn} onPress={saveSettings}><Text style={s.confirmBtnText}>SAVE CHANGES</Text></TouchableOpacity>
+            </View>
+          </ScrollView>
         </View>
       </Modal>
 
@@ -383,9 +415,7 @@ const s = StyleSheet.create({
   headerSub: { fontSize: 10, color: Colors.textMuted, marginTop: 1 },
   savingText: { fontSize: 10, color: Colors.primary, fontWeight: '600' },
   scroll: { padding: 12, paddingBottom: 30 },
-
-  // Compact info bar
-  infoBar: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: Colors.border, marginBottom: 12 },
+  infoBar: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: Colors.border, marginBottom: 8 },
   badge: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,200,83,0.08)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0,200,83,0.2)' },
   teamName: { fontSize: 16, fontWeight: '800', color: Colors.white },
   tagRow: { flexDirection: 'row', gap: 4, marginTop: 2 },
@@ -395,34 +425,25 @@ const s = StyleSheet.create({
   miniNum: { fontSize: 16, fontWeight: '800', color: Colors.white },
   miniLbl: { fontSize: 8, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1 },
   settingsBtn: { padding: 6, borderRadius: 6, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
-
+  // Team code
+  codeBar: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,200,83,0.05)', borderRadius: 8, padding: 8, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(0,200,83,0.15)' },
+  codeLabel: { fontSize: 9, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1 },
+  codeValue: { fontSize: 14, fontWeight: '900', color: Colors.primary, letterSpacing: 2, fontFamily: Platform.OS === 'web' ? 'monospace' : undefined },
+  codeHint: { fontSize: 9, color: Colors.textMuted, flex: 1, textAlign: 'right' },
+  // Manager
+  managerBar: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 6, marginBottom: 8 },
+  managerText: { fontSize: 11, color: Colors.textMuted },
+  // Messages
+  msgBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(245,158,11,0.08)', borderRadius: 8, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(245,158,11,0.2)' },
+  msgText: { fontSize: 12, fontWeight: '600', color: '#F59E0B', flex: 1 },
   // Main row with sidebar
   mainRow: { flexDirection: 'row', gap: 10 },
-
-  // Sidebar
   sidebar: { width: 72, gap: 4 },
-  sidebarHoriz: { width: '100%', flexDirection: 'row', gap: 4, marginBottom: 10 },
+  sidebarHoriz: { width: '100%', flexDirection: 'row', gap: 4, marginBottom: 10, flexWrap: 'wrap' },
   sideItem: { alignItems: 'center', backgroundColor: Colors.backgroundSecondary, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 4, borderWidth: 1, borderColor: Colors.border },
-  sideItemHoriz: { flex: 1 },
+  sideItemHoriz: { flex: 1, minWidth: 60 },
   sideIcon: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center', marginBottom: 3 },
   sideLabel: { fontSize: 9, fontWeight: '700', color: Colors.textMuted, textAlign: 'center' },
-
-  // Player table
-  tableWrap: { flex: 1 },
-  tableHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 },
-  sectionTitle: { fontSize: 10, fontWeight: '700', color: Colors.textMuted, letterSpacing: 2 },
-  addBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Colors.primary, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  addBtnText: { fontSize: 10, fontWeight: '700', color: Colors.white },
-  tHead: { flexDirection: 'row', paddingHorizontal: 6, paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  th: { fontSize: 9, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1 },
-  tRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 6, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: Colors.border + '30' },
-  tdNum: { fontSize: 12, fontWeight: '800', color: Colors.primary },
-  tdName: { fontSize: 12, fontWeight: '600', color: Colors.white },
-  tdPos: { fontSize: 10, fontWeight: '600', color: Colors.textMuted },
-  dot: { width: 7, height: 7, borderRadius: 4 },
-  emptyBox: { alignItems: 'center', paddingVertical: 24 },
-  emptyText: { fontSize: 12, color: Colors.textMuted },
-
   // Squad tab
   squadHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
   squadTabs: { flexDirection: 'row', gap: 4 },
@@ -430,6 +451,8 @@ const s = StyleSheet.create({
   sqTabActive: { borderColor: Colors.primary, backgroundColor: 'rgba(0,200,83,0.08)' },
   sqTabText: { fontSize: 11, fontWeight: '700', color: Colors.textMuted },
   sqTabTextActive: { color: Colors.primary },
+  addBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Colors.primary, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  addBtnText: { fontSize: 10, fontWeight: '700', color: Colors.white },
   playerCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.backgroundSecondary, borderRadius: 8, padding: 6, marginBottom: 3, borderWidth: 1, borderColor: Colors.border },
   playerCardOff: { opacity: 0.4 },
   playerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -442,7 +465,6 @@ const s = StyleSheet.create({
   posText: { fontSize: 8, fontWeight: '700', color: Colors.primary },
   playerRight: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   eBtn: { padding: 4 },
-
   // Detail view
   detailHead: { flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: Colors.border },
   dh: { fontSize: 8, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1, textAlign: 'center' },
@@ -450,7 +472,6 @@ const s = StyleSheet.create({
   dd: { fontSize: 11, fontWeight: '600', color: Colors.textSecondary, textAlign: 'center' },
   infoBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(245,158,11,0.08)', borderRadius: 8, padding: 10, marginTop: 10, borderWidth: 1, borderColor: 'rgba(245,158,11,0.2)' },
   infoText: { fontSize: 12, color: Colors.warning, flex: 1 },
-
   // Modals
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: Colors.backgroundSecondary, borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 18, paddingBottom: 36 },
