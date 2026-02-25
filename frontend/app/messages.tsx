@@ -190,6 +190,7 @@ const st = StyleSheet.create({
   msgBody: { fontSize: 11, color: Colors.textSecondary, marginTop: 2 },
   msgTime: { fontSize: 9, color: Colors.textMuted, marginTop: 3 },
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#3B82F6', marginTop: 4 },
+  trashBtn: { padding: 4, marginLeft: 4 },
   addBackRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 6 },
   addBackBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#8B5CF6', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
   addBackText: { fontSize: 10, fontWeight: '700', color: Colors.white, letterSpacing: 0.5 },
