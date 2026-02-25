@@ -334,12 +334,39 @@ export default function FriendlyMatchesScreen() {
         {pending.length > 0 && (
           <>
             <Text style={st.section}>PENDING INVITATIONS</Text>
-            {pending.map(inv => (
+            {pending.map(inv => {
+              const opp = getOpponent(inv);
+              return (
               <TouchableOpacity key={inv.id} testID={`pending-${inv.id}`} style={st.inviteCard}
                 onPress={() => { setRespondInvite(inv); setSelectedDate(''); setSelectedTime(''); }}
                 activeOpacity={0.7}
               >
                 <Text style={st.matchHeadline}>{inv.from_team_name} vs {inv.to_team_name}</Text>
+                <TouchableOpacity testID={`opp-detail-pending-${inv.id}`} style={st.oppToggle}
+                  onPress={(e) => { e.stopPropagation && e.stopPropagation(); setExpandedOpponent(expandedOpponent === `p-${inv.id}` ? null : `p-${inv.id}`); }}
+                >
+                  <MaterialCommunityIcons name="account" size={14} color={Colors.primary} />
+                  <Text style={st.oppToggleText}>{opp.name}</Text>
+                  <MaterialCommunityIcons name={expandedOpponent === `p-${inv.id}` ? 'chevron-up' : 'chevron-down'} size={14} color={Colors.textMuted} />
+                </TouchableOpacity>
+                {expandedOpponent === `p-${inv.id}` && (
+                  <View style={st.oppDetailBox}>
+                    <View style={st.oppRow}><Text style={st.oppLabel}>Manager:</Text><Text style={st.oppValue}>{opp.manager || 'N/A'}</Text></View>
+                    <View style={st.oppRow}><Text style={st.oppLabel}>Phone:</Text><Text style={st.oppValue}>{opp.phone || 'N/A'}</Text></View>
+                    <View style={st.oppRow}><Text style={st.oppLabel}>Code:</Text><Text style={st.oppValue}>#{opp.code}</Text></View>
+                    {!isInNetwork(opp.code) && (
+                      <TouchableOpacity testID={`add-opp-network-p-${inv.id}`} style={[st.addNetBtn, addingToNetwork && { opacity: 0.5 }]}
+                        onPress={() => addOpponentToNetwork(opp.code)} disabled={addingToNetwork}
+                      >
+                        <MaterialCommunityIcons name="account-plus" size={14} color={Colors.white} />
+                        <Text style={st.addNetText}>ADD TO NETWORK</Text>
+                      </TouchableOpacity>
+                    )}
+                    {isInNetwork(opp.code) && (
+                      <View style={st.inNetworkBadge}><MaterialCommunityIcons name="check" size={12} color={Colors.primary} /><Text style={st.inNetworkText}>In your network</Text></View>
+                    )}
+                  </View>
+                )}
                 <View style={st.matchTop}>
                   <View style={[st.statusTag, { backgroundColor: 'rgba(245,158,11,0.15)' }]}>
                     <Text style={[st.statusText, { color: '#F59E0B' }]}>{isSent(inv) ? 'Awaiting response' : 'Action needed'}</Text>
@@ -349,7 +376,8 @@ export default function FriendlyMatchesScreen() {
                 {inv.pitch_name ? <Text style={st.matchAddr}>{inv.pitch_name}</Text> : null}
                 <Text style={st.tapHint}>Tap to respond</Text>
               </TouchableOpacity>
-            ))}
+              );
+            })}
           </>
         )}
 
