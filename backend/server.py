@@ -442,7 +442,7 @@ async def get_team_calendar(team_id: str, user: dict = Depends(get_current_user)
     events = []
     # 1) Accepted friendly invites
     friendly = await db.friendly_invites.find(
-        {"$or": [{"from_team_id": team_id}, {"to_team_id": team_id}], "status": "accepted"},
+        {"$or": [{"from_team_id": team_id}, {"to_team_id": team_id}], "status": {"$in": ["accepted", "cancelled"]}},
         {"_id": 0}
     ).to_list(200)
     for inv in friendly:
@@ -461,7 +461,7 @@ async def get_team_calendar(team_id: str, user: dict = Depends(get_current_user)
             "pitch_address": inv.get("pitch_address", ""),
             "manager_name": inv.get("to_manager_name", "") if is_home else inv.get("from_manager_name", ""),
             "manager_phone": inv.get("to_manager_phone", "") if is_home else inv.get("from_manager_phone", ""),
-            "status": "upcoming",
+            "status": "cancelled" if inv.get("status") == "cancelled" else "upcoming",
         })
     # 2) Scheduled matches (not completed)
     matches = await db.matches.find(
