@@ -1,0 +1,79 @@
+{
+  "summary": "Completed testing of coaching panel features for format-specific coaching data. All 6 requested features tested and PASSED. 11v11 coaching shows Team Level/Defensive Line/Attack categories with Guardiola/Sacchi/Simeone/Ancelotti/Tuchel/Bielsa coaches. 5v5 futsal coaching shows Rotation & Shape/Defending/Attack with Falcao/Ricardinho/Marcos/Higuita/Jorge Braz coaches. Quote position correctly at BOTTOM (after Apply button). Arrows appear on pitch after applying tactics.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "known_issues_from_prev_iteration": [
+      {
+        "component": "tactics.tsx - PitchView",
+        "issue": "Formation switching causes most players to disappear from pitch. Only 3 players visible instead of 11.",
+        "priority": "MEDIUM",
+        "status": "STILL PRESENT - Not tested/fixed in this iteration (out of scope)"
+      }
+    ]
+  },
+  "test_results": {
+    "test_1_11v11_coaching_categories": {
+      "status": "PASSED",
+      "description": "11v11 coaching panel shows 3 categories: Team Level (2 tactics), Defensive Line (2 tactics), Attack (2 tactics)"
+    },
+    "test_2_11v11_coaching_card_structure": {
+      "status": "PASSED",
+      "description": "Coaching card shows: Problem (red dot) -> Principle (green dot) -> Action bullets -> APPLY ON PITCH button -> Quote at BOTTOM"
+    },
+    "test_3_11v11_specific_coaches": {
+      "status": "PASSED",
+      "description": "11v11 shows correct coaches: Guardiola, Sacchi in Team Level. No futsal coaches (Falcao etc) present."
+    },
+    "test_4_5v5_futsal_coaching_categories": {
+      "status": "PASSED",
+      "description": "5v5 futsal coaching panel shows 3 categories: Rotation & Shape (2 tactics), Defending (2 tactics), Attack (2 tactics)"
+    },
+    "test_5_5v5_futsal_specific_coaches": {
+      "status": "PASSED",
+      "description": "5v5 futsal shows correct coaches: Falcao ('Futsal is chess with your feet'), Ricardinho ('team that recovers the ball fastest wins'). No 11v11 coaches (Guardiola etc) present."
+    },
+    "test_6_apply_tactic_arrows": {
+      "status": "PASSED",
+      "description": "After clicking APPLY ON PITCH, arrows appear on the pitch and 'ACTIVE TACTICS' section appears. Match log shows 'Coach:' event."
+    }
+  },
+  "verified_features": {
+    "quote_position": "BOTTOM - Quote appears AFTER Apply button (lines 1084-1085 in match.tsx)",
+    "coaching_card_order": "1. Problem (red) -> 2. Principle (green) -> 3. Actions (bullets) -> 4. Apply button -> 5. Quote",
+    "format_specific_data": "getCoachingCategories(format) returns different data for 11v11 vs 5v5",
+    "arrows_on_pitch": "TacticalArrows rendered via PitchView component with activeCoachingOverlay state"
+  },
+  "test_report_links": [
+    "/app/test_reports/iteration_9.json"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "coaching-data.ts: Clean implementation with 4 separate COACHING constants (11v11, 9v9, 7v7, 5v5)",
+    "match.tsx line 137: coachingCategories = getCoachingCategories(format) - correctly uses team format",
+    "match.tsx lines 1084-1085: Quote correctly positioned at BOTTOM after Apply button",
+    "match.tsx line 1067-1079: APPLY ON PITCH button updates activeCoachingOverlay state with arrows",
+    "PitchView component: Receives tacticalArrows prop and renders arrows on pitch"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A - Frontend only test",
+    "frontend": "100% (6/6 features tested and passed)"
+  },
+  "seed_data_creation": "None - used existing teams: 'Monolitten g2012' (11v11) and 'Monolitten' (5v5 futsal)",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Coaching panel features are working correctly. 11v11 team (Monolitten g2012) shows football-specific coaching. 5v5 futsal team (Monolitten) shows futsal-specific coaching. Quote appears at bottom of card after Apply button. Arrows appear on pitch when tactic is applied. The formation switching bug from iteration_6 still exists but is unrelated to coaching features.",
+  "screenshots_taken": [
+    ".screenshots/11v11_coaching_categories.png - Shows Team Level/Defensive Line/Attack categories",
+    ".screenshots/11v11_tactics_team_level.png - Shows Guardiola/Sacchi tactics with quote at bottom",
+    ".screenshots/11v11_arrows_applied.png - Shows arrows on pitch after applying tactic",
+    ".screenshots/5v5_coaching_categories.png - Shows Rotation & Shape/Defending/Attack categories", 
+    ".screenshots/5v5_tactics_rotation.png - Shows Falcao/Ricardinho tactics with quote at bottom"
+  ]
+}

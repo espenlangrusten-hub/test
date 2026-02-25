@@ -1,0 +1,58 @@
+{
+  "summary": "Testing iteration 12: New features (assist events, formation change, team availability toggle, FORM button, SAVE button). Backend tests passed. Frontend has UI rendering issues with missing buttons.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [
+      {
+        "component": "Match controls",
+        "issue": "FORM button missing from match live view controls. Code exists at line 854-857 of match.tsx but not rendering on screen. Only shows PAUSE, SUB, COACH, END (4 buttons instead of 5)",
+        "selector": "[data-testid='formation-btn']",
+        "priority": "HIGH"
+      },
+      {
+        "component": "Player event popup",
+        "issue": "ASSIST button missing from event popup. Code exists at line 1124-1127 of match.tsx but not rendering. Only shows Goal, Yellow, Red, Sub (4 buttons instead of 5 with Assist)",
+        "selector": "[data-testid='event-assist-btn']",
+        "priority": "HIGH"
+      },
+      {
+        "component": "Tactics bottom bar",
+        "issue": "SAVE button may not be visible/rendering. Code exists at line 430-435 of tactics.tsx but only MATCH MODE button appears in screenshot. Needs investigation.",
+        "selector": "[data-testid='save-formation-btn']",
+        "priority": "MEDIUM"
+      }
+    ],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_new_features.py",
+    "/app/test_reports/pytest/pytest_iteration12.xml"
+  ],
+  "action_items": [
+    "HIGH: Fix FORM button not appearing in match controls (check controlRow width/overflow or flexbox layout)",
+    "HIGH: Fix ASSIST button not appearing in event popup (check eventBtnRow layout - might need to be on separate row or reduce button count per row)",
+    "MEDIUM: Verify SAVE button is visible in tactics bottom bar (check bottomBar layout and button width)"
+  ],
+  "critical_code_review_comments": [
+    "match.tsx line 1119-1132: eventBtnRow has 3 buttons (Goal, Assist, Yellow) but Assist may be hidden due to overflow. Consider putting Goal and Assist on row 1, Yellow and Red on row 2, Sub on row 3.",
+    "match.tsx line 839-862: controlRow with 5 buttons (PAUSE, SUB, COACH, FORM, END) may be too wide - FORM button is cut off. Need to reduce gap or button width.",
+    "tactics.tsx line 429: saveOnlyBtn and matchBtn in same row - saveOnlyBtn might have width issues causing it to not render"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_new_features.py"
+  ],
+  "success_rate": {
+    "backend": "100%",
+    "frontend": "60%"
+  },
+  "test_credentials": "test@example.com / test123",
+  "seed_data_creation": "Added 13 players to FC Test team (TEAM_ID: 183cf186-259c-4651-b120-3cefe463730f) for testing match mode",
+  "retest_needed": true,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Backend APIs for assist and formation_change events are working correctly (11/11 tests passed). Frontend issues: 1) FORM button missing in match live controls (code at match.tsx:854), 2) Assist button missing in event popup (code at match.tsx:1124), 3) SAVE button in tactics may not render. Team availability toggle works via Squad view toggle switches. Test user: test@example.com/test123 with FC Test team (13 players).",
+  "rca_of_issue": "The buttons exist in code but are not rendering in UI. Likely causes: 1) flexbox overflow with too many buttons per row, 2) button width combined with gap exceeds container width, 3) React Native Web rendering issue with nested TouchableOpacity. Recommend: inspect element widths in browser dev tools and adjust gap/minWidth values."
+}

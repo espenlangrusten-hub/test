@@ -1,0 +1,40 @@
+{
+  "summary": "Testing iteration 13: Stats counting bug fix and match-detail page with editing capabilities. Backend tests 100% passed (5/5). Frontend match-detail page working correctly with score editing, event adding, and all sections displaying properly.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {
+        "screen": "Match Detail",
+        "issues": ["Page title shows 'Match Review' but file is match-detail.tsx - consider renaming in _layout.tsx for consistency"]
+      }
+    ]
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_stats_and_events.py",
+    "/app/test_reports/pytest/pytest_stats_events.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Stats counting bug FIX VERIFIED: doEndMatch in match.tsx now correctly pushes full_time event via POST /api/matches/{id}/events instead of overwriting entire events array",
+    "match-detail.tsx correctly implements editable score, add events, player ratings, and match notes sections",
+    "Event preservation after match completion works - structured events with type, player_id, detail are maintained"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_stats_and_events.py"
+  ],
+  "success_rate": {
+    "backend": "100% (5/5 tests passed)",
+    "frontend": "100% (match-detail page fully functional)"
+  },
+  "test_credentials": "test@example.com / test123",
+  "seed_data_creation": "Created test users and matches via pytest for stats verification",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Stats counting bug FIXED and verified. The doEndMatch function in match.tsx no longer overwrites structured match events. New match-detail page at /match-detail?matchId=xxx supports: 1) Score editing via edit-score-btn/save-score-btn, 2) Adding events via add-event-btn with Goal/Assist/Yellow/Red/Sub options, 3) Player ratings section, 4) Match notes. Backend tests in /app/backend/tests/test_stats_and_events.py verify goals, assists, yellow cards are counted in player-stats endpoint.",
+  "rca_of_issue": "Previous bug: doEndMatch in match.tsx was calling PUT /api/matches/{id} with an events array containing only text-based events (like 'GOAL! Player (1-0)'), which overwrote the structured events (with type, player_id, minute, detail). Fix: doEndMatch now posts the full_time event separately via POST /api/matches/{id}/events and only updates status/score via PUT. This preserves all structured events logged during the match."
+}
