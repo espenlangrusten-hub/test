@@ -714,4 +714,15 @@ const st = StyleSheet.create({
   acceptBtnText: { fontSize: 13, fontWeight: '800', color: Colors.white },
   declineBtn: { flex: 1, height: 44, borderRadius: 8, backgroundColor: Colors.card, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: Colors.destructive },
   declineBtnText: { fontSize: 13, fontWeight: '800', color: Colors.destructive },
+  // Opponent details
+  oppToggle: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4, paddingVertical: 4 },
+  oppToggleText: { fontSize: 12, fontWeight: '600', color: Colors.primary, flex: 1 },
+  oppDetailBox: { backgroundColor: 'rgba(0,200,83,0.05)', borderRadius: 8, padding: 10, marginTop: 4, gap: 4 },
+  oppRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  oppLabel: { fontSize: 11, fontWeight: '600', color: Colors.textMuted, width: 60 },
+  oppValue: { fontSize: 12, fontWeight: '600', color: Colors.white, flex: 1 },
+  addNetBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#8B5CF6', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, marginTop: 4, alignSelf: 'flex-start' },
+  addNetText: { fontSize: 10, fontWeight: '700', color: Colors.white, letterSpacing: 0.5 },
+  inNetworkBadge: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
+  inNetworkText: { fontSize: 10, fontWeight: '600', color: Colors.primary },
 });
