@@ -161,18 +161,23 @@ export default function FriendlyMatchesScreen() {
   };
 
   const cancelInvite = async (inv: InviteData) => {
-    Alert.alert('Cancel Match', `Cancel ${inv.from_team_name} vs ${inv.to_team_name}?`, [
-      { text: 'No' },
-      { text: 'Yes, Cancel', style: 'destructive', onPress: async () => {
-        try {
-          const res = await fetch(`${API_URL}/api/friendly-invites/${inv.id}/cancel`, {
-            method: 'PUT', headers: authHeaders(),
-          });
-          if (res.ok) fetchInvites();
-          else Alert.alert('Error', 'Could not cancel');
-        } catch { Alert.alert('Error', 'Network error'); }
-      }},
-    ]);
+    const doCancel = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/friendly-invites/${inv.id}/cancel`, {
+          method: 'PUT', headers: authHeaders(),
+        });
+        if (res.ok) fetchInvites();
+        else Alert.alert('Error', 'Could not cancel');
+      } catch { Alert.alert('Error', 'Network error'); }
+    };
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Cancel ${inv.from_team_name} vs ${inv.to_team_name}?`)) doCancel();
+    } else {
+      Alert.alert('Cancel Match', `Cancel ${inv.from_team_name} vs ${inv.to_team_name}?`, [
+        { text: 'No' },
+        { text: 'Yes, Cancel', style: 'destructive', onPress: doCancel },
+      ]);
+    }
   };
 
   const amendDate = async () => {
