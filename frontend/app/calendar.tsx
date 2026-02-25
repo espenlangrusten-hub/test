@@ -137,19 +137,25 @@ export default function CalendarScreen() {
                   </View>
 
                   {/* Content */}
-                  <View style={st.eventContent}>
+                  <View style={[st.eventContent, ev.status === 'cancelled' && st.eventCancelled]}>
                     <View style={st.eventTop}>
-                      <View style={[st.typeBadge, { backgroundColor: ev.type === 'friendly' ? 'rgba(16,185,129,0.12)' : 'rgba(59,130,246,0.12)' }]}>
-                        <Text style={[st.typeText, { color: ev.type === 'friendly' ? '#10B981' : '#3B82F6' }]}>
-                          {ev.type === 'friendly' ? 'Friendly' : 'Match'}
+                      <View style={[st.typeBadge, ev.status === 'cancelled'
+                        ? { backgroundColor: 'rgba(239,68,68,0.12)' }
+                        : { backgroundColor: ev.type === 'friendly' ? 'rgba(16,185,129,0.12)' : 'rgba(59,130,246,0.12)' }
+                      ]}>
+                        <Text style={[st.typeText, ev.status === 'cancelled'
+                          ? { color: '#EF4444' }
+                          : { color: ev.type === 'friendly' ? '#10B981' : '#3B82F6' }
+                        ]}>
+                          {ev.status === 'cancelled' ? 'Cancelled' : ev.type === 'friendly' ? 'Friendly' : 'Match'}
                         </Text>
                       </View>
-                      {daysUntil && <Text style={st.countdown}>{daysUntil}</Text>}
+                      {ev.status !== 'cancelled' && daysUntil ? <Text style={st.countdown}>{daysUntil}</Text> : null}
                     </View>
 
                     <View style={st.opponentRow}>
                       {ev.opponent_country ? <Text style={{ fontSize: 16 }}>{getFlagForCode(ev.opponent_country)}</Text> : null}
-                      <Text style={st.opponentName}>{ev.opponent}</Text>
+                      <Text style={[st.opponentName, ev.status === 'cancelled' && st.cancelledText]}>{ev.opponent}</Text>
                     </View>
 
                     <View style={st.detailRow}>
