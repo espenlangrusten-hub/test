@@ -164,6 +164,9 @@ export default function MessagesScreen() {
               )}
               <Text style={st.msgTime}>{new Date(msg.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}</Text>
             </View>
+            <TouchableOpacity testID={`delete-msg-${msg.id}`} onPress={() => deleteMessage(msg.id)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={st.trashBtn}>
+              <MaterialCommunityIcons name="trash-can-outline" size={16} color={Colors.textMuted} />
+            </TouchableOpacity>
             {!msg.read && <View style={st.dot} />}
           </TouchableOpacity>
         ))}
