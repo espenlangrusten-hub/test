@@ -197,6 +197,28 @@ export default function FriendlyMatchesScreen() {
   };
 
   const isSent = (inv: InviteData) => inv.from_team_id === activeTeamId;
+  const getOpponent = (inv: InviteData) => isSent(inv)
+    ? { name: inv.to_team_name, code: inv.to_team_code, manager: inv.to_manager_name, phone: inv.to_manager_phone, teamId: inv.to_team_id }
+    : { name: inv.from_team_name, code: inv.from_team_code, manager: inv.from_manager_name, phone: inv.from_manager_phone, teamId: inv.from_team_id };
+  const isInNetwork = (teamCode: string) => network.some(n => n.friend_team_code === teamCode);
+
+  const addOpponentToNetwork = async (teamCode: string) => {
+    setAddingToNetwork(true);
+    try {
+      const res = await fetch(`${API_URL}/api/network/add`, {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ team_code: teamCode }),
+      });
+      if (res.ok) {
+        Alert.alert('Added!', 'Team added to your network');
+        fetchNetwork();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        Alert.alert('Info', err.detail || 'Could not add team');
+      }
+    } catch { Alert.alert('Error', 'Network error'); }
+    setAddingToNetwork(false);
+  };
   const accepted = invites.filter(i => i.status === 'accepted');
   const pending = invites.filter(i => i.status === 'pending');
   const cancelled = invites.filter(i => i.status === 'cancelled' || i.status === 'declined');
