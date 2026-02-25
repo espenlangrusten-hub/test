@@ -788,6 +788,14 @@ async def mark_message_read(message_id: str, user: dict = Depends(get_current_us
     return {"message": "Marked as read"}
 
 
+@api_router.delete("/messages/{message_id}")
+async def delete_message(message_id: str, user: dict = Depends(get_current_user)):
+    result = await db.messages.delete_one({"id": message_id, "user_id": user["user_id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Message not found")
+    return {"message": "Deleted"}
+
+
 @api_router.post("/teams/{team_id}/training-suggestions")
 async def get_training_suggestions(team_id: str, body: dict, user: dict = Depends(get_current_user)):
     team = await db.teams.find_one({"id": team_id, "user_id": user["user_id"]}, {"_id": 0})
