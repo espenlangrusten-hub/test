@@ -85,6 +85,13 @@ export default function MessagesScreen() {
     setAddingBack(null);
   };
 
+  const deleteMessage = async (msgId: string) => {
+    try {
+      const res = await fetch(`${API_URL}/api/messages/${msgId}`, { method: 'DELETE', headers: authHeaders() });
+      if (res.ok) setMessages(prev => prev.filter(m => m.id !== msgId));
+    } catch {}
+  };
+
   const getIcon = (type: string) => {
     switch (type) {
       case 'invite_received': return 'email-open';
