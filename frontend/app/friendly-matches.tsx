@@ -57,6 +57,10 @@ export default function FriendlyMatchesScreen() {
   const [network, setNetwork] = useState<NetworkFriend[]>([]);
   const [showNetworkPicker, setShowNetworkPicker] = useState(false);
 
+  // Opponent detail expansion
+  const [expandedOpponent, setExpandedOpponent] = useState<string | null>(null);
+  const [addingToNetwork, setAddingToNetwork] = useState(false);
+
   // Amend modal
   const [amendInvite, setAmendInvite] = useState<InviteData | null>(null);
   const [amendDates, setAmendDates] = useState<{ date: string; time_slots: string[] }[]>([]);
