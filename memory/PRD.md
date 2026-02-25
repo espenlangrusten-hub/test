@@ -109,6 +109,7 @@ Build a subscription-based football and futsal team management application for i
 - **P3**: Match analytics dashboard, subscription/payment integration, training drill illustrations
 
 ## Changelog
+- 2026-02-25 (Session 11): Bug fixes: Cancel button now works on web (window.confirm), cancelled matches show in calendar with red badge + strikethrough, amended matches properly move in calendar (status→pending clears old date, re-acceptance sets new date).
 - 2026-02-24 (Session 10): Message trash icon deletion. Friendly matches: clickable opponent name expands to show manager contact details + "Add to Network" button if not already connected.
 - 2026-02-24 (Session 9): Enhanced Friendly Match system - Cancel matches (removes from calendar, alerts other team), Amend dates (calendar popup, sets status to pending), "Team A vs Team B" headlines, "Go to Match" button, Delete cancelled/declined matches (trash icon), Pick opponent from My Network dropdown in addition to team code.
 - 2026-02-24 (Session 8): Five new features: (1) Network Add Alert - messages sent when team added to network with Add Back button, (2) Network Contact Details - click-to-expand manager info in network list, (3) Calendar Popup - visual date picker replacing text input in friendly match invites, (4) Match Mode rework - compact pitch lineup replacing play time bars with Change Tactics link, (5) Tactics auto-save on formation click with Save button removed.
@@ -121,8 +122,8 @@ Build a subscription-based football and futsal team management application for i
 - 2026-02-22 (Session 1): Compact team hub, in-match event logging, AI training backend.
 
 ## Test Reports
+- `/app/test_reports/iteration_21.json` (Cancel/Calendar/Amend bug fixes - 100% pass)
 - `/app/test_reports/iteration_20.json` (Message deletion + Opponent details - 100% pass)
-- `/app/test_reports/iteration_19.json` (Enhanced Friendly Matches - 100% pass)
 - `/app/test_reports/iteration_17.json` (English translation + UI changes - 100% pass)
 - `/app/test_reports/iteration_16.json` (Calendar feature - 100% pass)
 - `/app/test_reports/iteration_15.json` (All new features - 100% pass)
