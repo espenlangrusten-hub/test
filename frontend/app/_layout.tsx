@@ -47,6 +47,9 @@ function AppContent() {
         <Stack.Screen name="calendar" options={{ title: 'Match Calendar' }} />
         <Stack.Screen name="friendly-matches" options={{ title: 'Friendly Matches' }} />
         <Stack.Screen name="messages" options={{ title: 'Messages' }} />
+        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
+        <Stack.Screen name="messenger" options={{ title: 'Messages' }} />
+        <Stack.Screen name="my-network" options={{ title: 'My Network' }} />
       </Stack>
     </>
   );

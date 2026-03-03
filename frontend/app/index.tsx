@@ -23,7 +23,7 @@ export default function HomeScreen() {
   const [networkCode, setNetworkCode] = useState('');
   const [addingNetwork, setAddingNetwork] = useState(false);
   const [expandedNetwork, setExpandedNetwork] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState('home');
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const authHeaders = (): Record<string, string> => {
     const h: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -31,10 +31,11 @@ export default function HomeScreen() {
     return h;
   };
 
-  useFocusEffect(useCallback(() => { fetchTeams(); fetchNetwork(); }, []));
+  useFocusEffect(useCallback(() => { fetchTeams(); fetchNetwork(); fetchUnread(); }, []));
 
   const fetchTeams = async () => { setLoading(true); const data = await loadTeams(); setTeams(data); setLoading(false); };
   const fetchNetwork = async () => { try { const res = await fetch(`${API_URL}/api/network`, { headers: authHeaders() }); if (res.ok) setNetwork(await res.json()); } catch {} };
+  const fetchUnread = async () => { try { const res = await fetch(`${API_URL}/api/notifications/unread`, { headers: authHeaders() }); if (res.ok) { const d = await res.json(); setUnreadCount(d.total); } } catch {} };
 
   const addToNetwork = async () => {
     if (!networkCode.trim()) return;
@@ -73,8 +74,17 @@ export default function HomeScreen() {
                 <Text style={s.profileName}>{user?.name || user?.email?.split('@')[0] || 'Coach'}</Text>
               </View>
               <View style={s.topRight}>
-                <TouchableOpacity style={s.topIcon}><MaterialCommunityIcons name="cog-outline" size={24} color="#777" /></TouchableOpacity>
-                <TouchableOpacity testID="logout-btn" style={s.topIcon} onPress={logout}><MaterialCommunityIcons name="bell-outline" size={24} color="#777" /></TouchableOpacity>
+                <TouchableOpacity data-testid="settings-btn" style={s.topIcon} onPress={() => router.push('/settings')}>
+                  <MaterialCommunityIcons name="cog-outline" size={24} color="#777" />
+                </TouchableOpacity>
+                <TouchableOpacity data-testid="bell-btn" style={s.topIcon} onPress={() => router.push('/messenger')}>
+                  <MaterialCommunityIcons name="bell-outline" size={24} color="#777" />
+                  {unreadCount > 0 && (
+                    <View style={s.bellBadge}>
+                      <Text style={s.bellBadgeText}>{unreadCount > 99 ? '99+' : unreadCount}</Text>
+                    </View>
+                  )}
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -91,7 +101,7 @@ export default function HomeScreen() {
               <TouchableOpacity testID="select-football-btn" style={s.sportCard} onPress={() => selectSport('football')} activeOpacity={0.8}>
                 <LinearGradient colors={['#252830', '#1E2025', '#1A1C1F']} style={s.sportGrad}>
                   <View style={s.sportIconArea}>
-                    <MaterialCommunityIcons name="shoe-cleat" size={72} color="#94A3B8" />
+                    <MaterialCommunityIcons name="shoe-cleat" size={48} color="#94A3B8" />
                   </View>
                   <Text style={s.sportName}>FOOTBALL</Text>
                   <Text style={s.sportFormats}>5v5 · 7v7 · 9v9 · 11v11</Text>
@@ -101,7 +111,7 @@ export default function HomeScreen() {
               <TouchableOpacity testID="select-futsal-btn" style={s.sportCard} onPress={() => selectSport('futsal')} activeOpacity={0.8}>
                 <LinearGradient colors={['#252830', '#1E2025', '#1A1C1F']} style={s.sportGrad}>
                   <View style={s.sportIconArea}>
-                    <MaterialCommunityIcons name="soccer" size={72} color="#94A3B8" />
+                    <MaterialCommunityIcons name="soccer" size={48} color="#94A3B8" />
                   </View>
                   <Text style={s.sportName}>FUTSAL</Text>
                   <Text style={s.sportFormats}>5v5</Text>
@@ -140,7 +150,13 @@ export default function HomeScreen() {
             ))}
 
             {/* MY NETWORK */}
-            <Text style={[s.sectionLabel, { marginTop: 28 }]}>MY NETWORK</Text>
+            <View style={s.netHeader}>
+              <Text style={[s.sectionLabel, { marginTop: 28, marginBottom: 0 }]}>MY NETWORK</Text>
+              <TouchableOpacity data-testid="add-network-inline-btn" style={s.addNetInline} onPress={() => setShowAddNetwork(true)}>
+                <MaterialCommunityIcons name="plus" size={16} color="#4ADE80" />
+                <Text style={s.addNetInlineText}>Add</Text>
+              </TouchableOpacity>
+            </View>
             {network.length === 0 && <Text style={s.emptyText}>No teams in network.</Text>}
             {network.map(n => (
               <TouchableOpacity key={n.id} testID={`network-${n.id}`} style={s.netRow}
@@ -170,30 +186,29 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
 
-            {/* Add to Network - Green Glow Button */}
-            <View style={s.addNetWrap}>
-              <View style={s.addNetGlow} />
-              <TouchableOpacity testID="add-network-btn" style={s.addNetBtn} onPress={() => setShowAddNetwork(true)} activeOpacity={0.85}>
-                <Text style={s.addNetText}>+ Add to Network</Text>
-              </TouchableOpacity>
-            </View>
-
             <View style={{ height: 20 }} />
           </ScrollView>
 
           {/* Bottom Tab Bar */}
           <View style={s.tabBar}>
-            <TouchableOpacity style={s.tab} onPress={() => setActiveTab('home')}>
-              <MaterialCommunityIcons name="home" size={26} color={activeTab === 'home' ? '#4ADE80' : '#555'} />
+            <TouchableOpacity style={s.tab}>
+              <MaterialCommunityIcons name="home" size={24} color="#4ADE80" />
+              <Text style={[s.tabLabel, { color: '#4ADE80' }]}>Dashboard</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={s.tab} onPress={() => { setActiveTab('network'); }}>
-              <MaterialCommunityIcons name="account-group-outline" size={26} color={activeTab === 'network' ? '#4ADE80' : '#555'} />
+            <TouchableOpacity style={s.tab} onPress={() => router.push('/messenger')}>
+              <View>
+                <MaterialCommunityIcons name="message-text-outline" size={24} color="#555" />
+                {unreadCount > 0 && <View style={s.navDot} />}
+              </View>
+              <Text style={s.tabLabel}>Messages</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={s.tab} onPress={() => setActiveTab('calendar')}>
-              <MaterialCommunityIcons name="calendar-outline" size={26} color={activeTab === 'calendar' ? '#4ADE80' : '#555'} />
+            <TouchableOpacity style={s.tab} onPress={() => router.push('/calendar')}>
+              <MaterialCommunityIcons name="calendar-outline" size={24} color="#555" />
+              <Text style={s.tabLabel}>Calendar</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={s.tab} onPress={() => setActiveTab('globe')}>
-              <MaterialCommunityIcons name="web" size={26} color={activeTab === 'globe' ? '#4ADE80' : '#555'} />
+            <TouchableOpacity style={s.tab} onPress={() => router.push('/my-network')}>
+              <MaterialCommunityIcons name="account-group-outline" size={24} color="#555" />
+              <Text style={s.tabLabel}>Network</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>
@@ -249,20 +264,20 @@ const s = StyleSheet.create({
   topIcon: { padding: 2 },
 
   // Brand
-  brand: { alignItems: 'center', paddingTop: 24, paddingBottom: 32 },
-  brandTitle: { fontSize: 36, fontWeight: '900', color: '#EAEAEA', letterSpacing: 2, marginTop: 10 },
-  brandSub: { fontSize: 13, fontWeight: '400', color: '#777', letterSpacing: 2, marginTop: 4 },
+  brand: { alignItems: 'center', paddingTop: 16, paddingBottom: 20 },
+  brandTitle: { fontSize: 30, fontWeight: '900', color: '#EAEAEA', letterSpacing: 2, marginTop: 8 },
+  brandSub: { fontSize: 11, fontWeight: '400', color: '#777', letterSpacing: 2, marginTop: 2 },
 
   // Section label
   sectionLabel: { fontSize: 13, fontWeight: '600', color: '#666', letterSpacing: 2.5, marginBottom: 14, marginTop: 8 },
 
   // Sport cards
-  sportRow: { flexDirection: 'row', gap: 12, marginBottom: 30 },
+  sportRow: { flexDirection: 'row', gap: 12, marginBottom: 22 },
   sportCard: { flex: 1 },
-  sportGrad: { borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  sportIconArea: { height: 90, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
-  sportName: { fontSize: 22, fontWeight: '800', color: '#EAEAEA', letterSpacing: 1.5, textAlign: 'center' },
-  sportFormats: { fontSize: 12, color: '#777', fontWeight: '400', marginTop: 4, textAlign: 'center' },
+  sportGrad: { borderRadius: 14, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  sportIconArea: { height: 54, justifyContent: 'center', alignItems: 'center', marginBottom: 4 },
+  sportName: { fontSize: 18, fontWeight: '800', color: '#EAEAEA', letterSpacing: 1.5, textAlign: 'center' },
+  sportFormats: { fontSize: 11, color: '#777', fontWeight: '400', marginTop: 2, textAlign: 'center' },
 
   // Team rows
   teamRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)', gap: 12 },
@@ -292,15 +307,20 @@ const s = StyleSheet.create({
   removeLink: { marginTop: 4 },
   removeLinkText: { fontSize: 11, fontWeight: '600', color: '#EF4444' },
 
-  // Add to Network button with glow
-  addNetWrap: { alignItems: 'center', marginTop: 20, marginBottom: 8 },
-  addNetGlow: { position: 'absolute', bottom: -4, width: '70%', height: 24, borderRadius: 20, backgroundColor: 'rgba(74, 222, 128, 0.15)' },
-  addNetBtn: { paddingHorizontal: 36, paddingVertical: 14, borderRadius: 28, borderWidth: 1.5, borderColor: 'rgba(74, 222, 128, 0.4)', backgroundColor: 'rgba(74, 222, 128, 0.06)' },
-  addNetText: { fontSize: 15, fontWeight: '600', color: '#EAEAEA', letterSpacing: 0.5 },
+  // Network header with inline Add button
+  netHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 28, marginBottom: 10 },
+  addNetInline: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(74,222,128,0.3)', backgroundColor: 'rgba(74,222,128,0.06)' },
+  addNetInlineText: { fontSize: 12, fontWeight: '600', color: '#4ADE80' },
 
   // Bottom Tab Bar
-  tabBar: { flexDirection: 'row', height: 56, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)', backgroundColor: '#131517' },
-  tab: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  tabBar: { flexDirection: 'row', height: 60, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)', backgroundColor: '#131517' },
+  tab: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 2 },
+  tabLabel: { fontSize: 10, fontWeight: '500', color: '#555' },
+  navDot: { position: 'absolute' as const, top: -2, right: -6, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' },
+
+  // Bell badge
+  bellBadge: { position: 'absolute' as const, top: -6, right: -8, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
+  bellBadgeText: { fontSize: 10, fontWeight: '700', color: '#FFF' },
 
   // Modals
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 32 },
