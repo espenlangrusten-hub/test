@@ -50,6 +50,7 @@ function AppContent() {
         <Stack.Screen name="settings" options={{ title: 'Settings' }} />
         <Stack.Screen name="messenger" options={{ title: 'Messages' }} />
         <Stack.Screen name="my-network" options={{ title: 'My Network' }} />
+        <Stack.Screen name="tournament" options={{ title: 'Tournaments' }} />
       </Stack>
     </>
   );

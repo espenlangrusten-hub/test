@@ -5,8 +5,8 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useApp, PlayerData } from '../src/context/AppContext';
-import { Colors } from '../src/constants/colors';
 import { COUNTRIES, getFlagForCode } from '../src/constants/countries';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -23,13 +23,14 @@ export default function TeamPage() {
   const router = useRouter();
   const { currentTeam, setCurrentTeam, saveTeam, token } = useApp();
   const { width } = useWindowDimensions();
-  const isWide = width >= 600;
 
   const [players, setPlayers] = useState<PlayerData[]>([]);
   const [playerStats, setPlayerStats] = useState<Record<string, any>>({});
   const [saving, setSaving] = useState(false);
   const [tab, setTab] = useState<Tab>('overview');
-  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [feedItems, setFeedItems] = useState<any[]>([]);
+  const [nextMatch, setNextMatch] = useState<any>(null);
+  const [pendingInvites, setPendingInvites] = useState<any[]>([]);
 
   const [showSettings, setShowSettings] = useState(false);
   const [editFormat, setEditFormat] = useState('');
@@ -47,7 +48,7 @@ export default function TeamPage() {
   const [editPlayerNum, setEditPlayerNum] = useState('');
   const [editPlayerPos, setEditPlayerPos] = useState('');
 
-  const authHeaders = (): Record<string, string> => {
+  const auth = (): Record<string, string> => {
     const h: Record<string, string> = { 'Content-Type': 'application/json' };
     if (token) h['Authorization'] = `Bearer ${token}`;
     return h;
@@ -57,23 +58,37 @@ export default function TeamPage() {
     if (currentTeam?.players) {
       setPlayers(currentTeam.players.map(p => ({ ...p, available: p.available !== undefined ? p.available : true })));
     }
-    if (currentTeam?.id) { fetchStats(); fetchUnread(); }
+    if (currentTeam?.id) { fetchStats(); fetchFeed(); fetchInvites(); }
   }, [currentTeam?.id]);
 
   const fetchStats = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/teams/${currentTeam!.id}/player-stats`, { headers: authHeaders() });
-      const data = await res.json();
-      setPlayerStats(data);
+      const res = await fetch(`${API_URL}/api/teams/${currentTeam!.id}/player-stats`, { headers: auth() });
+      if (res.ok) setPlayerStats(await res.json());
     } catch {}
   };
 
-  const fetchUnread = async () => {
+  const fetchFeed = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/messages?team_id=${currentTeam!.id}`, { headers: authHeaders() });
+      // Get team messages/notifications
+      const res = await fetch(`${API_URL}/api/messages?team_id=${currentTeam!.id}`, { headers: auth() });
+      if (res.ok) setFeedItems((await res.json()).slice(0, 5));
+      // Get calendar for next match
+      const cal = await fetch(`${API_URL}/api/teams/${currentTeam!.id}/calendar`, { headers: auth() });
+      if (cal.ok) {
+        const events = await cal.json();
+        const upcoming = events.filter((e: any) => e.status === 'upcoming' && e.date >= new Date().toISOString().split('T')[0]);
+        if (upcoming.length > 0) setNextMatch(upcoming[0]);
+      }
+    } catch {}
+  };
+
+  const fetchInvites = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/friendly-invites?team_id=${currentTeam!.id}`, { headers: auth() });
       if (res.ok) {
-        const msgs = await res.json();
-        setUnreadMessages(msgs.filter((m: any) => !m.read).length);
+        const all = await res.json();
+        setPendingInvites(all.filter((i: any) => i.status === 'pending'));
       }
     } catch {}
   };
@@ -136,14 +151,12 @@ export default function TeamPage() {
   };
 
   const ageGroup = currentTeam?.age_group || '';
-  const gender = currentTeam?.gender || '';
   const under13 = isUnder13(ageGroup);
   const availableCount = players.filter(p => p.available).length;
-  const genderShort = gender === 'Gutter' ? 'B' : gender === 'Jenter' ? 'G' : gender === 'Mixed' ? 'M' : '';
 
   const menuItems = [
     { key: 'squad', icon: 'account-group', label: 'Squad', color: '#3B82F6' },
-    { key: 'tactics', icon: 'strategy', label: 'Tactics', color: Colors.primary },
+    { key: 'tactics', icon: 'strategy', label: 'Tactics', color: '#4ADE80' },
     { key: 'calendar', icon: 'calendar-month', label: 'Calendar', color: '#06B6D4' },
     { key: 'friendly', icon: 'handshake', label: 'Friendly', color: '#10B981' },
     { key: 'training', icon: 'whistle', label: 'Training', color: '#8B5CF6' },
@@ -161,139 +174,155 @@ export default function TeamPage() {
     else if (key === 'match') router.push('/match');
   };
 
-  const renderSidebar = () => (
-    <View style={[s.sidebar, !isWide && s.sidebarHoriz]}>
-      {menuItems.map(item => (
-        <TouchableOpacity key={item.key} testID={`menu-${item.key}`} style={[s.sideItem, !isWide && s.sideItemHoriz]} onPress={() => navigateMenu(item.key)}>
-          <View style={[s.sideIcon, { backgroundColor: item.color + '18' }]}>
-            <MaterialCommunityIcons name={item.icon as any} size={30} color={item.color} />
-          </View>
-          <Text style={s.sideLabel}>{item.label}</Text>
-        </TouchableOpacity>
-      ))}
-    </View>
-  );
+  const formatTime = (iso: string) => {
+    if (!iso) return '';
+    const d = new Date(iso);
+    const diff = Date.now() - d.getTime();
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    if (diff < 86400000) return `${Math.floor(diff / 3600000)}h ago`;
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
 
-  // =============== OVERVIEW TAB ===============
+  // =============== OVERVIEW ===============
   const renderOverview = () => (
-    <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-      <View style={s.infoBar}>
-        <View style={s.badge}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+      {/* Team Header */}
+      <View style={s.teamHeader}>
+        <View style={s.shieldWrap}>
           {currentTeam?.country ? (
-            <Text style={{ fontSize: 22 }}>{getFlagForCode(currentTeam.country)}</Text>
-          ) : (
-            <MaterialCommunityIcons name="shield-half-full" size={24} color={Colors.primary} />
-          )}
+            <View style={s.shieldInner}>
+              <Text style={{ fontSize: 22 }}>{getFlagForCode(currentTeam.country)}</Text>
+            </View>
+          ) : <MaterialCommunityIcons name="shield-half-full" size={32} color="#555" />}
         </View>
         <View style={{ flex: 1 }}>
           <Text style={s.teamName}>{currentTeam?.name}</Text>
-          <View style={s.tagRow}>
-            <View style={s.tag}><Text style={s.tagText}>{currentTeam?.format}</Text></View>
-            <View style={s.tag}><Text style={s.tagText}>{currentTeam?.sport}</Text></View>
-            {genderShort || ageGroup ? <View style={s.tag}><Text style={s.tagText}>{genderShort} {ageGroup}</Text></View> : null}
+          <View style={s.badgeRow}>
+            <View style={s.badge}><Text style={s.badgeText}>{currentTeam?.format}</Text></View>
+            {ageGroup ? <View style={s.badge}><Text style={s.badgeText}>{ageGroup}</Text></View> : null}
+            <View style={s.badge}><Text style={s.badgeText}>{currentTeam?.sport}</Text></View>
           </View>
         </View>
-        <View style={s.miniStats}>
-          <Text style={s.miniNum}>{players.length}</Text>
-          <Text style={s.miniLbl}>PLR</Text>
+        <View style={s.statsGroup}>
+          <View style={s.statItem}><Text style={s.statNum}>{players.length}</Text><Text style={s.statLbl}>PLR</Text></View>
+          <View style={s.statItem}><Text style={[s.statNum, { color: '#4ADE80' }]}>{availableCount}</Text><Text style={s.statLbl}>AVL</Text></View>
         </View>
-        <View style={s.miniStats}>
-          <Text style={[s.miniNum, { color: Colors.primary }]}>{availableCount}</Text>
-          <Text style={s.miniLbl}>AVL</Text>
-        </View>
-        <TouchableOpacity testID="team-settings-btn" style={s.settingsBtn} onPress={openSettings}>
-          <MaterialCommunityIcons name="cog" size={16} color={Colors.textMuted} />
+        <TouchableOpacity data-testid="team-settings-btn" style={s.settingsIcon} onPress={openSettings}>
+          <MaterialCommunityIcons name="cog-outline" size={20} color="#777" />
         </TouchableOpacity>
       </View>
 
       {/* Team Code */}
       {currentTeam?.team_code ? (
-        <View style={s.codeBar}>
-          <MaterialCommunityIcons name="key-variant" size={14} color={Colors.primary} />
-          <Text style={s.codeLabel}>TEAM CODE:</Text>
+        <View style={s.codeRow}>
+          <MaterialCommunityIcons name="key-variant" size={14} color="#4ADE80" />
+          <Text style={s.codeLabel}>CODE</Text>
           <Text style={s.codeValue}>{currentTeam.team_code}</Text>
-          <Text style={s.codeHint}>Share this code to invite to network and matches</Text>
+          <Text style={s.codeHint}>Share to invite</Text>
         </View>
       ) : null}
 
-      {/* Manager info */}
+      {/* Manager */}
       {currentTeam?.manager_name ? (
-        <View style={s.managerBar}>
-          <MaterialCommunityIcons name="account-tie" size={14} color={Colors.textMuted} />
-          <Text style={s.managerText}>Manager: {currentTeam.manager_name}{currentTeam.manager_phone ? ` · ${currentTeam.manager_phone}` : ''}</Text>
+        <View style={s.managerRow}>
+          <MaterialCommunityIcons name="account-tie" size={14} color="#666" />
+          <Text style={s.managerText}>{currentTeam.manager_name}{currentTeam.manager_phone ? ` · ${currentTeam.manager_phone}` : ''}</Text>
         </View>
       ) : null}
 
-      {/* Messages badge */}
-      {unreadMessages > 0 && (
-        <TouchableOpacity testID="messages-badge" style={s.msgBadge} onPress={() => router.push(`/messages?teamId=${currentTeam?.id}`)}>
-          <MaterialCommunityIcons name="email" size={16} color="#F59E0B" />
-          <Text style={s.msgText}>{unreadMessages} unread message{unreadMessages > 1 ? 's' : ''}</Text>
-          <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.textMuted} />
+      {/* Quick Actions Menu */}
+      <Text style={s.sectionLabel}>QUICK ACTIONS</Text>
+      <View style={s.menuGrid}>
+        {menuItems.map(item => (
+          <TouchableOpacity key={item.key} data-testid={`menu-${item.key}`} style={s.menuItem} onPress={() => navigateMenu(item.key)} activeOpacity={0.7}>
+            <MaterialCommunityIcons name={item.icon as any} size={22} color={item.color} />
+            <Text style={s.menuLabel}>{item.label}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* FEED */}
+      <Text style={s.sectionLabel}>FEED</Text>
+
+      {/* Next Match Highlight */}
+      {nextMatch && (
+        <View style={s.matchCard}>
+          <View style={s.matchBadge}><Text style={s.matchBadgeText}>NEXT MATCH</Text></View>
+          <Text style={s.matchTitle}>{nextMatch.opponent || 'TBD'}</Text>
+          <Text style={s.matchDate}>{nextMatch.date}{nextMatch.time ? ` · ${nextMatch.time}` : ''}{nextMatch.pitch_name ? ` · ${nextMatch.pitch_name}` : ''}</Text>
+        </View>
+      )}
+
+      {/* Pending Invites Reminder */}
+      {pendingInvites.length > 0 && (
+        <TouchableOpacity style={s.reminderRow} onPress={() => router.push(`/friendly-matches?teamId=${currentTeam?.id}`)}>
+          <MaterialCommunityIcons name="alert-circle-outline" size={16} color="#F59E0B" />
+          <Text style={s.reminderText}>{pendingInvites.length} pending friendly request{pendingInvites.length > 1 ? 's' : ''} — tap to respond</Text>
+          <MaterialCommunityIcons name="chevron-right" size={16} color="#666" />
         </TouchableOpacity>
       )}
 
-      {/* Sidebar + empty area */}
-      <View style={[s.mainRow, !isWide && { flexDirection: 'column' }]}>
-        {renderSidebar()}
-      </View>
-
-      {/* Message Board */}
-      <TouchableOpacity testID="message-board-section" style={s.boardSection} onPress={() => router.push(`/messages?teamId=${currentTeam?.id}`)} activeOpacity={0.7}>
-        <View style={s.boardHeader}>
-          <MaterialCommunityIcons name="bulletin-board" size={18} color={Colors.textSecondary} />
-          <Text style={s.boardTitle}>MESSAGE BOARD</Text>
-          <MaterialCommunityIcons name="chevron-right" size={16} color={Colors.textMuted} />
+      {/* Feed Items */}
+      {feedItems.length === 0 && !nextMatch && pendingInvites.length === 0 && (
+        <Text style={s.emptyText}>No activity yet. Schedule a match or invite a team!</Text>
+      )}
+      {feedItems.map(item => (
+        <View key={item.id} style={s.feedRow}>
+          <MaterialCommunityIcons
+            name={item.type?.includes('invite') ? 'handshake' : item.type?.includes('network') ? 'account-plus' : 'bell-outline'}
+            size={16} color={item.read ? '#555' : '#4ADE80'} />
+          <View style={{ flex: 1 }}>
+            <Text style={[s.feedTitle, !item.read && { color: '#EAEAEA' }]}>{item.title}</Text>
+            <Text style={s.feedTime}>{formatTime(item.created_at)}</Text>
+          </View>
         </View>
-        <Text style={s.boardSubtext}>
-          {unreadMessages > 0
-            ? `${unreadMessages} new message${unreadMessages > 1 ? 's' : ''} - tap to view`
-            : 'No new messages'}
-        </Text>
-      </TouchableOpacity>
+      ))}
+
+      <View style={{ height: 80 }} />
     </ScrollView>
   );
 
-  // =============== SQUAD TAB ===============
+  // =============== SQUAD ===============
   const renderSquad = () => (
-    <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+    <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
       <View style={s.squadHeader}>
         <View style={s.squadTabs}>
-          <TouchableOpacity testID="tab-basic" style={[s.sqTab, tab === 'squad' && s.sqTabActive]} onPress={() => setTab('squad')}>
+          <TouchableOpacity data-testid="tab-basic" style={[s.sqTab, tab === 'squad' && s.sqTabActive]} onPress={() => setTab('squad')}>
             <Text style={[s.sqTabText, tab === 'squad' && s.sqTabTextActive]}>Availability</Text>
           </TouchableOpacity>
           {!under13 && (
-            <TouchableOpacity testID="tab-detail" style={[s.sqTab, tab === 'squad-detail' && s.sqTabActive]} onPress={() => setTab('squad-detail')}>
+            <TouchableOpacity data-testid="tab-detail" style={[s.sqTab, tab === 'squad-detail' && s.sqTabActive]} onPress={() => setTab('squad-detail')}>
               <Text style={[s.sqTabText, tab === 'squad-detail' && s.sqTabTextActive]}>Statistics</Text>
             </TouchableOpacity>
           )}
         </View>
-        <TouchableOpacity testID="squad-add-player-btn" style={s.addBtn} onPress={() => setShowAdd(true)}>
-          <MaterialCommunityIcons name="plus" size={12} color={Colors.white} />
-          <Text style={s.addBtnText}>ADD</Text>
+        <TouchableOpacity data-testid="squad-add-player-btn" style={s.addPlayerBtn} onPress={() => setShowAdd(true)}>
+          <MaterialCommunityIcons name="plus" size={14} color="#FFF" />
+          <Text style={s.addPlayerText}>ADD</Text>
         </TouchableOpacity>
       </View>
 
       {tab === 'squad' && players.map(p => (
-        <View key={p.id} style={[s.playerCard, !p.available && s.playerCardOff]}>
-          <View style={s.playerLeft}>
-            <View style={[s.numCircle, !p.available && s.numCircleOff]}>
-              <Text style={s.numText}>{p.number}</Text>
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text style={[s.plName, !p.available && { color: Colors.textMuted }]}>{p.name}</Text>
-              <View style={s.plMeta}>
-                <View style={[s.posBadge, !p.available && { backgroundColor: 'rgba(255,255,255,0.05)' }]}>
-                  <Text style={[s.posText, !p.available && { color: Colors.textMuted }]}>{p.position || '-'}</Text>
-                </View>
-              </View>
+        <View key={p.id} style={[s.playerRow, !p.available && { opacity: 0.35 }]}>
+          <View style={[s.numCircle, !p.available && { borderColor: '#333', backgroundColor: 'rgba(255,255,255,0.02)' }]}>
+            <Text style={s.numText}>{p.number}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={s.plName}>{p.name}</Text>
+            <View style={s.badgeRow}>
+              <View style={[s.badge, { borderColor: '#3B82F6' }]}><Text style={[s.badgeText, { color: '#3B82F6' }]}>{p.position || '-'}</Text></View>
             </View>
           </View>
-          <View style={s.playerRight}>
-            <TouchableOpacity testID={`edit-${p.id}`} style={s.eBtn} onPress={() => openEdit(p)}><MaterialCommunityIcons name="pencil-outline" size={14} color={Colors.textMuted} /></TouchableOpacity>
-            <TouchableOpacity testID={`rm-${p.id}`} style={s.eBtn} onPress={() => removePlayer(p.id)}><MaterialCommunityIcons name="close" size={14} color={Colors.destructive} /></TouchableOpacity>
-            <Switch testID={`toggle-${p.id}`} value={p.available} onValueChange={() => toggleAvailable(p.id)} trackColor={{ false: Colors.border, true: 'rgba(0,200,83,0.3)' }} thumbColor={p.available ? Colors.primary : Colors.textMuted} style={Platform.OS === 'web' ? { transform: [{ scale: 0.7 }] } : undefined} />
-          </View>
+          <TouchableOpacity data-testid={`edit-${p.id}`} style={s.actionBtn} onPress={() => openEdit(p)}>
+            <MaterialCommunityIcons name="pencil-outline" size={14} color="#666" />
+          </TouchableOpacity>
+          <TouchableOpacity data-testid={`rm-${p.id}`} style={s.actionBtn} onPress={() => removePlayer(p.id)}>
+            <MaterialCommunityIcons name="close" size={14} color="#EF4444" />
+          </TouchableOpacity>
+          <Switch data-testid={`toggle-${p.id}`} value={p.available} onValueChange={() => toggleAvailable(p.id)}
+            trackColor={{ false: '#333', true: 'rgba(74,222,128,0.3)' }}
+            thumbColor={p.available ? '#4ADE80' : '#666'}
+            style={Platform.OS === 'web' ? { transform: [{ scale: 0.7 }] } : undefined} />
         </View>
       ))}
 
@@ -316,11 +345,11 @@ export default function TeamPage() {
                 <Text style={[s.dd, { width: 26, fontWeight: '800' }]}>{p.number}</Text>
                 <Text style={[s.dd, { flex: 1, textAlign: 'left' }]} numberOfLines={1}>{p.name}</Text>
                 <Text style={[s.dd, { width: 34 }]}>{st.minutes || 0}</Text>
-                <Text style={[s.dd, { width: 26, color: (st.avg_rating || 0) >= 7 ? Colors.primary : Colors.textSecondary }]}>{st.avg_rating || '-'}</Text>
+                <Text style={[s.dd, { width: 26, color: (st.avg_rating || 0) >= 7 ? '#4ADE80' : '#888' }]}>{st.avg_rating || '-'}</Text>
                 <Text style={[s.dd, { width: 20 }]}>{st.goals || 0}</Text>
                 <Text style={[s.dd, { width: 20 }]}>{st.assists || 0}</Text>
-                <Text style={[s.dd, { width: 20, color: st.yellow ? '#F59E0B' : Colors.textMuted }]}>{st.yellow || 0}</Text>
-                <Text style={[s.dd, { width: 20, color: st.red ? Colors.destructive : Colors.textMuted }]}>{st.red || 0}</Text>
+                <Text style={[s.dd, { width: 20, color: st.yellow ? '#F59E0B' : '#555' }]}>{st.yellow || 0}</Text>
+                <Text style={[s.dd, { width: 20, color: st.red ? '#EF4444' : '#555' }]}>{st.red || 0}</Text>
               </View>
             );
           })}
@@ -329,47 +358,66 @@ export default function TeamPage() {
 
       {under13 && tab === 'squad-detail' && (
         <View style={s.infoBox}>
-          <MaterialCommunityIcons name="information-outline" size={16} color={Colors.warning} />
-          <Text style={s.infoText}>Detailed statistics are not available for teams under 13.</Text>
+          <MaterialCommunityIcons name="information-outline" size={16} color="#F59E0B" />
+          <Text style={s.infoBoxText}>Detailed statistics not available for teams under 13.</Text>
         </View>
       )}
-      <View style={{ height: 60 }} />
+      <View style={{ height: 80 }} />
     </ScrollView>
   );
 
   return (
-    <View style={s.container}>
-      <View style={s.header}>
-        <TouchableOpacity testID="back-btn" onPress={() => { if (tab !== 'overview') setTab('overview'); else router.back(); }} style={s.backBtn}>
-          <MaterialCommunityIcons name="arrow-left" size={20} color={Colors.white} />
-        </TouchableOpacity>
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            {currentTeam?.country ? <Text style={{ fontSize: 16 }}>{getFlagForCode(currentTeam.country)}</Text> : null}
-            <Text style={s.headerTitle} numberOfLines={1}>{currentTeam?.name || 'Team'}</Text>
+    <View style={s.root}>
+      <LinearGradient colors={['#1C1E22', '#161819', '#111315']} style={s.bg}>
+        {/* Top Header */}
+        <View style={s.topBar}>
+          <Text style={s.pageName}>{tab === 'overview' ? currentTeam?.name || 'Team' : tab === 'squad' ? 'Availability' : 'Statistics'}</Text>
+          <View style={s.topRight}>
+            {saving && <Text style={s.savingText}>Saving...</Text>}
+            {tab !== 'overview' && (
+              <TouchableOpacity onPress={() => setTab('overview')}>
+                <Text style={s.backLink}>Overview</Text>
+              </TouchableOpacity>
+            )}
           </View>
-          <Text style={s.headerSub}>
-            {tab === 'overview' ? `${currentTeam?.format} · ${currentTeam?.sport}` : tab === 'squad' ? 'Availability' : 'Statistics'}
-          </Text>
         </View>
-        {saving && <Text style={s.savingText}>Saving...</Text>}
-      </View>
 
-      {tab === 'overview' ? renderOverview() : renderSquad()}
+        {tab === 'overview' ? renderOverview() : renderSquad()}
+
+        {/* Bottom Nav */}
+        <View style={s.tabBar}>
+          <TouchableOpacity style={s.navTab} onPress={() => router.push('/')}>
+            <MaterialCommunityIcons name="home" size={24} color="#555" />
+            <Text style={s.navLabel}>Dashboard</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.navTab} onPress={() => router.push('/messenger')}>
+            <MaterialCommunityIcons name="message-text-outline" size={24} color="#555" />
+            <Text style={s.navLabel}>Messages</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.navTab} onPress={() => router.push('/calendar')}>
+            <MaterialCommunityIcons name="calendar-outline" size={24} color="#555" />
+            <Text style={s.navLabel}>Calendar</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={s.navTab} onPress={() => router.push('/my-network')}>
+            <MaterialCommunityIcons name="account-group-outline" size={24} color="#555" />
+            <Text style={s.navLabel}>Network</Text>
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
 
       {/* Settings Modal */}
       <Modal visible={showSettings} transparent animationType="slide">
         <View style={s.modalOverlay}>
           <ScrollView contentContainerStyle={{ justifyContent: 'flex-end', flexGrow: 1 }}>
             <View style={s.modalContent}>
-              <View style={s.modalHead}><Text style={s.modalTitle}>Team Settings</Text><TouchableOpacity onPress={() => setShowSettings(false)}><MaterialCommunityIcons name="close" size={22} color={Colors.textMuted} /></TouchableOpacity></View>
+              <View style={s.modalHead}><Text style={s.modalTitle}>Team Settings</Text><TouchableOpacity onPress={() => setShowSettings(false)}><MaterialCommunityIcons name="close" size={22} color="#666" /></TouchableOpacity></View>
               <Text style={s.fieldLabel}>FORMAT</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
                 {FORMATS.map(f => <TouchableOpacity key={f} style={[s.chip, editFormat === f && s.chipActive]} onPress={() => setEditFormat(f)}><Text style={[s.chipText, editFormat === f && s.chipTextActive]}>{f}</Text></TouchableOpacity>)}
               </ScrollView>
               <Text style={s.fieldLabel}>GENDER</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-                {GENDERS.map(g => <TouchableOpacity key={g} testID={`settings-gender-${g}`} style={[s.chip, editGender === g && s.chipActive]} onPress={() => setEditGender(g)}><Text style={[s.chipText, editGender === g && s.chipTextActive]}>{GENDER_DISPLAY[g] || g}</Text></TouchableOpacity>)}
+                {GENDERS.map(g => <TouchableOpacity key={g} data-testid={`settings-gender-${g}`} style={[s.chip, editGender === g && s.chipActive]} onPress={() => setEditGender(g)}><Text style={[s.chipText, editGender === g && s.chipTextActive]}>{GENDER_DISPLAY[g] || g}</Text></TouchableOpacity>)}
               </ScrollView>
               <Text style={s.fieldLabel}>AGE GROUP</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
@@ -377,13 +425,13 @@ export default function TeamPage() {
               </ScrollView>
               <Text style={s.fieldLabel}>COUNTRY</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-                {COUNTRIES.map(c => <TouchableOpacity key={c.code} testID={`settings-country-${c.code}`} style={[s.countryChip, editCountry === c.code && s.countryChipActive]} onPress={() => setEditCountry(c.code)}><Text style={{ fontSize: 16 }}>{c.flag}</Text><Text style={[s.chipText, editCountry === c.code && s.chipTextActive]}>{c.name}</Text></TouchableOpacity>)}
+                {COUNTRIES.map(c => <TouchableOpacity key={c.code} data-testid={`settings-country-${c.code}`} style={[s.countryChip, editCountry === c.code && s.countryChipActive]} onPress={() => setEditCountry(c.code)}><Text style={{ fontSize: 16 }}>{c.flag}</Text><Text style={[s.chipText, editCountry === c.code && s.chipTextActive]}>{c.name}</Text></TouchableOpacity>)}
               </ScrollView>
               <Text style={s.fieldLabel}>MANAGER NAME</Text>
-              <TextInput style={s.input} value={editManagerName} onChangeText={setEditManagerName} placeholder="Manager name" placeholderTextColor={Colors.textMuted} />
+              <TextInput style={s.input} value={editManagerName} onChangeText={setEditManagerName} placeholder="Manager name" placeholderTextColor="#555" />
               <Text style={s.fieldLabel}>PHONE</Text>
-              <TextInput style={s.input} value={editManagerPhone} onChangeText={setEditManagerPhone} placeholder="Phone number" placeholderTextColor={Colors.textMuted} keyboardType="phone-pad" />
-              <TouchableOpacity testID="save-settings-btn" style={s.confirmBtn} onPress={saveSettings}><Text style={s.confirmBtnText}>SAVE CHANGES</Text></TouchableOpacity>
+              <TextInput style={s.input} value={editManagerPhone} onChangeText={setEditManagerPhone} placeholder="Phone number" placeholderTextColor="#555" keyboardType="phone-pad" />
+              <TouchableOpacity data-testid="save-settings-btn" style={s.confirmBtn} onPress={saveSettings}><Text style={s.confirmBtnText}>SAVE CHANGES</Text></TouchableOpacity>
             </View>
           </ScrollView>
         </View>
@@ -393,14 +441,14 @@ export default function TeamPage() {
       <Modal visible={showAdd} transparent animationType="slide">
         <View style={s.modalOverlay}>
           <View style={s.modalContent}>
-            <View style={s.modalHead}><Text style={s.modalTitle}>Add Player</Text><TouchableOpacity onPress={() => setShowAdd(false)}><MaterialCommunityIcons name="close" size={22} color={Colors.textMuted} /></TouchableOpacity></View>
+            <View style={s.modalHead}><Text style={s.modalTitle}>Add Player</Text><TouchableOpacity onPress={() => setShowAdd(false)}><MaterialCommunityIcons name="close" size={22} color="#666" /></TouchableOpacity></View>
             <Text style={s.fieldLabel}>NAME</Text>
-            <TextInput testID="new-player-name" style={s.input} value={newName} onChangeText={setNewName} placeholder="Player name" placeholderTextColor={Colors.textMuted} autoFocus />
+            <TextInput data-testid="new-player-name" style={s.input} value={newName} onChangeText={setNewName} placeholder="Player name" placeholderTextColor="#555" autoFocus />
             <Text style={s.fieldLabel}>NUMBER</Text>
-            <TextInput testID="new-player-number" style={s.input} value={newNumber} onChangeText={setNewNumber} placeholder={String(players.length + 1)} placeholderTextColor={Colors.textMuted} keyboardType="number-pad" />
+            <TextInput data-testid="new-player-number" style={s.input} value={newNumber} onChangeText={setNewNumber} placeholder={String(players.length + 1)} placeholderTextColor="#555" keyboardType="number-pad" />
             <Text style={s.fieldLabel}>POSITION</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>{POSITIONS.map(pos => <TouchableOpacity key={pos} style={[s.chip, newPosition === pos && s.chipActive]} onPress={() => setNewPosition(pos)}><Text style={[s.chipText, newPosition === pos && s.chipTextActive]}>{pos}</Text></TouchableOpacity>)}</ScrollView>
-            <TouchableOpacity testID="confirm-add-player" style={s.confirmBtn} onPress={addPlayer}><MaterialCommunityIcons name="plus" size={16} color={Colors.white} /><Text style={s.confirmBtnText}>ADD PLAYER</Text></TouchableOpacity>
+            <TouchableOpacity data-testid="confirm-add-player" style={s.confirmBtn} onPress={addPlayer}><MaterialCommunityIcons name="plus" size={16} color="#FFF" /><Text style={s.confirmBtnText}>ADD PLAYER</Text></TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -409,14 +457,14 @@ export default function TeamPage() {
       <Modal visible={editPlayer !== null} transparent animationType="slide">
         <View style={s.modalOverlay}>
           <View style={s.modalContent}>
-            <View style={s.modalHead}><Text style={s.modalTitle}>Edit Player</Text><TouchableOpacity onPress={() => setEditPlayer(null)}><MaterialCommunityIcons name="close" size={22} color={Colors.textMuted} /></TouchableOpacity></View>
+            <View style={s.modalHead}><Text style={s.modalTitle}>Edit Player</Text><TouchableOpacity onPress={() => setEditPlayer(null)}><MaterialCommunityIcons name="close" size={22} color="#666" /></TouchableOpacity></View>
             <Text style={s.fieldLabel}>NAME</Text>
-            <TextInput style={s.input} value={editPlayerName} onChangeText={setEditPlayerName} placeholder="Name" placeholderTextColor={Colors.textMuted} />
+            <TextInput style={s.input} value={editPlayerName} onChangeText={setEditPlayerName} placeholder="Name" placeholderTextColor="#555" />
             <Text style={s.fieldLabel}>NUMBER</Text>
-            <TextInput style={s.input} value={editPlayerNum} onChangeText={setEditPlayerNum} keyboardType="number-pad" placeholderTextColor={Colors.textMuted} />
+            <TextInput style={s.input} value={editPlayerNum} onChangeText={setEditPlayerNum} keyboardType="number-pad" placeholderTextColor="#555" />
             <Text style={s.fieldLabel}>POSITION</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>{POSITIONS.map(pos => <TouchableOpacity key={pos} style={[s.chip, editPlayerPos === pos && s.chipActive]} onPress={() => setEditPlayerPos(pos)}><Text style={[s.chipText, editPlayerPos === pos && s.chipTextActive]}>{pos}</Text></TouchableOpacity>)}</ScrollView>
-            <TouchableOpacity testID="save-edit-player" style={s.confirmBtn} onPress={saveEdit}><MaterialCommunityIcons name="check" size={16} color={Colors.white} /><Text style={s.confirmBtnText}>SAVE</Text></TouchableOpacity>
+            <TouchableOpacity data-testid="save-edit-player" style={s.confirmBtn} onPress={saveEdit}><MaterialCommunityIcons name="check" size={16} color="#FFF" /><Text style={s.confirmBtnText}>SAVE</Text></TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -425,88 +473,107 @@ export default function TeamPage() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingTop: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  backBtn: { padding: 4 },
-  headerTitle: { fontSize: 16, fontWeight: '800', color: Colors.white },
-  headerSub: { fontSize: 10, color: Colors.textMuted, marginTop: 1 },
-  savingText: { fontSize: 10, color: Colors.primary, fontWeight: '600' },
-  scroll: { padding: 12, paddingBottom: 30 },
-  infoBar: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 10, borderWidth: 1, borderColor: Colors.border, marginBottom: 8 },
-  badge: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,200,83,0.08)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(0,200,83,0.2)' },
-  teamName: { fontSize: 16, fontWeight: '800', color: Colors.white },
-  tagRow: { flexDirection: 'row', gap: 4, marginTop: 2 },
-  tag: { backgroundColor: 'rgba(0,200,83,0.1)', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 3 },
-  tagText: { fontSize: 9, fontWeight: '700', color: Colors.primary },
-  miniStats: { alignItems: 'center', paddingHorizontal: 6 },
-  miniNum: { fontSize: 16, fontWeight: '800', color: Colors.white },
-  miniLbl: { fontSize: 8, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1 },
-  settingsBtn: { padding: 6, borderRadius: 6, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
-  // Team code
-  codeBar: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(0,200,83,0.05)', borderRadius: 8, padding: 8, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(0,200,83,0.15)' },
-  codeLabel: { fontSize: 9, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1 },
-  codeValue: { fontSize: 14, fontWeight: '900', color: Colors.primary, letterSpacing: 2, fontFamily: Platform.OS === 'web' ? 'monospace' : undefined },
-  codeHint: { fontSize: 9, color: Colors.textMuted, flex: 1, textAlign: 'right' },
+  root: { flex: 1 },
+  bg: { flex: 1 },
+  scroll: { padding: 16, paddingBottom: 20 },
+
+  // Top bar
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  pageName: { fontSize: 18, fontWeight: '800', color: '#EAEAEA' },
+  topRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  savingText: { fontSize: 11, color: '#4ADE80', fontWeight: '600' },
+  backLink: { fontSize: 13, fontWeight: '600', color: '#4ADE80' },
+
+  // Team header
+  teamHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  shieldWrap: { width: 48, height: 48, justifyContent: 'center', alignItems: 'center' },
+  shieldInner: { width: 46, height: 44, borderRadius: 10, backgroundColor: '#2A2C30', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  teamName: { fontSize: 18, fontWeight: '800', color: '#EAEAEA' },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 5, marginTop: 3, flexWrap: 'wrap' },
+  badge: { borderWidth: 1, borderColor: '#4ADE80', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
+  badgeText: { fontSize: 10, fontWeight: '600', color: '#4ADE80' },
+  statsGroup: { flexDirection: 'row', gap: 12 },
+  statItem: { alignItems: 'center' },
+  statNum: { fontSize: 18, fontWeight: '800', color: '#EAEAEA' },
+  statLbl: { fontSize: 8, fontWeight: '700', color: '#666', letterSpacing: 1 },
+  settingsIcon: { padding: 6 },
+
+  // Code row
+  codeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  codeLabel: { fontSize: 9, fontWeight: '700', color: '#666', letterSpacing: 1 },
+  codeValue: { fontSize: 15, fontWeight: '900', color: '#4ADE80', letterSpacing: 3, fontFamily: Platform.OS === 'web' ? 'monospace' : undefined },
+  codeHint: { fontSize: 9, color: '#555', flex: 1, textAlign: 'right' },
+
   // Manager
-  managerBar: { flexDirection: 'row', alignItems: 'center', gap: 6, padding: 6, marginBottom: 8 },
-  managerText: { fontSize: 11, color: Colors.textMuted },
-  // Messages
-  msgBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(245,158,11,0.08)', borderRadius: 8, padding: 10, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(245,158,11,0.2)' },
-  msgText: { fontSize: 12, fontWeight: '600', color: '#F59E0B', flex: 1 },
-  // Main row with sidebar
-  mainRow: { flexDirection: 'row', gap: 10 },
-  sidebar: { width: 72, gap: 4 },
-  sidebarHoriz: { width: '100%', flexDirection: 'row', gap: 4, marginBottom: 10, flexWrap: 'wrap' },
-  sideItem: { alignItems: 'center', backgroundColor: Colors.backgroundSecondary, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 4, borderWidth: 1, borderColor: Colors.border },
-  sideItemHoriz: { flex: 1, minWidth: 60 },
-  sideIcon: { width: 52, height: 52, borderRadius: 14, justifyContent: 'center', alignItems: 'center', marginBottom: 3 },
-  sideLabel: { fontSize: 10, fontWeight: '700', color: Colors.textMuted, textAlign: 'center' },
-  // Squad tab
-  squadHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
-  squadTabs: { flexDirection: 'row', gap: 4 },
-  sqTab: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
-  sqTabActive: { borderColor: Colors.primary, backgroundColor: 'rgba(0,200,83,0.08)' },
-  sqTabText: { fontSize: 11, fontWeight: '700', color: Colors.textMuted },
-  sqTabTextActive: { color: Colors.primary },
-  addBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Colors.primary, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  addBtnText: { fontSize: 10, fontWeight: '700', color: Colors.white },
-  playerCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.backgroundSecondary, borderRadius: 8, padding: 6, marginBottom: 3, borderWidth: 1, borderColor: Colors.border },
-  playerCardOff: { opacity: 0.4 },
-  playerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  numCircle: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(0,200,83,0.1)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: Colors.primary },
-  numCircleOff: { borderColor: Colors.border, backgroundColor: 'rgba(255,255,255,0.03)' },
-  numText: { fontSize: 11, fontWeight: '900', color: Colors.white },
-  plName: { fontSize: 12, fontWeight: '700', color: Colors.white },
-  plMeta: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 1 },
-  posBadge: { backgroundColor: 'rgba(0,200,83,0.08)', paddingHorizontal: 4, paddingVertical: 1, borderRadius: 3 },
-  posText: { fontSize: 8, fontWeight: '700', color: Colors.primary },
-  playerRight: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  eBtn: { padding: 4 },
-  // Detail view
-  detailHead: { flexDirection: 'row', paddingVertical: 5, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: Colors.border },
-  dh: { fontSize: 8, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1, textAlign: 'center' },
-  detailRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: Colors.border + '30' },
-  dd: { fontSize: 11, fontWeight: '600', color: Colors.textSecondary, textAlign: 'center' },
-  infoBox: { flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: 'rgba(245,158,11,0.08)', borderRadius: 8, padding: 10, marginTop: 10, borderWidth: 1, borderColor: 'rgba(245,158,11,0.2)' },
-  infoText: { fontSize: 12, color: Colors.warning, flex: 1 },
+  managerRow: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: 8 },
+  managerText: { fontSize: 12, color: '#888' },
+
+  // Section
+  sectionLabel: { fontSize: 12, fontWeight: '600', color: '#666', letterSpacing: 2.5, marginTop: 20, marginBottom: 12 },
+
+  // Menu grid
+  menuGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  menuItem: { width: '22%' as any, alignItems: 'center', paddingVertical: 10, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.04)' },
+  menuLabel: { fontSize: 10, fontWeight: '600', color: '#888', marginTop: 4 },
+
+  // Feed
+  matchCard: { backgroundColor: 'rgba(74,222,128,0.06)', borderRadius: 10, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(74,222,128,0.15)' },
+  matchBadge: { backgroundColor: 'rgba(74,222,128,0.15)', alignSelf: 'flex-start', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 4, marginBottom: 6 },
+  matchBadgeText: { fontSize: 9, fontWeight: '800', color: '#4ADE80', letterSpacing: 1 },
+  matchTitle: { fontSize: 16, fontWeight: '700', color: '#EAEAEA' },
+  matchDate: { fontSize: 12, color: '#888', marginTop: 2 },
+
+  reminderRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  reminderText: { fontSize: 12, fontWeight: '500', color: '#F59E0B', flex: 1 },
+
+  feedRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  feedTitle: { fontSize: 13, fontWeight: '500', color: '#888' },
+  feedTime: { fontSize: 10, color: '#555', marginTop: 1 },
+
+  emptyText: { fontSize: 13, color: '#555', paddingVertical: 12 },
+
+  // Squad
+  squadHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  squadTabs: { flexDirection: 'row', gap: 6 },
+  sqTab: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.04)' },
+  sqTabActive: { borderColor: '#4ADE80', backgroundColor: 'rgba(74,222,128,0.06)' },
+  sqTabText: { fontSize: 12, fontWeight: '600', color: '#666' },
+  sqTabTextActive: { color: '#4ADE80' },
+  addPlayerBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#10B981', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  addPlayerText: { fontSize: 11, fontWeight: '700', color: '#FFF' },
+
+  playerRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  numCircle: { width: 30, height: 30, borderRadius: 15, backgroundColor: 'rgba(74,222,128,0.08)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#4ADE80' },
+  numText: { fontSize: 12, fontWeight: '900', color: '#EAEAEA' },
+  plName: { fontSize: 13, fontWeight: '700', color: '#EAEAEA' },
+  actionBtn: { padding: 6 },
+
+  // Detail
+  detailHead: { flexDirection: 'row', paddingVertical: 6, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
+  dh: { fontSize: 9, fontWeight: '700', color: '#666', letterSpacing: 1, textAlign: 'center' },
+  detailRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 4, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.03)' },
+  dd: { fontSize: 12, fontWeight: '600', color: '#888', textAlign: 'center' },
+  infoBox: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 10 },
+  infoBoxText: { fontSize: 12, color: '#F59E0B', flex: 1 },
+
+  // Bottom Nav
+  tabBar: { flexDirection: 'row', height: 60, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)', backgroundColor: '#131517' },
+  navTab: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 2 },
+  navLabel: { fontSize: 10, fontWeight: '500', color: '#555' },
+
   // Modals
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
-  modalContent: { backgroundColor: Colors.backgroundSecondary, borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 18, paddingBottom: 36 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
+  modalContent: { backgroundColor: '#1E2025', borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 18, paddingBottom: 36 },
   modalHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
-  modalTitle: { fontSize: 16, fontWeight: '800', color: Colors.white },
-  fieldLabel: { fontSize: 9, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1.5, marginBottom: 5, marginTop: 4 },
-  input: { height: 42, backgroundColor: Colors.card, borderRadius: 8, paddingHorizontal: 12, color: Colors.white, fontSize: 13, borderWidth: 1, borderColor: Colors.border, marginBottom: 8 },
-  chip: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, marginRight: 5, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
-  chipActive: { borderColor: Colors.primary, backgroundColor: 'rgba(0,200,83,0.1)' },
-  chipText: { fontSize: 11, fontWeight: '700', color: Colors.textMuted },
-  chipTextActive: { color: Colors.primary },
-  confirmBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: Colors.primary, height: 42, borderRadius: 8, gap: 6 },
-  confirmBtnText: { fontSize: 12, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
-  countryChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6, marginRight: 5, backgroundColor: Colors.card, borderWidth: 1, borderColor: Colors.border },
-  countryChipActive: { borderColor: Colors.primary, backgroundColor: 'rgba(0,200,83,0.1)' },
-  // Board section
-  boardSection: { marginTop: 16, backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 12, borderWidth: 1, borderColor: Colors.border },
-  boardHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  boardTitle: { fontSize: 12, fontWeight: '800', color: Colors.textSecondary, letterSpacing: 1.5, flex: 1 },
-  boardSubtext: { fontSize: 12, color: Colors.textMuted, marginTop: 6 },
+  modalTitle: { fontSize: 17, fontWeight: '800', color: '#EAEAEA' },
+  fieldLabel: { fontSize: 9, fontWeight: '700', color: '#666', letterSpacing: 1.5, marginBottom: 5, marginTop: 4 },
+  input: { height: 44, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, paddingHorizontal: 14, color: '#EAEAEA', fontSize: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', marginBottom: 8 },
+  chip: { paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8, marginRight: 6, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  chipActive: { borderColor: '#4ADE80', backgroundColor: 'rgba(74,222,128,0.08)' },
+  chipText: { fontSize: 12, fontWeight: '700', color: '#666' },
+  chipTextActive: { color: '#4ADE80' },
+  confirmBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#10B981', height: 46, borderRadius: 10, gap: 6 },
+  confirmBtnText: { fontSize: 13, fontWeight: '800', color: '#FFF', letterSpacing: 1 },
+  countryChip: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 7, borderRadius: 8, marginRight: 6, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  countryChipActive: { borderColor: '#4ADE80', backgroundColor: 'rgba(74,222,128,0.08)' },
 });
