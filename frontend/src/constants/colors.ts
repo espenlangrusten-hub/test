@@ -1,22 +1,33 @@
 export const Colors = {
-  background: '#09090b',
-  backgroundSecondary: '#18181b',
-  card: '#1c1c1e',
-  cardBorder: '#2a2a2e',
-  primary: '#00C853',
-  primaryDark: '#00A844',
-  accent: '#00E676',
-  white: '#FFFFFF',
-  text: '#FFFFFF',
-  textSecondary: '#a1a1aa',
-  textMuted: '#71717a',
-  border: '#27272a',
+  // Core backgrounds
+  background: '#0F1115',
+  backgroundSecondary: '#1A1D23',
+  card: '#1E2128',
+  cardBorder: '#2A2E36',
+  // Glass effect
+  glass: 'rgba(30, 33, 40, 0.65)',
+  glassBorder: 'rgba(255, 255, 255, 0.06)',
+  glassHighlight: 'rgba(255, 255, 255, 0.03)',
+  // Accent – softer emerald
+  primary: '#10B981',
+  primaryDark: '#059669',
+  primaryGlow: 'rgba(16, 185, 129, 0.15)',
+  accent: '#34D399',
+  // Text
+  white: '#F0F0F0',
+  text: '#F0F0F0',
+  textSecondary: '#94A3B8',
+  textMuted: '#64748B',
+  // Structure
+  border: '#252830',
   destructive: '#EF4444',
   warning: '#F59E0B',
   info: '#3B82F6',
+  // Pitch
   pitchGreen: '#1B5E20',
   pitchGreenLight: '#2E7D32',
   pitchLine: 'rgba(255,255,255,0.55)',
+  // Overlay & utility
   overlay: 'rgba(0,0,0,0.7)',
-  success: '#00C853',
+  success: '#10B981',
 };
