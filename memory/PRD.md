@@ -109,6 +109,7 @@ Build a subscription-based football and futsal team management application for i
 - **P3**: Match analytics dashboard, subscription/payment integration, training drill illustrations
 
 ## Changelog
+- 2026-03-03 (Session 13): Pixel-perfect dashboard redesign to match user mockup - All badges changed to green (#4ADE80), age group badges separated from gender, shield-shaped flag icons, fixed ScrollView for proper scrolling, cleaned up unused code. 100% test pass rate.
 - 2026-03-03 (Session 12b): EA Sports-inspired 3D redesign - Football/Futsal cards with gradient backgrounds, glowing icons, depth effects. Team list and network sections converted from boxed cards to clean professional list rows with subtle separators, rank numbers, and inline stats.
 - 2026-03-03 (Session 12): Premium glassmorphism dark theme redesign - dark gradient background, semi-transparent glass cards, softer emerald accent (#10B981), improved typography hierarchy, more whitespace. Updated colors system, auth page, and complete dashboard rewrite inspired by Strava/Football Manager.
 - 2026-02-25 (Session 11): Bug fixes: Cancel button now works on web (window.confirm), cancelled matches show in calendar with red badge + strikethrough, amended matches properly move in calendar (status→pending clears old date, re-acceptance sets new date).
@@ -124,6 +125,7 @@ Build a subscription-based football and futsal team management application for i
 - 2026-02-22 (Session 1): Compact team hub, in-match event logging, AI training backend.
 
 ## Test Reports
+- `/app/test_reports/iteration_24.json` (Pixel-perfect dashboard redesign - 100% pass)
 - `/app/test_reports/iteration_23.json` (EA Sports redesign v2 - 100% pass)
 - `/app/test_reports/iteration_22.json` (Glassmorphism redesign v1 - 100% pass)
 - `/app/test_reports/iteration_17.json` (English translation + UI changes - 100% pass)
