@@ -5,11 +5,14 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '../src/context/AppContext';
 import { Colors } from '../src/constants/colors';
 import { getFlagForCode } from '../src/constants/countries';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
+const GENDER_DISPLAY: Record<string, string> = { 'Gutter': 'Boys', 'Jenter': 'Girls', 'Mixed': 'Mixed' };
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -90,142 +93,148 @@ export default function HomeScreen() {
     setTeamToDelete(null);
   };
 
-  const genderLabel = (g: string) => g === 'Gutter' ? 'B' : g === 'Jenter' ? 'G' : g === 'Mixed' ? 'M' : '';
+  const genderLabel = (g: string) => GENDER_DISPLAY[g] || g;
+  const availableCount = (team: any) => team.players?.filter((p: any) => p.available !== false).length || 0;
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-        <View style={styles.topRow}>
-          <View style={styles.userInfo}>
-            <MaterialCommunityIcons name="account-circle" size={22} color={Colors.primary} />
-            <Text style={styles.userName}>{user?.name || user?.email || ''}</Text>
-          </View>
-          <TouchableOpacity testID="logout-btn" style={styles.logoutBtn} onPress={logout}>
-            <MaterialCommunityIcons name="logout" size={16} color={Colors.textMuted} />
-          </TouchableOpacity>
-        </View>
+    <LinearGradient colors={['#0F1115', '#131720', '#0F1115']} style={s.container}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
-        <View style={styles.header}>
-          <MaterialCommunityIcons name="strategy" size={32} color={Colors.primary} />
-          <Text style={styles.title}>TACTICAL LINEUP</Text>
-          <Text style={styles.subtitle}>FOOTBALL & FUTSAL COACH ASSISTANT</Text>
-        </View>
-
-        <Text style={styles.sectionTitle}>CREATE TEAM</Text>
-        <View style={styles.sportRow}>
-          <TouchableOpacity testID="select-football-btn" style={styles.sportCard} onPress={() => selectSport('football')}>
-            <MaterialCommunityIcons name="shoe-cleat" size={32} color={Colors.primary} />
-            <Text style={styles.sportName}>FOOTBALL</Text>
-            <Text style={styles.sportFormats}>5v5 · 7v7 · 9v9 · 11v11</Text>
-          </TouchableOpacity>
-          <TouchableOpacity testID="select-futsal-btn" style={styles.sportCard} onPress={() => selectSport('futsal')}>
-            <MaterialCommunityIcons name="soccer" size={32} color={Colors.accent} />
-            <Text style={styles.sportName}>FUTSAL</Text>
-            <Text style={styles.sportFormats}>5v5</Text>
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.sectionTitle}>MY TEAMS</Text>
-        {loading && <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 16 }} />}
-        {!loading && teams.length === 0 && (
-          <View style={styles.emptyBox}>
-            <MaterialCommunityIcons name="soccer-field" size={32} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>No teams yet. Create your first team above.</Text>
-          </View>
-        )}
-        {!loading && teams.map((team) => (
-          <TouchableOpacity key={team.id} testID={`team-card-${team.id}`} style={styles.teamCard} onPress={() => openTeam(team)} activeOpacity={0.7}>
-            <View style={styles.teamIconWrap}>
-              <MaterialCommunityIcons name={team.sport === 'futsal' ? 'soccer' : 'shield-half-full'} size={22} color={Colors.primary} />
-            </View>
-            <View style={styles.teamInfo}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                {team.country ? <Text style={{ fontSize: 18 }}>{getFlagForCode(team.country)}</Text> : null}
-                <Text style={styles.teamName}>{team.name}</Text>
+          {/* Top bar */}
+          <View style={s.topBar}>
+            <View style={s.userRow}>
+              <View style={s.avatar}>
+                <MaterialCommunityIcons name="account" size={18} color={Colors.textSecondary} />
               </View>
-              <View style={styles.teamMeta}>
-                <View style={styles.badge}><Text style={styles.badgeText}>{team.format}</Text></View>
-                {team.gender ? <View style={styles.badge}><Text style={styles.badgeText}>{genderLabel(team.gender)} {team.age_group}</Text></View> : team.age_group ? <View style={styles.badge}><Text style={styles.badgeText}>{team.age_group}</Text></View> : null}
-                <Text style={styles.playerCount}>{team.players?.length || 0} players</Text>
-                {team.team_code ? <Text style={styles.teamCode}>#{team.team_code}</Text> : null}
-              </View>
+              <Text style={s.userName}>{user?.name || user?.email || ''}</Text>
             </View>
-            <TouchableOpacity testID={`delete-team-${team.id}`} style={styles.deleteBtn} onPress={(e) => { e.stopPropagation?.(); setTeamToDelete(team); }} hitSlop={{top:8,bottom:8,left:8,right:8}}>
-              <MaterialCommunityIcons name="trash-can-outline" size={16} color={Colors.destructive} />
+            <View style={{ flexDirection: 'row', gap: 12 }}>
+              <TouchableOpacity testID="logout-btn" style={s.iconBtn} onPress={logout}>
+                <MaterialCommunityIcons name="logout" size={17} color={Colors.textMuted} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Branding */}
+          <View style={s.branding}>
+            <MaterialCommunityIcons name="strategy" size={28} color={Colors.primary} />
+            <Text style={s.brandTitle}>TACTICAL LINEUP</Text>
+            <Text style={s.brandSub}>THE ELITE COACH ASSISTANT</Text>
+          </View>
+
+          {/* Create New Squad */}
+          <Text style={s.sectionLabel}>CREATE NEW SQUAD</Text>
+          <View style={s.sportRow}>
+            <TouchableOpacity testID="select-football-btn" style={s.sportCard} onPress={() => selectSport('football')} activeOpacity={0.8}>
+              <View style={s.sportIconWrap}>
+                <MaterialCommunityIcons name="shoe-cleat" size={36} color="#94A3B8" />
+              </View>
+              <Text style={s.sportName}>FOOTBALL</Text>
+              <Text style={s.sportFormats}>5v5 · 7v7 · 9v9 · 11v11</Text>
             </TouchableOpacity>
-          </TouchableOpacity>
-        ))}
-
-        {/* My Network */}
-        <View style={styles.networkHeader}>
-          <Text style={styles.sectionTitle}>MY NETWORK</Text>
-          <TouchableOpacity testID="add-network-btn" style={styles.addNetBtn} onPress={() => setShowAddNetwork(true)}>
-            <MaterialCommunityIcons name="plus" size={14} color={Colors.white} />
-            <Text style={styles.addNetBtnText}>ADD</Text>
-          </TouchableOpacity>
-        </View>
-        {network.length === 0 && (
-          <View style={styles.emptyBox}>
-            <MaterialCommunityIcons name="account-group" size={28} color={Colors.textMuted} />
-            <Text style={styles.emptyText}>No teams in network. Add teams by their unique code.</Text>
+            <TouchableOpacity testID="select-futsal-btn" style={s.sportCard} onPress={() => selectSport('futsal')} activeOpacity={0.8}>
+              <View style={s.sportIconWrap}>
+                <MaterialCommunityIcons name="soccer" size={36} color="#94A3B8" />
+              </View>
+              <Text style={s.sportName}>FUTSAL</Text>
+              <Text style={s.sportFormats}>5v5</Text>
+            </TouchableOpacity>
           </View>
-        )}
-        {network.map(n => (
-          <TouchableOpacity key={n.id} testID={`network-${n.id}`} style={styles.networkCard}
-            onPress={() => setExpandedNetwork(expandedNetwork === n.id ? null : n.id)}
-            activeOpacity={0.7}
-          >
-            <View style={{ flex: 1 }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                {n.friend_team_country ? <Text style={{ fontSize: 16 }}>{getFlagForCode(n.friend_team_country)}</Text> : null}
-                <Text style={styles.netName}>{n.friend_team_name}</Text>
-                <MaterialCommunityIcons name={expandedNetwork === n.id ? 'chevron-up' : 'chevron-down'} size={16} color={Colors.textMuted} />
+
+          {/* My Active Teams */}
+          <Text style={s.sectionLabel}>MY ACTIVE TEAMS</Text>
+          {loading && <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 20 }} />}
+          {!loading && teams.length === 0 && (
+            <View style={s.emptyCard}>
+              <MaterialCommunityIcons name="soccer-field" size={28} color={Colors.textMuted} />
+              <Text style={s.emptyText}>No teams yet. Create your first squad above.</Text>
+            </View>
+          )}
+          {!loading && teams.map((team) => (
+            <TouchableOpacity key={team.id} testID={`team-card-${team.id}`} style={s.teamCard} onPress={() => openTeam(team)} activeOpacity={0.75}>
+              <View style={s.teamShield}>
+                <MaterialCommunityIcons name={team.sport === 'futsal' ? 'soccer' : 'shield-half-full'} size={24} color={Colors.textSecondary} />
               </View>
-              <View style={styles.teamMeta}>
-                {n.friend_team_gender || n.friend_team_age_group ? (
-                  <View style={styles.badge}><Text style={styles.badgeText}>{genderLabel(n.friend_team_gender)} {n.friend_team_age_group}</Text></View>
-                ) : null}
-                <View style={styles.badge}><Text style={styles.badgeText}>{n.friend_team_format}</Text></View>
-              </View>
-              {expandedNetwork === n.id && (
-                <View style={styles.contactDetails}>
-                  <View style={styles.contactRow}>
-                    <MaterialCommunityIcons name="account" size={14} color={Colors.primary} />
-                    <Text style={styles.contactLabel}>Manager:</Text>
-                    <Text style={styles.contactValue}>{n.friend_manager_name || 'Not provided'}</Text>
-                  </View>
-                  <View style={styles.contactRow}>
-                    <MaterialCommunityIcons name="phone" size={14} color={Colors.primary} />
-                    <Text style={styles.contactLabel}>Phone:</Text>
-                    <Text style={styles.contactValue}>{n.friend_manager_phone || 'Not provided'}</Text>
-                  </View>
-                  {n.friend_team_code ? (
-                    <View style={styles.contactRow}>
-                      <MaterialCommunityIcons name="pound" size={14} color={Colors.primary} />
-                      <Text style={styles.contactLabel}>Code:</Text>
-                      <Text style={styles.contactValue}>{n.friend_team_code}</Text>
-                    </View>
-                  ) : null}
+              <View style={s.teamInfo}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                  {team.country ? <Text style={{ fontSize: 20 }}>{getFlagForCode(team.country)}</Text> : null}
+                  <Text style={s.teamName}>{team.name}</Text>
                 </View>
-              )}
-            </View>
-            <TouchableOpacity testID={`remove-network-${n.id}`} onPress={() => removeFromNetwork(n.id)} hitSlop={{top:8,bottom:8,left:8,right:8}}>
-              <MaterialCommunityIcons name="close-circle-outline" size={18} color={Colors.destructive} />
+                <View style={s.metaRow}>
+                  <View style={s.badge}><Text style={s.badgeText}>{team.format}</Text></View>
+                  {team.gender ? <View style={[s.badge, s.badgeAlt]}><Text style={[s.badgeText, s.badgeAltText]}>{genderLabel(team.gender)}{team.age_group ? ` ${team.age_group}` : ''}</Text></View> : team.age_group ? <View style={s.badge}><Text style={s.badgeText}>{team.age_group}</Text></View> : null}
+                  {team.team_code ? <Text style={s.teamCode}>#{team.team_code}</Text> : null}
+                </View>
+              </View>
+              <View style={s.teamStats}>
+                <Text style={s.statNum}>{team.players?.length || 0} PLR</Text>
+                <Text style={s.statSub}>{availableCount(team)} AVL</Text>
+              </View>
+              <TouchableOpacity testID={`delete-team-${team.id}`} style={s.trashBtn} onPress={(e) => { e.stopPropagation?.(); setTeamToDelete(team); }} hitSlop={{top:8,bottom:8,left:8,right:8}}>
+                <MaterialCommunityIcons name="trash-can-outline" size={16} color={Colors.textMuted} />
+              </TouchableOpacity>
             </TouchableOpacity>
+          ))}
+
+          {/* My Network */}
+          <View style={s.networkHead}>
+            <Text style={s.sectionLabel}>MY NETWORK</Text>
+          </View>
+          {network.length === 0 && (
+            <View style={s.emptyCard}>
+              <MaterialCommunityIcons name="account-group" size={24} color={Colors.textMuted} />
+              <Text style={s.emptyText}>No teams in network yet.</Text>
+            </View>
+          )}
+          <View style={s.networkGrid}>
+            {network.map(n => (
+              <TouchableOpacity key={n.id} testID={`network-${n.id}`} style={s.netCard}
+                onPress={() => setExpandedNetwork(expandedNetwork === n.id ? null : n.id)}
+                activeOpacity={0.75}
+              >
+                <View style={s.netCardInner}>
+                  <Text style={s.netName}>{n.friend_team_name}</Text>
+                  <View style={s.metaRow}>
+                    {n.friend_team_gender || n.friend_team_age_group ? (
+                      <View style={[s.badge, s.badgeAlt]}><Text style={[s.badgeText, s.badgeAltText]}>{genderLabel(n.friend_team_gender)}{n.friend_team_age_group ? ` ${n.friend_team_age_group}` : ''}</Text></View>
+                    ) : null}
+                    <View style={s.badge}><Text style={s.badgeText}>{n.friend_team_format}</Text></View>
+                    {n.friend_team_code ? <Text style={s.teamCode}>#{n.friend_team_code}</Text> : null}
+                  </View>
+                </View>
+                {expandedNetwork === n.id && (
+                  <View style={s.contactBox}>
+                    <View style={s.contactRow}><MaterialCommunityIcons name="account-outline" size={13} color={Colors.primary} /><Text style={s.contactLabel}>Manager</Text><Text style={s.contactVal}>{n.friend_manager_name || '—'}</Text></View>
+                    <View style={s.contactRow}><MaterialCommunityIcons name="phone-outline" size={13} color={Colors.primary} /><Text style={s.contactLabel}>Phone</Text><Text style={s.contactVal}>{n.friend_manager_phone || '—'}</Text></View>
+                    <TouchableOpacity style={s.removeNet} onPress={() => removeFromNetwork(n.id)}>
+                      <MaterialCommunityIcons name="close" size={12} color={Colors.destructive} />
+                      <Text style={s.removeNetText}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+
+          {/* Add to Network Button */}
+          <TouchableOpacity testID="add-network-btn" style={s.addNetworkBtn} onPress={() => setShowAddNetwork(true)} activeOpacity={0.8}>
+            <Text style={s.addNetworkText}>+ Add to Network</Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+
+        </ScrollView>
+      </SafeAreaView>
 
       {/* Delete Modal */}
       <Modal visible={teamToDelete !== null} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <MaterialCommunityIcons name="trash-can-outline" size={32} color={Colors.destructive} />
-            <Text style={styles.modalTitle}>Delete Team</Text>
-            <Text style={styles.modalDesc}>Remove "{teamToDelete?.name}" and all its data?</Text>
-            <View style={styles.modalActions}>
-              <TouchableOpacity testID="confirm-delete-btn" style={styles.deleteConfirmBtn} onPress={executeDelete}><Text style={styles.deleteConfirmText}>DELETE</Text></TouchableOpacity>
-              <TouchableOpacity testID="cancel-delete-btn" style={styles.cancelBtn} onPress={() => setTeamToDelete(null)}><Text style={styles.cancelBtnText}>CANCEL</Text></TouchableOpacity>
+        <View style={s.modalOverlay}>
+          <View style={s.modalCard}>
+            <MaterialCommunityIcons name="trash-can-outline" size={28} color={Colors.destructive} />
+            <Text style={s.modalTitle}>Delete Team</Text>
+            <Text style={s.modalDesc}>Remove "{teamToDelete?.name}" and all data?</Text>
+            <View style={s.modalActions}>
+              <TouchableOpacity testID="confirm-delete-btn" style={s.dangerBtn} onPress={executeDelete}><Text style={s.dangerBtnText}>DELETE</Text></TouchableOpacity>
+              <TouchableOpacity testID="cancel-delete-btn" style={s.ghostBtn} onPress={() => setTeamToDelete(null)}><Text style={s.ghostBtnText}>CANCEL</Text></TouchableOpacity>
             </View>
           </View>
         </View>
@@ -233,74 +242,105 @@ export default function HomeScreen() {
 
       {/* Add Network Modal */}
       <Modal visible={showAddNetwork} transparent animationType="slide">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <MaterialCommunityIcons name="account-plus" size={32} color={Colors.primary} />
-            <Text style={styles.modalTitle}>Add Team</Text>
-            <Text style={styles.modalDesc}>Enter the team's unique code to add to your network</Text>
-            <TextInput testID="network-code-input" style={styles.codeInput} value={networkCode} onChangeText={setNetworkCode} placeholder="e.g. ABC123" placeholderTextColor={Colors.textMuted} autoCapitalize="characters" autoFocus />
-            <View style={styles.modalActions}>
-              <TouchableOpacity testID="confirm-add-network" style={[styles.addConfirmBtn, addingNetwork && { opacity: 0.5 }]} onPress={addToNetwork} disabled={addingNetwork}>
-                <Text style={styles.deleteConfirmText}>{addingNetwork ? 'ADDING...' : 'ADD'}</Text>
+        <View style={s.modalOverlay}>
+          <View style={s.modalCard}>
+            <MaterialCommunityIcons name="account-plus-outline" size={28} color={Colors.primary} />
+            <Text style={s.modalTitle}>Add Team</Text>
+            <Text style={s.modalDesc}>Enter the team's unique code</Text>
+            <TextInput testID="network-code-input" style={s.codeInput} value={networkCode} onChangeText={setNetworkCode} placeholder="e.g. ABC123" placeholderTextColor={Colors.textMuted} autoCapitalize="characters" autoFocus />
+            <View style={s.modalActions}>
+              <TouchableOpacity testID="confirm-add-network" style={[s.primaryBtn, addingNetwork && { opacity: 0.5 }]} onPress={addToNetwork} disabled={addingNetwork}>
+                <Text style={s.primaryBtnText}>{addingNetwork ? 'ADDING...' : 'ADD TO NETWORK'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelBtn} onPress={() => { setShowAddNetwork(false); setNetworkCode(''); }}><Text style={styles.cancelBtnText}>CANCEL</Text></TouchableOpacity>
+              <TouchableOpacity style={s.ghostBtn} onPress={() => { setShowAddNetwork(false); setNetworkCode(''); }}><Text style={s.ghostBtnText}>CANCEL</Text></TouchableOpacity>
             </View>
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </LinearGradient>
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scrollContent: { padding: 16, paddingBottom: 48 },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, marginBottom: 8 },
-  userInfo: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  userName: { fontSize: 13, fontWeight: '600', color: Colors.textSecondary },
-  logoutBtn: { padding: 8, borderRadius: 8, backgroundColor: Colors.backgroundSecondary, borderWidth: 1, borderColor: Colors.border },
-  header: { alignItems: 'center', paddingVertical: 24 },
-  title: { fontSize: 28, fontWeight: '900', color: Colors.white, letterSpacing: 2, marginTop: 8 },
-  subtitle: { fontSize: 10, color: Colors.textMuted, marginTop: 4, letterSpacing: 2.5 },
-  sectionTitle: { fontSize: 12, fontWeight: '700', color: Colors.textMuted, letterSpacing: 2.5, marginBottom: 10, marginTop: 8 },
-  sportRow: { flexDirection: 'row', gap: 10, marginBottom: 20 },
-  sportCard: { flex: 1, backgroundColor: Colors.backgroundSecondary, borderRadius: 14, padding: 18, alignItems: 'center', borderWidth: 1, borderColor: Colors.border, gap: 6 },
-  sportName: { fontSize: 14, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
-  sportFormats: { fontSize: 11, color: Colors.textMuted },
-  emptyBox: { alignItems: 'center', paddingVertical: 24, gap: 8 },
-  emptyText: { fontSize: 13, color: Colors.textMuted },
-  teamCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.backgroundSecondary, borderRadius: 12, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: Colors.border, gap: 10 },
-  teamIconWrap: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,200,83,0.1)', justifyContent: 'center', alignItems: 'center' },
+const GLASS = {
+  backgroundColor: Colors.glass,
+  borderWidth: 1,
+  borderColor: Colors.glassBorder,
+};
+
+const s = StyleSheet.create({
+  container: { flex: 1 },
+  scroll: { padding: 20, paddingBottom: 60 },
+
+  // Top bar
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, marginBottom: 6 },
+  userRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  avatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: 'rgba(255,255,255,0.06)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: Colors.glassBorder },
+  userName: { fontSize: 14, fontWeight: '600', color: Colors.textSecondary },
+  iconBtn: { width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.04)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: Colors.glassBorder },
+
+  // Branding
+  branding: { alignItems: 'center', paddingVertical: 28 },
+  brandTitle: { fontSize: 30, fontWeight: '900', color: Colors.white, letterSpacing: 3, marginTop: 10 },
+  brandSub: { fontSize: 11, fontWeight: '500', color: Colors.textMuted, letterSpacing: 3, marginTop: 4 },
+
+  // Sections
+  sectionLabel: { fontSize: 12, fontWeight: '700', color: Colors.textMuted, letterSpacing: 2.5, marginBottom: 12, marginTop: 16 },
+
+  // Sport cards
+  sportRow: { flexDirection: 'row', gap: 12, marginBottom: 24 },
+  sportCard: { flex: 1, ...GLASS, borderRadius: 16, padding: 20, alignItems: 'center', gap: 8 },
+  sportIconWrap: { width: 56, height: 56, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.04)', justifyContent: 'center', alignItems: 'center' },
+  sportName: { fontSize: 16, fontWeight: '800', color: Colors.white, letterSpacing: 1.5 },
+  sportFormats: { fontSize: 11, color: Colors.textMuted, fontWeight: '500' },
+
+  // Team cards
+  teamCard: { flexDirection: 'row', alignItems: 'center', ...GLASS, borderRadius: 14, padding: 14, marginBottom: 8, gap: 12 },
+  teamShield: { width: 44, height: 44, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.04)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: Colors.glassBorder },
   teamInfo: { flex: 1 },
-  teamName: { fontSize: 15, fontWeight: '700', color: Colors.white },
-  teamMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 3, gap: 6, flexWrap: 'wrap' },
-  badge: { backgroundColor: 'rgba(0,200,83,0.12)', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
+  teamName: { fontSize: 16, fontWeight: '700', color: Colors.white },
+  metaRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4, gap: 6, flexWrap: 'wrap' },
+  badge: { backgroundColor: Colors.primaryGlow, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
   badgeText: { fontSize: 10, fontWeight: '700', color: Colors.primary },
-  playerCount: { fontSize: 11, color: Colors.textSecondary },
-  teamCode: { fontSize: 10, fontWeight: '700', color: Colors.textMuted, fontFamily: Platform.OS === 'web' ? 'monospace' : undefined },
-  deleteBtn: { padding: 8 },
+  badgeAlt: { backgroundColor: 'rgba(239,68,68,0.1)' },
+  badgeAltText: { color: '#EF4444' },
+  teamCode: { fontSize: 10, fontWeight: '600', color: Colors.textMuted, fontFamily: Platform.OS === 'web' ? 'monospace' : undefined },
+  teamStats: { alignItems: 'flex-end', marginRight: 4 },
+  statNum: { fontSize: 12, fontWeight: '700', color: Colors.textSecondary },
+  statSub: { fontSize: 10, fontWeight: '600', color: Colors.textMuted, marginTop: 1 },
+  trashBtn: { padding: 6 },
+
+  // Empty
+  emptyCard: { ...GLASS, borderRadius: 14, padding: 28, alignItems: 'center', gap: 8, marginBottom: 8 },
+  emptyText: { fontSize: 13, color: Colors.textMuted, fontWeight: '500' },
+
   // Network
-  networkHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 },
-  addNetBtn: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Colors.primary, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
-  addNetBtnText: { fontSize: 10, fontWeight: '700', color: Colors.white },
-  networkCard: { flexDirection: 'row', alignItems: 'flex-start', backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 10, marginBottom: 5, borderWidth: 1, borderColor: Colors.border, gap: 8 },
+  networkHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  networkGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  netCard: { width: '48%' as any, ...GLASS, borderRadius: 12, padding: 12, marginBottom: 4 },
+  netCardInner: { gap: 4 },
   netName: { fontSize: 14, fontWeight: '700', color: Colors.white },
-  contactDetails: { marginTop: 8, backgroundColor: 'rgba(0,200,83,0.05)', borderRadius: 8, padding: 10, gap: 6 },
+  contactBox: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: Colors.glassBorder, gap: 5 },
   contactRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  contactLabel: { fontSize: 11, fontWeight: '600', color: Colors.textMuted, width: 60 },
-  contactValue: { fontSize: 12, fontWeight: '600', color: Colors.white, flex: 1 },
-  managerRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 3 },
-  managerText: { fontSize: 11, color: Colors.textMuted },
+  contactLabel: { fontSize: 10, fontWeight: '600', color: Colors.textMuted, width: 52 },
+  contactVal: { fontSize: 11, fontWeight: '600', color: Colors.textSecondary, flex: 1 },
+  removeNet: { flexDirection: 'row', alignItems: 'center', gap: 3, marginTop: 4 },
+  removeNetText: { fontSize: 10, fontWeight: '600', color: Colors.destructive },
+
+  // Add Network Button
+  addNetworkBtn: { alignSelf: 'center', marginTop: 16, paddingHorizontal: 28, paddingVertical: 12, borderRadius: 24, borderWidth: 1, borderColor: Colors.primary, backgroundColor: Colors.primaryGlow },
+  addNetworkText: { fontSize: 13, fontWeight: '700', color: Colors.primary, letterSpacing: 0.5 },
+
   // Modals
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.75)', justifyContent: 'center', alignItems: 'center', padding: 32 },
-  modalCard: { backgroundColor: Colors.backgroundSecondary, borderRadius: 20, padding: 28, alignItems: 'center', width: '100%', borderWidth: 1, borderColor: Colors.border },
-  modalTitle: { fontSize: 20, fontWeight: '800', color: Colors.white, marginTop: 12, marginBottom: 8 },
-  modalDesc: { fontSize: 14, color: Colors.textSecondary, textAlign: 'center', marginBottom: 20 },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'center', alignItems: 'center', padding: 32 },
+  modalCard: { backgroundColor: Colors.card, borderRadius: 20, padding: 28, alignItems: 'center', width: '100%', maxWidth: 360, borderWidth: 1, borderColor: Colors.glassBorder },
+  modalTitle: { fontSize: 20, fontWeight: '800', color: Colors.white, marginTop: 12, marginBottom: 6 },
+  modalDesc: { fontSize: 13, color: Colors.textSecondary, textAlign: 'center', marginBottom: 20 },
   modalActions: { width: '100%', gap: 8 },
-  deleteConfirmBtn: { backgroundColor: Colors.destructive, height: 46, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  deleteConfirmText: { fontSize: 14, fontWeight: '800', color: Colors.white },
-  addConfirmBtn: { backgroundColor: Colors.primary, height: 46, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
-  cancelBtn: { height: 42, justifyContent: 'center', alignItems: 'center' },
-  cancelBtnText: { fontSize: 13, fontWeight: '700', color: Colors.textMuted },
-  codeInput: { width: '100%', height: 52, backgroundColor: Colors.card, borderRadius: 10, paddingHorizontal: 16, color: Colors.white, fontSize: 20, fontWeight: '800', textAlign: 'center', letterSpacing: 4, borderWidth: 1, borderColor: Colors.border, marginBottom: 16 },
+  dangerBtn: { backgroundColor: Colors.destructive, height: 46, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  dangerBtnText: { fontSize: 13, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
+  primaryBtn: { backgroundColor: Colors.primary, height: 46, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  primaryBtnText: { fontSize: 13, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
+  ghostBtn: { height: 42, justifyContent: 'center', alignItems: 'center' },
+  ghostBtnText: { fontSize: 12, fontWeight: '700', color: Colors.textMuted },
+  codeInput: { width: '100%', height: 56, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, paddingHorizontal: 16, color: Colors.white, fontSize: 22, fontWeight: '800', textAlign: 'center', letterSpacing: 5, borderWidth: 1, borderColor: Colors.glassBorder, marginBottom: 16 },
 });

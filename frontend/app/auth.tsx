@@ -138,10 +138,10 @@ export default function AuthScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
   inner: { flex: 1, justifyContent: 'center', padding: 24 },
-  logoSection: { alignItems: 'center', marginBottom: 32 },
+  logoSection: { alignItems: 'center', marginBottom: 36 },
   iconWrap: {
     width: 80, height: 80, borderRadius: 20, justifyContent: 'center', alignItems: 'center',
-    backgroundColor: 'rgba(0,200,83,0.08)', borderWidth: 2, borderColor: 'rgba(0,200,83,0.2)',
+    backgroundColor: Colors.primaryGlow, borderWidth: 1, borderColor: Colors.glassBorder,
   },
   title: {
     fontSize: 32, fontWeight: '900', color: Colors.white, textAlign: 'center',
@@ -149,31 +149,31 @@ const styles = StyleSheet.create({
   },
   subtitle: { fontSize: 12, color: Colors.textMuted, marginTop: 6, letterSpacing: 2, textTransform: 'uppercase' },
   card: {
-    backgroundColor: Colors.backgroundSecondary, borderRadius: 16,
-    padding: 20, borderWidth: 1, borderColor: Colors.border,
+    backgroundColor: Colors.glass, borderRadius: 18,
+    padding: 24, borderWidth: 1, borderColor: Colors.glassBorder,
   },
-  tabRow: { flexDirection: 'row', marginBottom: 20, gap: 4 },
+  tabRow: { flexDirection: 'row', marginBottom: 22, gap: 6 },
   tab: {
-    flex: 1, paddingVertical: 10, borderRadius: 8, alignItems: 'center',
+    flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center',
     backgroundColor: 'transparent',
   },
-  tabActive: { backgroundColor: 'rgba(0,200,83,0.1)', borderWidth: 1, borderColor: Colors.primary },
+  tabActive: { backgroundColor: Colors.primaryGlow, borderWidth: 1, borderColor: Colors.primary },
   tabText: { fontSize: 13, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1 },
   tabTextActive: { color: Colors.primary },
-  label: { fontSize: 11, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1.5, marginBottom: 6, marginTop: 4 },
+  label: { fontSize: 10, fontWeight: '700', color: Colors.textMuted, letterSpacing: 1.5, marginBottom: 6, marginTop: 6 },
   input: {
-    height: 46, backgroundColor: Colors.card, borderRadius: 10, paddingHorizontal: 14,
-    color: Colors.white, fontSize: 15, borderWidth: 1, borderColor: Colors.border, marginBottom: 8,
+    height: 48, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, paddingHorizontal: 16,
+    color: Colors.white, fontSize: 15, borderWidth: 1, borderColor: Colors.glassBorder, marginBottom: 8,
   },
   errorBox: {
     flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(239,68,68,0.08)', borderRadius: 8,
+    backgroundColor: 'rgba(239,68,68,0.08)', borderRadius: 10,
     padding: 10, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(239,68,68,0.2)',
   },
   errorText: { fontSize: 13, color: Colors.destructive, flex: 1 },
   submitBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
-    backgroundColor: Colors.primary, height: 50, borderRadius: 12, gap: 8, marginTop: 8,
+    backgroundColor: Colors.primary, height: 50, borderRadius: 12, gap: 8, marginTop: 12,
   },
   submitText: { fontSize: 15, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
 });
