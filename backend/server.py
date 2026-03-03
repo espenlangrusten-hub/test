@@ -1182,6 +1182,10 @@ def advance_knockout(tournament):
     t_type = tournament.get("tournament_type", "")
     teams_list = tournament.get("teams", [])
     
+    # Don't advance if already completed
+    if tournament.get("status") == "completed" or tournament.get("winner"):
+        return matches
+    
     if t_type == "knockout":
         # Check if current round is complete
         current_rounds = set(m["round"] for m in matches if not m.get("played") or m.get("played"))
@@ -1386,10 +1390,12 @@ async def submit_match_result(tournament_id: str, match_id: str, body: MatchResu
         raise HTTPException(status_code=404, detail="Match not found")
     
     t["matches"] = matches
-    # Advance rounds
-    t["matches"] = advance_knockout(t)
-    # Check winner
+    # Check winner first
     winner = check_winner(t)
+    if not winner:
+        # Only advance if no winner yet
+        t["matches"] = advance_knockout(t)
+        winner = check_winner(t)
     update = {"matches": t["matches"]}
     if winner:
         update["winner"] = winner
