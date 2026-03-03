@@ -78,6 +78,25 @@ class DirectMessageSend(BaseModel):
     to_team_id: str = ""
     content: str
 
+class TournamentTeam(BaseModel):
+    name: str
+    team_id: str = ""
+    from_network: bool = False
+
+class TournamentCreate(BaseModel):
+    name: str
+    format: str = "5v5"
+    tournament_type: str = "knockout"  # knockout | group_knockout | league
+    start_date: str = ""
+    end_date: str = ""
+    teams: List[TournamentTeam] = []
+    groups_count: int = 2
+    matches_per_pair: int = 1
+
+class MatchResult(BaseModel):
+    home_score: int
+    away_score: int
+
 class Player(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
@@ -1030,6 +1049,364 @@ async def get_all_teams_calendar(user: dict = Depends(get_current_user)):
             })
     events.sort(key=lambda e: e.get("date", "") or "9999")
     return events
+
+
+# ---- Tournaments ----
+
+import math, random
+
+def generate_fixtures(teams_list, tournament_type, groups_count, matches_per_pair):
+    """Generate fixtures for a tournament. Returns matches and group assignments."""
+    random.shuffle(teams_list)
+    groups = {}
+    matches = []
+    
+    if tournament_type == "league":
+        # Round-robin league
+        groups = {"A": [t["name"] for t in teams_list]}
+        match_num = 1
+        for r in range(matches_per_pair):
+            for i in range(len(teams_list)):
+                for j in range(i + 1, len(teams_list)):
+                    matches.append({
+                        "id": str(uuid.uuid4()),
+                        "match_number": match_num,
+                        "round": "league",
+                        "group": "A",
+                        "home_team": teams_list[i]["name"],
+                        "away_team": teams_list[j]["name"],
+                        "home_team_id": teams_list[i].get("team_id", ""),
+                        "away_team_id": teams_list[j].get("team_id", ""),
+                        "home_score": None,
+                        "away_score": None,
+                        "played": False,
+                    })
+                    match_num += 1
+    
+    elif tournament_type == "knockout":
+        # Single-elimination bracket with byes
+        n = len(teams_list)
+        next_pow2 = 2 ** math.ceil(math.log2(max(n, 2)))
+        byes = next_pow2 - n
+        round_name = _round_name(next_pow2)
+        match_num = 1
+        # First round: teams that don't get byes play
+        playing = teams_list[byes:]  # these play first round
+        bye_teams = teams_list[:byes]  # these get byes
+        for i in range(0, len(playing), 2):
+            if i + 1 < len(playing):
+                matches.append({
+                    "id": str(uuid.uuid4()),
+                    "match_number": match_num,
+                    "round": round_name,
+                    "group": "",
+                    "home_team": playing[i]["name"],
+                    "away_team": playing[i + 1]["name"],
+                    "home_team_id": playing[i].get("team_id", ""),
+                    "away_team_id": playing[i + 1].get("team_id", ""),
+                    "home_score": None,
+                    "away_score": None,
+                    "played": False,
+                })
+                match_num += 1
+        # Bye teams auto-advance - create placeholder next round matches
+        # (These will be populated when first round completes)
+    
+    elif tournament_type == "group_knockout":
+        # Group stage then knockout
+        gc = max(2, min(groups_count, len(teams_list) // 2))
+        group_names = [chr(65 + i) for i in range(gc)]
+        for i, t in enumerate(teams_list):
+            g = group_names[i % gc]
+            if g not in groups:
+                groups[g] = []
+            groups[g].append(t["name"])
+        
+        match_num = 1
+        for g_name, g_teams_names in groups.items():
+            g_teams = [t for t in teams_list if t["name"] in g_teams_names]
+            for r in range(matches_per_pair):
+                for i in range(len(g_teams)):
+                    for j in range(i + 1, len(g_teams)):
+                        matches.append({
+                            "id": str(uuid.uuid4()),
+                            "match_number": match_num,
+                            "round": "group",
+                            "group": g_name,
+                            "home_team": g_teams[i]["name"],
+                            "away_team": g_teams[j]["name"],
+                            "home_team_id": g_teams[i].get("team_id", ""),
+                            "away_team_id": g_teams[j].get("team_id", ""),
+                            "home_score": None,
+                            "away_score": None,
+                            "played": False,
+                        })
+                        match_num += 1
+    
+    return matches, groups
+
+
+def _round_name(size):
+    if size <= 2: return "Final"
+    if size <= 4: return "Semi-Final"
+    if size <= 8: return "Quarter-Final"
+    if size <= 16: return "Round of 16"
+    return f"Round of {size}"
+
+
+def compute_standings(matches, group_teams):
+    """Compute league/group standings from matches."""
+    table = {}
+    for name in group_teams:
+        table[name] = {"team": name, "played": 0, "won": 0, "drawn": 0, "lost": 0, "gf": 0, "ga": 0, "gd": 0, "points": 0}
+    for m in matches:
+        if not m.get("played"): continue
+        h, a = m["home_team"], m["away_team"]
+        hs, as_ = m.get("home_score", 0) or 0, m.get("away_score", 0) or 0
+        if h in table:
+            table[h]["played"] += 1; table[h]["gf"] += hs; table[h]["ga"] += as_; table[h]["gd"] = table[h]["gf"] - table[h]["ga"]
+            if hs > as_: table[h]["won"] += 1; table[h]["points"] += 3
+            elif hs == as_: table[h]["drawn"] += 1; table[h]["points"] += 1
+            else: table[h]["lost"] += 1
+        if a in table:
+            table[a]["played"] += 1; table[a]["gf"] += as_; table[a]["ga"] += hs; table[a]["gd"] = table[a]["gf"] - table[a]["ga"]
+            if as_ > hs: table[a]["won"] += 1; table[a]["points"] += 3
+            elif hs == as_: table[a]["drawn"] += 1; table[a]["points"] += 1
+            else: table[a]["lost"] += 1
+    return sorted(table.values(), key=lambda x: (-x["points"], -x["gd"], -x["gf"]))
+
+
+def advance_knockout(tournament):
+    """After a knockout match result, generate next round matches if needed."""
+    matches = tournament.get("matches", [])
+    t_type = tournament.get("tournament_type", "")
+    teams_list = tournament.get("teams", [])
+    
+    if t_type == "knockout":
+        # Check if current round is complete
+        current_rounds = set(m["round"] for m in matches if not m.get("played") or m.get("played"))
+        for round_name in current_rounds:
+            round_matches = [m for m in matches if m["round"] == round_name]
+            all_played = all(m.get("played") for m in round_matches)
+            if not all_played: continue
+            # All matches in this round played - determine winners
+            winners = []
+            for m in round_matches:
+                if (m.get("home_score", 0) or 0) >= (m.get("away_score", 0) or 0):
+                    winners.append({"name": m["home_team"], "team_id": m.get("home_team_id", "")})
+                else:
+                    winners.append({"name": m["away_team"], "team_id": m.get("away_team_id", "")})
+            # Add bye teams that didn't play in first round
+            n = len(teams_list)
+            next_pow2 = 2 ** math.ceil(math.log2(max(n, 2)))
+            byes = next_pow2 - n
+            if round_name == _round_name(next_pow2) and byes > 0:
+                bye_names = [t["name"] for t in teams_list[:byes]]
+                for bn in bye_names:
+                    t = next((tt for tt in teams_list if tt["name"] == bn), {"name": bn, "team_id": ""})
+                    winners.append(t)
+            # Check if there are already next round matches
+            existing_next = [m for m in matches if m["round"] != round_name and not m.get("played")]
+            if existing_next or len(winners) < 2: continue
+            # Generate next round
+            next_round = _round_name(len(winners))
+            match_num = max((m.get("match_number", 0) for m in matches), default=0) + 1
+            for i in range(0, len(winners), 2):
+                if i + 1 < len(winners):
+                    matches.append({
+                        "id": str(uuid.uuid4()),
+                        "match_number": match_num,
+                        "round": next_round,
+                        "group": "",
+                        "home_team": winners[i]["name"],
+                        "away_team": winners[i + 1]["name"],
+                        "home_team_id": winners[i].get("team_id", ""),
+                        "away_team_id": winners[i + 1].get("team_id", ""),
+                        "home_score": None,
+                        "away_score": None,
+                        "played": False,
+                    })
+                    match_num += 1
+    
+    elif t_type == "group_knockout":
+        groups = tournament.get("groups", {})
+        group_matches = [m for m in matches if m["round"] == "group"]
+        all_group_played = all(m.get("played") for m in group_matches)
+        existing_ko = [m for m in matches if m["round"] != "group"]
+        if all_group_played and group_matches and not existing_ko:
+            # Advance top 2 from each group to knockout
+            qualifiers = []
+            for g_name, g_teams in groups.items():
+                g_ms = [m for m in group_matches if m["group"] == g_name]
+                standings = compute_standings(g_ms, g_teams)
+                for s in standings[:2]:
+                    t = next((tt for tt in teams_list if tt["name"] == s["team"]), {"name": s["team"], "team_id": ""})
+                    qualifiers.append(t)
+            # Generate knockout from qualifiers
+            random.shuffle(qualifiers)
+            next_pow2 = 2 ** math.ceil(math.log2(max(len(qualifiers), 2)))
+            round_name = _round_name(next_pow2)
+            match_num = max((m.get("match_number", 0) for m in matches), default=0) + 1
+            for i in range(0, len(qualifiers), 2):
+                if i + 1 < len(qualifiers):
+                    matches.append({
+                        "id": str(uuid.uuid4()),
+                        "match_number": match_num,
+                        "round": round_name,
+                        "group": "",
+                        "home_team": qualifiers[i]["name"],
+                        "away_team": qualifiers[i + 1]["name"],
+                        "home_team_id": qualifiers[i].get("team_id", ""),
+                        "away_team_id": qualifiers[i + 1].get("team_id", ""),
+                        "home_score": None,
+                        "away_score": None,
+                        "played": False,
+                    })
+                    match_num += 1
+        elif existing_ko:
+            # Handle knockout rounds same as pure knockout
+            ko_rounds = set(m["round"] for m in existing_ko)
+            for rn in ko_rounds:
+                rmatches = [m for m in matches if m["round"] == rn]
+                if not all(m.get("played") for m in rmatches): continue
+                winners = []
+                for m in rmatches:
+                    if (m.get("home_score", 0) or 0) >= (m.get("away_score", 0) or 0):
+                        winners.append({"name": m["home_team"], "team_id": m.get("home_team_id", "")})
+                    else:
+                        winners.append({"name": m["away_team"], "team_id": m.get("away_team_id", "")})
+                next_existing = [m for m in matches if m["round"] != rn and m["round"] != "group" and not m.get("played")]
+                if next_existing or len(winners) < 2: continue
+                next_round = _round_name(len(winners))
+                match_num = max((m.get("match_number", 0) for m in matches), default=0) + 1
+                for i in range(0, len(winners), 2):
+                    if i + 1 < len(winners):
+                        matches.append({
+                            "id": str(uuid.uuid4()),
+                            "match_number": match_num,
+                            "round": next_round,
+                            "group": "",
+                            "home_team": winners[i]["name"],
+                            "away_team": winners[i + 1]["name"],
+                            "home_team_id": winners[i].get("team_id", ""),
+                            "away_team_id": winners[i + 1].get("team_id", ""),
+                            "home_score": None,
+                            "away_score": None,
+                            "played": False,
+                        })
+                        match_num += 1
+    
+    return matches
+
+
+def check_winner(tournament):
+    """Check if tournament has a winner."""
+    matches = tournament.get("matches", [])
+    t_type = tournament.get("tournament_type", "")
+    
+    if t_type == "league":
+        all_played = all(m.get("played") for m in matches)
+        if all_played and matches:
+            teams_in = list(set([m["home_team"] for m in matches] + [m["away_team"] for m in matches]))
+            standings = compute_standings(matches, teams_in)
+            return standings[0]["team"] if standings else None
+    else:
+        finals = [m for m in matches if m["round"] == "Final"]
+        if finals and all(m.get("played") for m in finals):
+            f = finals[0]
+            if (f.get("home_score", 0) or 0) >= (f.get("away_score", 0) or 0):
+                return f["home_team"]
+            return f["away_team"]
+    return None
+
+
+@api_router.post("/tournaments")
+async def create_tournament(body: TournamentCreate, user: dict = Depends(get_current_user)):
+    if not body.name.strip():
+        raise HTTPException(status_code=400, detail="Tournament name required")
+    if len(body.teams) < 2:
+        raise HTTPException(status_code=400, detail="At least 2 teams required")
+    
+    teams_data = [{"name": t.name, "team_id": t.team_id, "from_network": t.from_network} for t in body.teams]
+    matches, groups = generate_fixtures(teams_data, body.tournament_type, body.groups_count, body.matches_per_pair)
+    
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["user_id"],
+        "name": body.name.strip(),
+        "format": body.format,
+        "tournament_type": body.tournament_type,
+        "start_date": body.start_date,
+        "end_date": body.end_date,
+        "teams": teams_data,
+        "groups": groups,
+        "matches": matches,
+        "status": "ongoing",
+        "winner": None,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.tournaments.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.get("/tournaments")
+async def list_tournaments(status: str = "", user: dict = Depends(get_current_user)):
+    query = {"user_id": user["user_id"]}
+    if status:
+        query["status"] = status
+    tournaments = await db.tournaments.find(query, {"_id": 0}).sort("created_at", -1).to_list(100)
+    return tournaments
+
+
+@api_router.get("/tournaments/{tournament_id}")
+async def get_tournament(tournament_id: str, user: dict = Depends(get_current_user)):
+    t = await db.tournaments.find_one({"id": tournament_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    return t
+
+
+@api_router.put("/tournaments/{tournament_id}/result/{match_id}")
+async def submit_match_result(tournament_id: str, match_id: str, body: MatchResult, user: dict = Depends(get_current_user)):
+    t = await db.tournaments.find_one({"id": tournament_id, "user_id": user["user_id"]})
+    if not t:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    
+    matches = t.get("matches", [])
+    found = False
+    for m in matches:
+        if m["id"] == match_id:
+            m["home_score"] = body.home_score
+            m["away_score"] = body.away_score
+            m["played"] = True
+            found = True
+            break
+    if not found:
+        raise HTTPException(status_code=404, detail="Match not found")
+    
+    t["matches"] = matches
+    # Advance rounds
+    t["matches"] = advance_knockout(t)
+    # Check winner
+    winner = check_winner(t)
+    update = {"matches": t["matches"]}
+    if winner:
+        update["winner"] = winner
+        update["status"] = "completed"
+    
+    await db.tournaments.update_one({"id": tournament_id}, {"$set": update})
+    t.pop("_id", None)
+    t.update(update)
+    return t
+
+
+@api_router.delete("/tournaments/{tournament_id}")
+async def delete_tournament(tournament_id: str, user: dict = Depends(get_current_user)):
+    result = await db.tournaments.delete_one({"id": tournament_id, "user_id": user["user_id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {"message": "Deleted"}
 
 
 # ---- Health ----
