@@ -65,6 +65,19 @@ class AuthLogin(BaseModel):
     email: str
     password: str
 
+class ProfileUpdate(BaseModel):
+    name: str = ""
+
+class PasswordChange(BaseModel):
+    current_password: str
+    new_password: str
+
+class DirectMessageSend(BaseModel):
+    to_user_id: str
+    from_team_id: str = ""
+    to_team_id: str = ""
+    content: str
+
 class Player(BaseModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     name: str
@@ -856,6 +869,167 @@ Return valid JSON array of 3 sessions. No markdown, just the JSON array."""
             sessions = [{"title": "Error", "description": response, "drills": []}]
 
     return {"sessions": sessions, "category": category}
+
+
+# ---- Profile & Settings ----
+
+@api_router.put("/auth/profile")
+async def update_profile(body: ProfileUpdate, user: dict = Depends(get_current_user)):
+    update = {}
+    if body.name.strip():
+        update["name"] = body.name.strip()
+    if not update:
+        raise HTTPException(status_code=400, detail="Nothing to update")
+    await db.users.update_one({"id": user["user_id"]}, {"$set": update})
+    u = await db.users.find_one({"id": user["user_id"]}, {"_id": 0, "password_hash": 0})
+    return u
+
+
+@api_router.put("/auth/password")
+async def change_password(body: PasswordChange, user: dict = Depends(get_current_user)):
+    u = await db.users.find_one({"id": user["user_id"]})
+    if not u or not bcrypt.verify(body.current_password, u["password_hash"]):
+        raise HTTPException(status_code=400, detail="Current password is incorrect")
+    new_hash = bcrypt.hash(body.new_password)
+    await db.users.update_one({"id": user["user_id"]}, {"$set": {"password_hash": new_hash}})
+    return {"message": "Password updated"}
+
+
+# ---- Notifications / Unread Count ----
+
+@api_router.get("/notifications/unread")
+async def get_unread_count(user: dict = Depends(get_current_user)):
+    msg_count = await db.messages.count_documents({"user_id": user["user_id"], "read": False})
+    dm_count = await db.direct_messages.count_documents({"to_user_id": user["user_id"], "read": False})
+    return {"total": msg_count + dm_count, "messages": msg_count, "direct_messages": dm_count}
+
+
+# ---- Direct Messages (Manager-to-Manager) ----
+
+@api_router.get("/direct-messages/conversations")
+async def get_dm_conversations(user: dict = Depends(get_current_user)):
+    # Get all DMs involving this user
+    dms = await db.direct_messages.find(
+        {"$or": [{"from_user_id": user["user_id"]}, {"to_user_id": user["user_id"]}]},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(500)
+    # Group by other user
+    convos = {}
+    for m in dms:
+        other = m["to_user_id"] if m["from_user_id"] == user["user_id"] else m["from_user_id"]
+        if other not in convos:
+            convos[other] = {
+                "other_user_id": other,
+                "other_user_name": m.get("to_user_name", "") if m["from_user_id"] == user["user_id"] else m.get("from_user_name", ""),
+                "other_team_name": m.get("to_team_name", "") if m["from_user_id"] == user["user_id"] else m.get("from_team_name", ""),
+                "other_team_id": m.get("to_team_id", "") if m["from_user_id"] == user["user_id"] else m.get("from_team_id", ""),
+                "last_message": m.get("content", ""),
+                "last_message_at": m.get("created_at", ""),
+                "unread_count": 0,
+            }
+        if m["to_user_id"] == user["user_id"] and not m.get("read"):
+            convos[other]["unread_count"] += 1
+    return list(convos.values())
+
+
+@api_router.get("/direct-messages/conversation/{other_user_id}")
+async def get_dm_conversation(other_user_id: str, user: dict = Depends(get_current_user)):
+    dms = await db.direct_messages.find(
+        {"$or": [
+            {"from_user_id": user["user_id"], "to_user_id": other_user_id},
+            {"from_user_id": other_user_id, "to_user_id": user["user_id"]},
+        ]},
+        {"_id": 0}
+    ).sort("created_at", 1).to_list(200)
+    # Mark received as read
+    await db.direct_messages.update_many(
+        {"from_user_id": other_user_id, "to_user_id": user["user_id"], "read": False},
+        {"$set": {"read": True}}
+    )
+    return dms
+
+
+@api_router.post("/direct-messages")
+async def send_direct_message(body: DirectMessageSend, user: dict = Depends(get_current_user)):
+    if not body.content.strip():
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+    # Get sender info
+    sender = await db.users.find_one({"id": user["user_id"]}, {"_id": 0, "password_hash": 0})
+    recipient = await db.users.find_one({"id": body.to_user_id}, {"_id": 0, "password_hash": 0})
+    if not recipient:
+        raise HTTPException(status_code=404, detail="Recipient not found")
+    # Get team names if provided
+    from_team_name = ""
+    to_team_name = ""
+    if body.from_team_id:
+        ft = await db.teams.find_one({"id": body.from_team_id}, {"_id": 0, "name": 1})
+        from_team_name = ft.get("name", "") if ft else ""
+    if body.to_team_id:
+        tt = await db.teams.find_one({"id": body.to_team_id}, {"_id": 0, "name": 1})
+        to_team_name = tt.get("name", "") if tt else ""
+    doc = {
+        "id": str(uuid.uuid4()),
+        "from_user_id": user["user_id"],
+        "from_user_name": sender.get("name", "") if sender else "",
+        "from_team_id": body.from_team_id,
+        "from_team_name": from_team_name,
+        "to_user_id": body.to_user_id,
+        "to_user_name": recipient.get("name", "") if recipient else "",
+        "to_team_id": body.to_team_id,
+        "to_team_name": to_team_name,
+        "content": body.content.strip(),
+        "read": False,
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.direct_messages.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.delete("/direct-messages/{message_id}")
+async def delete_direct_message(message_id: str, user: dict = Depends(get_current_user)):
+    result = await db.direct_messages.delete_one({
+        "id": message_id,
+        "$or": [{"from_user_id": user["user_id"]}, {"to_user_id": user["user_id"]}]
+    })
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Message not found")
+    return {"message": "Deleted"}
+
+
+# ---- All-Teams Calendar ----
+
+@api_router.get("/calendar/all")
+async def get_all_teams_calendar(user: dict = Depends(get_current_user)):
+    teams = await db.teams.find({"user_id": user["user_id"]}, {"_id": 0, "id": 1, "name": 1}).to_list(50)
+    team_ids = [t["id"] for t in teams]
+    team_map = {t["id"]: t["name"] for t in teams}
+    events = []
+    # Friendly invites
+    if team_ids:
+        friendly = await db.friendly_invites.find(
+            {"$or": [{"from_team_id": {"$in": team_ids}}, {"to_team_id": {"$in": team_ids}}],
+             "status": {"$in": ["accepted", "cancelled"]}},
+            {"_id": 0}
+        ).to_list(500)
+        for inv in friendly:
+            my_team_id = inv["from_team_id"] if inv["from_team_id"] in team_ids else inv["to_team_id"]
+            is_home = inv["from_team_id"] in team_ids
+            opponent = inv["to_team_name"] if is_home else inv["from_team_name"]
+            events.append({
+                "id": inv["id"],
+                "type": "friendly",
+                "team_name": team_map.get(my_team_id, ""),
+                "team_id": my_team_id,
+                "date": inv.get("accepted_date", ""),
+                "time": inv.get("accepted_time", ""),
+                "opponent": opponent,
+                "home_away": inv.get("home_away", ""),
+                "pitch_name": inv.get("pitch_name", ""),
+                "status": "cancelled" if inv.get("status") == "cancelled" else "upcoming",
+            })
+    events.sort(key=lambda e: e.get("date", "") or "9999")
+    return events
 
 
 # ---- Health ----
