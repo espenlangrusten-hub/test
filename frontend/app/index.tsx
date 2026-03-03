@@ -24,6 +24,7 @@ export default function HomeScreen() {
   const [networkCode, setNetworkCode] = useState('');
   const [addingNetwork, setAddingNetwork] = useState(false);
   const [expandedNetwork, setExpandedNetwork] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('home');
 
   const authHeaders = (): Record<string, string> => {
     const h: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -33,203 +34,172 @@ export default function HomeScreen() {
 
   useFocusEffect(useCallback(() => { fetchTeams(); fetchNetwork(); }, []));
 
-  const fetchTeams = async () => {
-    setLoading(true);
-    const data = await loadTeams();
-    setTeams(data);
-    setLoading(false);
-  };
-
-  const fetchNetwork = async () => {
-    try {
-      const res = await fetch(`${API_URL}/api/network`, { headers: authHeaders() });
-      if (res.ok) setNetwork(await res.json());
-    } catch {}
-  };
+  const fetchTeams = async () => { setLoading(true); const data = await loadTeams(); setTeams(data); setLoading(false); };
+  const fetchNetwork = async () => { try { const res = await fetch(`${API_URL}/api/network`, { headers: authHeaders() }); if (res.ok) setNetwork(await res.json()); } catch {} };
 
   const addToNetwork = async () => {
     if (!networkCode.trim()) return;
     setAddingNetwork(true);
     try {
-      const res = await fetch(`${API_URL}/api/network/add`, {
-        method: 'POST', headers: authHeaders(),
-        body: JSON.stringify({ team_code: networkCode.trim().toUpperCase() }),
-      });
+      const res = await fetch(`${API_URL}/api/network/add`, { method: 'POST', headers: authHeaders(), body: JSON.stringify({ team_code: networkCode.trim().toUpperCase() }) });
       if (res.ok) { setNetworkCode(''); setShowAddNetwork(false); fetchNetwork(); }
       else { const err = await res.json().catch(() => ({ detail: 'Not found' })); Alert.alert('Error', err.detail || 'Team not found'); }
     } catch { Alert.alert('Error', 'Network error'); }
     setAddingNetwork(false);
   };
 
-  const removeFromNetwork = async (id: string) => {
-    try { await fetch(`${API_URL}/api/network/${id}`, { method: 'DELETE', headers: authHeaders() }); setNetwork(prev => prev.filter(n => n.id !== id)); } catch {}
-  };
+  const removeFromNetwork = async (id: string) => { try { await fetch(`${API_URL}/api/network/${id}`, { method: 'DELETE', headers: authHeaders() }); setNetwork(prev => prev.filter(n => n.id !== id)); } catch {} };
 
   const selectSport = (sport: string) => {
     setSport(sport); setCurrentTeam(null);
-    if (sport === 'futsal') { setFormat('5v5'); router.push('/team-setup'); } else { router.push('/format'); }
+    if (sport === 'futsal') { setFormat('5v5'); router.push('/team-setup'); } else router.push('/format');
   };
 
-  const openTeam = (team: any) => {
-    setSport(team.sport); setFormat(team.format); setCurrentTeam(team); router.push('/team');
-  };
-
-  const executeDelete = async () => {
-    if (!teamToDelete) return;
-    await deleteTeam(teamToDelete.id);
-    setTeams(prev => prev.filter(t => t.id !== teamToDelete.id));
-    setTeamToDelete(null);
-  };
-
+  const openTeam = (team: any) => { setSport(team.sport); setFormat(team.format); setCurrentTeam(team); router.push('/team'); };
+  const executeDelete = async () => { if (!teamToDelete) return; await deleteTeam(teamToDelete.id); setTeams(prev => prev.filter(t => t.id !== teamToDelete.id)); setTeamToDelete(null); };
   const genderLabel = (g: string) => GENDER_DISPLAY[g] || g;
+  const availableCount = (team: any) => team.players?.filter((p: any) => p.available !== false).length || 0;
 
   return (
-    <View style={s.container}>
-      <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-        <SafeAreaView>
+    <View style={s.root}>
+      <LinearGradient colors={['#1C1E22', '#161819', '#111315']} style={s.bg}>
+        <SafeAreaView style={{ flex: 1 }}>
+          <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
-          {/* Header */}
-          <View style={s.header}>
-            <View style={s.headerLeft}>
-              <View style={s.avatarRing}>
-                <MaterialCommunityIcons name="account" size={16} color={Colors.textSecondary} />
+            {/* Top Bar */}
+            <View style={s.topBar}>
+              <View style={s.topLeft}>
+                <View style={s.profileCircle}>
+                  <MaterialCommunityIcons name="account" size={20} color="#888" />
+                </View>
+                <Text style={s.profileName}>{user?.name || user?.email?.split('@')[0] || 'Coach'}</Text>
               </View>
-              <View>
-                <Text style={s.greeting}>Welcome back</Text>
-                <Text style={s.userName}>{user?.name || user?.email?.split('@')[0] || 'Coach'}</Text>
+              <View style={s.topRight}>
+                <TouchableOpacity style={s.topIcon}><MaterialCommunityIcons name="cog-outline" size={24} color="#777" /></TouchableOpacity>
+                <TouchableOpacity testID="logout-btn" style={s.topIcon} onPress={logout}><MaterialCommunityIcons name="bell-outline" size={24} color="#777" /></TouchableOpacity>
               </View>
             </View>
-            <TouchableOpacity testID="logout-btn" style={s.logoutBtn} onPress={logout}>
-              <MaterialCommunityIcons name="logout-variant" size={18} color={Colors.textMuted} />
-            </TouchableOpacity>
-          </View>
 
-          {/* Sport Selection - EA Sports Style 3D Cards */}
-          <View style={s.sportSection}>
-            <TouchableOpacity testID="select-football-btn" style={s.sportCardWrap} onPress={() => selectSport('football')} activeOpacity={0.85}>
-              <LinearGradient colors={['#1C2530', '#131A24', '#0B1018']} start={{x: 0, y: 0}} end={{x: 1, y: 1}} style={s.sportCard}>
-                <View style={s.sportGlow} />
-                <View style={s.sportIconBox}>
-                  <LinearGradient colors={['rgba(16,185,129,0.2)', 'rgba(16,185,129,0.04)']} style={s.sportIconGrad}>
-                    <MaterialCommunityIcons name="shoe-cleat" size={44} color="#10B981" />
-                  </LinearGradient>
-                </View>
-                <View style={s.sportTextArea}>
-                  <Text style={s.sportTitle}>FOOTBALL</Text>
-                  <Text style={s.sportSub}>5v5 · 7v7 · 9v9 · 11v11</Text>
-                </View>
-                <View style={s.sportArrow}>
-                  <MaterialCommunityIcons name="chevron-right" size={24} color="rgba(255,255,255,0.15)" />
-                </View>
-                <View style={s.sportShine} />
-              </LinearGradient>
-            </TouchableOpacity>
-
-            <TouchableOpacity testID="select-futsal-btn" style={s.sportCardWrap} onPress={() => selectSport('futsal')} activeOpacity={0.85}>
-              <LinearGradient colors={['#2A1D30', '#1E1528', '#12101C']} start={{x: 0, y: 0}} end={{x: 1, y: 1}} style={s.sportCard}>
-                <View style={[s.sportGlow, { backgroundColor: 'rgba(139,92,246,0.06)' }]} />
-                <View style={s.sportIconBox}>
-                  <LinearGradient colors={['rgba(139,92,246,0.2)', 'rgba(139,92,246,0.04)']} style={s.sportIconGrad}>
-                    <MaterialCommunityIcons name="soccer" size={44} color="#8B5CF6" />
-                  </LinearGradient>
-                </View>
-                <View style={s.sportTextArea}>
-                  <Text style={s.sportTitle}>FUTSAL</Text>
-                  <Text style={[s.sportSub, { color: '#9CA3AF' }]}>5v5</Text>
-                </View>
-                <View style={s.sportArrow}>
-                  <MaterialCommunityIcons name="chevron-right" size={24} color="rgba(255,255,255,0.15)" />
-                </View>
-                <View style={[s.sportShine, { left: '60%' }]} />
-              </LinearGradient>
-            </TouchableOpacity>
-          </View>
-
-          {/* MY SQUADS */}
-          <View style={s.sectionHead}>
-            <Text style={s.sectionTitle}>MY SQUADS</Text>
-            <Text style={s.sectionCount}>{teams.length}</Text>
-          </View>
-
-          {loading && <ActivityIndicator size="large" color={Colors.primary} style={{ marginTop: 24 }} />}
-
-          {!loading && teams.length === 0 && (
-            <View style={s.emptyState}>
-              <Text style={s.emptyText}>No squads yet. Choose a sport above to get started.</Text>
+            {/* Branding */}
+            <View style={s.brand}>
+              <MaterialCommunityIcons name="strategy" size={40} color="#4ADE80" />
+              <Text style={s.brandTitle}>TACTICAL LINEUP</Text>
+              <Text style={s.brandSub}>FOOTBALL & FUTSAL COACH ASSISTANT</Text>
             </View>
-          )}
 
-          {!loading && teams.map((team, i) => (
-            <TouchableOpacity key={team.id} testID={`team-card-${team.id}`} style={s.teamRow} onPress={() => openTeam(team)} activeOpacity={0.7}>
-              <View style={s.teamRank}><Text style={s.teamRankText}>{i + 1}</Text></View>
-              <View style={s.teamMain}>
-                <View style={s.teamNameRow}>
-                  {team.country ? <Text style={{ fontSize: 18 }}>{getFlagForCode(team.country)}</Text> : null}
-                  <Text style={s.teamName} numberOfLines={1}>{team.name}</Text>
-                </View>
-                <View style={s.tagRow}>
-                  <Text style={s.tag}>{team.format}</Text>
-                  {team.gender ? <Text style={s.tagAlt}>{genderLabel(team.gender)}{team.age_group ? ` ${team.age_group}` : ''}</Text> : team.age_group ? <Text style={s.tag}>{team.age_group}</Text> : null}
-                  {team.team_code ? <Text style={s.codeTag}>#{team.team_code}</Text> : null}
-                </View>
-              </View>
-              <View style={s.teamStat}>
-                <Text style={s.statVal}>{team.players?.length || 0}</Text>
-                <Text style={s.statLabel}>PLR</Text>
-              </View>
-              <TouchableOpacity testID={`delete-team-${team.id}`} style={s.deleteHit}
-                onPress={(e) => { e.stopPropagation?.(); setTeamToDelete(team); }}
-                hitSlop={{top:10,bottom:10,left:10,right:10}}
-              >
-                <MaterialCommunityIcons name="trash-can-outline" size={15} color={Colors.textMuted} />
+            {/* CREATE NEW SQUAD */}
+            <Text style={s.sectionLabel}>CREATE NEW SQUAD</Text>
+            <View style={s.sportRow}>
+              <TouchableOpacity testID="select-football-btn" style={s.sportCard} onPress={() => selectSport('football')} activeOpacity={0.8}>
+                <LinearGradient colors={['#252830', '#1E2025', '#1A1C1F']} style={s.sportGrad}>
+                  <View style={s.sportIconArea}>
+                    <MaterialCommunityIcons name="shoe-cleat" size={72} color="#94A3B8" />
+                  </View>
+                  <Text style={s.sportName}>FOOTBALL</Text>
+                  <Text style={s.sportFormats}>5v5 · 7v7 · 9v9 · 11v11</Text>
+                </LinearGradient>
               </TouchableOpacity>
-            </TouchableOpacity>
-          ))}
 
-          {/* NETWORK */}
-          <View style={[s.sectionHead, { marginTop: 28 }]}>
-            <Text style={s.sectionTitle}>NETWORK</Text>
-            <TouchableOpacity testID="add-network-btn" style={s.addBtn} onPress={() => setShowAddNetwork(true)}>
-              <MaterialCommunityIcons name="plus" size={14} color={Colors.primary} />
-              <Text style={s.addBtnText}>ADD</Text>
+              <TouchableOpacity testID="select-futsal-btn" style={s.sportCard} onPress={() => selectSport('futsal')} activeOpacity={0.8}>
+                <LinearGradient colors={['#252830', '#1E2025', '#1A1C1F']} style={s.sportGrad}>
+                  <View style={s.sportIconArea}>
+                    <MaterialCommunityIcons name="soccer" size={72} color="#94A3B8" />
+                  </View>
+                  <Text style={s.sportName}>FUTSAL</Text>
+                  <Text style={s.sportFormats}>5v5</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+
+            {/* MY ACTIVE TEAMS */}
+            <Text style={s.sectionLabel}>MY ACTIVE TEAMS</Text>
+            {loading && <ActivityIndicator size="large" color="#4ADE80" style={{ marginVertical: 20 }} />}
+            {!loading && teams.length === 0 && <Text style={s.emptyText}>No teams yet. Create your first squad above.</Text>}
+            {!loading && teams.map((team) => (
+              <TouchableOpacity key={team.id} testID={`team-card-${team.id}`} style={s.teamRow} onPress={() => openTeam(team)} activeOpacity={0.7}>
+                <View style={s.shieldWrap}>
+                  {team.country ? <Text style={{ fontSize: 22 }}>{getFlagForCode(team.country)}</Text> :
+                    <MaterialCommunityIcons name="shield-half-full" size={28} color="#555" />}
+                </View>
+                <View style={s.teamInfo}>
+                  <Text style={s.teamName}>{team.name}</Text>
+                  <View style={s.badgeRow}>
+                    <View style={s.badge}><Text style={s.badgeText}>{team.format}</Text></View>
+                    {team.gender ? <View style={[s.badge, s.badgeWarn]}><Text style={[s.badgeText, s.badgeWarnText]}>{genderLabel(team.gender)}{team.age_group ? ` ${team.age_group}` : ''}</Text></View> : team.age_group ? <View style={s.badge}><Text style={s.badgeText}>{team.age_group}</Text></View> : null}
+                    {team.team_code ? <Text style={s.codeText}>· #{team.team_code}</Text> : null}
+                  </View>
+                </View>
+                <View style={s.statCol}>
+                  <Text style={s.statText}>{team.players?.length || 0} PLR, {availableCount(team)} AVL</Text>
+                </View>
+                <TouchableOpacity testID={`delete-team-${team.id}`} style={s.delBtn}
+                  onPress={(e) => { e.stopPropagation?.(); setTeamToDelete(team); }} hitSlop={{top:10,bottom:10,left:10,right:10}}>
+                  <MaterialCommunityIcons name="trash-can-outline" size={16} color="#555" />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
+
+            {/* MY NETWORK */}
+            <Text style={[s.sectionLabel, { marginTop: 28 }]}>MY NETWORK</Text>
+            {network.length === 0 && <Text style={s.emptyText}>No teams in network.</Text>}
+            {network.map(n => (
+              <TouchableOpacity key={n.id} testID={`network-${n.id}`} style={s.netRow}
+                onPress={() => setExpandedNetwork(expandedNetwork === n.id ? null : n.id)}
+                activeOpacity={0.7}
+              >
+                <View style={s.netMain}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                    <Text style={s.netName}>{n.friend_team_name}</Text>
+                    <MaterialCommunityIcons name={expandedNetwork === n.id ? 'chevron-up' : 'chevron-down'} size={16} color="#666" />
+                  </View>
+                  <View style={s.badgeRow}>
+                    {n.friend_team_gender || n.friend_team_age_group ? (
+                      <View style={[s.badge, s.badgeWarn]}><Text style={[s.badgeText, s.badgeWarnText]}>{genderLabel(n.friend_team_gender)}{n.friend_team_age_group ? ` ${n.friend_team_age_group}` : ''}</Text></View>
+                    ) : null}
+                    <View style={s.badge}><Text style={s.badgeText}>{n.friend_team_format}</Text></View>
+                    {n.friend_team_code ? <Text style={s.codeText}>· #{n.friend_team_code}</Text> : null}
+                  </View>
+                </View>
+                {expandedNetwork === n.id && (
+                  <View style={s.netExpanded}>
+                    <View style={s.netDetailRow}><Text style={s.netLabel}>Manager</Text><Text style={s.netVal}>{n.friend_manager_name || '—'}</Text></View>
+                    <View style={s.netDetailRow}><Text style={s.netLabel}>Phone</Text><Text style={s.netVal}>{n.friend_manager_phone || '—'}</Text></View>
+                    <TouchableOpacity style={s.removeLink} onPress={() => removeFromNetwork(n.id)}>
+                      <Text style={s.removeLinkText}>Remove</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </TouchableOpacity>
+            ))}
+
+            {/* Add to Network - Green Glow Button */}
+            <View style={s.addNetWrap}>
+              <View style={s.addNetGlow} />
+              <TouchableOpacity testID="add-network-btn" style={s.addNetBtn} onPress={() => setShowAddNetwork(true)} activeOpacity={0.85}>
+                <Text style={s.addNetText}>+ Add to Network</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ height: 20 }} />
+          </ScrollView>
+
+          {/* Bottom Tab Bar */}
+          <View style={s.tabBar}>
+            <TouchableOpacity style={s.tab} onPress={() => setActiveTab('home')}>
+              <MaterialCommunityIcons name="home" size={26} color={activeTab === 'home' ? '#4ADE80' : '#555'} />
+            </TouchableOpacity>
+            <TouchableOpacity style={s.tab} onPress={() => { setActiveTab('network'); }}>
+              <MaterialCommunityIcons name="account-group-outline" size={26} color={activeTab === 'network' ? '#4ADE80' : '#555'} />
+            </TouchableOpacity>
+            <TouchableOpacity style={s.tab} onPress={() => setActiveTab('calendar')}>
+              <MaterialCommunityIcons name="calendar-outline" size={26} color={activeTab === 'calendar' ? '#4ADE80' : '#555'} />
+            </TouchableOpacity>
+            <TouchableOpacity style={s.tab} onPress={() => setActiveTab('globe')}>
+              <MaterialCommunityIcons name="web" size={26} color={activeTab === 'globe' ? '#4ADE80' : '#555'} />
             </TouchableOpacity>
           </View>
-
-          {network.length === 0 && (
-            <View style={s.emptyState}>
-              <Text style={s.emptyText}>Add teams to your network using their unique code.</Text>
-            </View>
-          )}
-
-          {network.map(n => (
-            <TouchableOpacity key={n.id} testID={`network-${n.id}`} style={s.netRow}
-              onPress={() => setExpandedNetwork(expandedNetwork === n.id ? null : n.id)}
-              activeOpacity={0.7}
-            >
-              <View style={s.netMain}>
-                <Text style={s.netName}>{n.friend_team_name}</Text>
-                <View style={s.tagRow}>
-                  <Text style={s.tag}>{n.friend_team_format}</Text>
-                  {n.friend_team_gender ? <Text style={s.tagAlt}>{genderLabel(n.friend_team_gender)}{n.friend_team_age_group ? ` ${n.friend_team_age_group}` : ''}</Text> : null}
-                </View>
-              </View>
-              <MaterialCommunityIcons name={expandedNetwork === n.id ? 'chevron-up' : 'chevron-down'} size={18} color={Colors.textMuted} />
-              {expandedNetwork === n.id && (
-                <View style={s.netExpanded}>
-                  <View style={s.netDetail}><Text style={s.netLabel}>Manager</Text><Text style={s.netValue}>{n.friend_manager_name || '—'}</Text></View>
-                  <View style={s.netDetail}><Text style={s.netLabel}>Phone</Text><Text style={s.netValue}>{n.friend_manager_phone || '—'}</Text></View>
-                  {n.friend_team_code ? <View style={s.netDetail}><Text style={s.netLabel}>Code</Text><Text style={s.netValue}>#{n.friend_team_code}</Text></View> : null}
-                  <TouchableOpacity style={s.removeLink} onPress={() => removeFromNetwork(n.id)}>
-                    <Text style={s.removeLinkText}>Remove from network</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
-            </TouchableOpacity>
-          ))}
-
-          <View style={{ height: 40 }} />
         </SafeAreaView>
-      </ScrollView>
+      </LinearGradient>
 
       {/* Delete Modal */}
       <Modal visible={teamToDelete !== null} transparent animationType="fade">
@@ -237,10 +207,10 @@ export default function HomeScreen() {
           <View style={s.modalCard}>
             <MaterialCommunityIcons name="alert-circle-outline" size={32} color={Colors.destructive} />
             <Text style={s.modalTitle}>Delete Team</Text>
-            <Text style={s.modalDesc}>Remove "{teamToDelete?.name}" and all associated data?</Text>
+            <Text style={s.modalDesc}>Remove "{teamToDelete?.name}" and all data?</Text>
             <View style={s.modalBtns}>
-              <TouchableOpacity testID="confirm-delete-btn" style={s.dangerBtn} onPress={executeDelete}><Text style={s.dangerBtnText}>DELETE</Text></TouchableOpacity>
-              <TouchableOpacity testID="cancel-delete-btn" style={s.cancelBtn} onPress={() => setTeamToDelete(null)}><Text style={s.cancelBtnText}>CANCEL</Text></TouchableOpacity>
+              <TouchableOpacity testID="confirm-delete-btn" style={s.dangerBtn} onPress={executeDelete}><Text style={s.btnText}>DELETE</Text></TouchableOpacity>
+              <TouchableOpacity testID="cancel-delete-btn" style={s.ghostBtn} onPress={() => setTeamToDelete(null)}><Text style={s.ghostText}>CANCEL</Text></TouchableOpacity>
             </View>
           </View>
         </View>
@@ -250,15 +220,15 @@ export default function HomeScreen() {
       <Modal visible={showAddNetwork} transparent animationType="slide">
         <View style={s.modalOverlay}>
           <View style={s.modalCard}>
-            <MaterialCommunityIcons name="account-plus-outline" size={32} color={Colors.primary} />
+            <MaterialCommunityIcons name="account-plus-outline" size={32} color="#4ADE80" />
             <Text style={s.modalTitle}>Add Team</Text>
             <Text style={s.modalDesc}>Enter the team's unique code</Text>
-            <TextInput testID="network-code-input" style={s.codeInput} value={networkCode} onChangeText={setNetworkCode} placeholder="ABC123" placeholderTextColor={Colors.textMuted} autoCapitalize="characters" autoFocus />
+            <TextInput testID="network-code-input" style={s.codeInput} value={networkCode} onChangeText={setNetworkCode} placeholder="ABC123" placeholderTextColor="#555" autoCapitalize="characters" autoFocus />
             <View style={s.modalBtns}>
-              <TouchableOpacity testID="confirm-add-network" style={[s.primaryBtn, addingNetwork && { opacity: 0.5 }]} onPress={addToNetwork} disabled={addingNetwork}>
-                <Text style={s.primaryBtnText}>{addingNetwork ? 'ADDING...' : 'ADD TO NETWORK'}</Text>
+              <TouchableOpacity testID="confirm-add-network" style={[s.greenBtn, addingNetwork && { opacity: 0.5 }]} onPress={addToNetwork} disabled={addingNetwork}>
+                <Text style={s.btnText}>{addingNetwork ? 'ADDING...' : 'ADD TO NETWORK'}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={s.cancelBtn} onPress={() => { setShowAddNetwork(false); setNetworkCode(''); }}><Text style={s.cancelBtnText}>CANCEL</Text></TouchableOpacity>
+              <TouchableOpacity style={s.ghostBtn} onPress={() => { setShowAddNetwork(false); setNetworkCode(''); }}><Text style={s.ghostText}>CANCEL</Text></TouchableOpacity>
             </View>
           </View>
         </View>
@@ -268,79 +238,83 @@ export default function HomeScreen() {
 }
 
 const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { paddingHorizontal: 20 },
+  root: { flex: 1 },
+  bg: { flex: 1 },
+  scroll: { paddingHorizontal: 20, paddingBottom: 10 },
 
-  // Header
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, paddingBottom: 8 },
-  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-  avatarRing: { width: 34, height: 34, borderRadius: 17, backgroundColor: 'rgba(255,255,255,0.05)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  greeting: { fontSize: 11, color: Colors.textMuted, fontWeight: '500' },
-  userName: { fontSize: 15, color: Colors.white, fontWeight: '700' },
-  logoutBtn: { padding: 8 },
+  // Top bar
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, paddingBottom: 10 },
+  topLeft: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  profileCircle: { width: 38, height: 38, borderRadius: 19, backgroundColor: '#2A2C30', justifyContent: 'center', alignItems: 'center' },
+  profileName: { fontSize: 15, fontWeight: '600', color: '#CDCDCD' },
+  topRight: { flexDirection: 'row', gap: 14 },
+  topIcon: { padding: 2 },
 
-  // Sport cards - EA Sports 3D
-  sportSection: { marginTop: 20, gap: 12, marginBottom: 28 },
-  sportCardWrap: {},
-  sportCard: { flexDirection: 'row', alignItems: 'center', borderRadius: 18, padding: 22, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
-  sportGlow: { position: 'absolute', top: -40, left: -40, width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(16,185,129,0.06)' },
-  sportShine: { position: 'absolute', top: -20, left: '40%' as any, width: 120, height: 3, backgroundColor: 'rgba(255,255,255,0.03)', transform: [{ rotate: '15deg' }] },
-  sportIconBox: { marginRight: 18 },
-  sportIconGrad: { width: 72, height: 72, borderRadius: 20, justifyContent: 'center', alignItems: 'center' },
-  sportTextArea: { flex: 1 },
-  sportTitle: { fontSize: 24, fontWeight: '900', color: Colors.white, letterSpacing: 2 },
-  sportSub: { fontSize: 12, color: '#6B7280', fontWeight: '500', marginTop: 3, letterSpacing: 1 },
-  sportArrow: { marginLeft: 8 },
+  // Brand
+  brand: { alignItems: 'center', paddingTop: 24, paddingBottom: 32 },
+  brandTitle: { fontSize: 36, fontWeight: '900', color: '#EAEAEA', letterSpacing: 2, marginTop: 10 },
+  brandSub: { fontSize: 13, fontWeight: '400', color: '#777', letterSpacing: 2, marginTop: 4 },
 
-  // Sections
-  sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, marginTop: 4 },
-  sectionTitle: { fontSize: 12, fontWeight: '700', color: Colors.textMuted, letterSpacing: 2 },
-  sectionCount: { fontSize: 12, fontWeight: '700', color: Colors.textMuted, backgroundColor: 'rgba(255,255,255,0.05)', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 8 },
+  // Section label
+  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#666', letterSpacing: 2.5, marginBottom: 14, marginTop: 8 },
 
-  // Team rows - clean list, no boxes
+  // Sport cards
+  sportRow: { flexDirection: 'row', gap: 12, marginBottom: 30 },
+  sportCard: { flex: 1 },
+  sportGrad: { borderRadius: 14, padding: 20, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  sportIconArea: { height: 90, justifyContent: 'center', alignItems: 'center', marginBottom: 8 },
+  sportName: { fontSize: 22, fontWeight: '800', color: '#EAEAEA', letterSpacing: 1.5, textAlign: 'center' },
+  sportFormats: { fontSize: 12, color: '#777', fontWeight: '400', marginTop: 4, textAlign: 'center' },
+
+  // Team rows
   teamRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)', gap: 12 },
-  teamRank: { width: 26, height: 26, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.04)', justifyContent: 'center', alignItems: 'center' },
-  teamRankText: { fontSize: 11, fontWeight: '700', color: Colors.textMuted },
-  teamMain: { flex: 1 },
-  teamNameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  teamName: { fontSize: 16, fontWeight: '700', color: Colors.white },
-  tagRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' },
-  tag: { fontSize: 10, fontWeight: '600', color: Colors.primary, backgroundColor: Colors.primaryGlow, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  tagAlt: { fontSize: 10, fontWeight: '600', color: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.1)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
-  codeTag: { fontSize: 9, fontWeight: '600', color: Colors.textMuted, fontFamily: Platform.OS === 'web' ? 'monospace' : undefined },
-  teamStat: { alignItems: 'center', marginRight: 6 },
-  statVal: { fontSize: 16, fontWeight: '800', color: Colors.textSecondary },
-  statLabel: { fontSize: 8, fontWeight: '600', color: Colors.textMuted, letterSpacing: 1, marginTop: 1 },
-  deleteHit: { padding: 6 },
+  shieldWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#2A2C30', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  teamInfo: { flex: 1 },
+  teamName: { fontSize: 17, fontWeight: '700', color: '#EAEAEA' },
+  badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' },
+  badge: { borderWidth: 1, borderColor: '#4ADE80', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
+  badgeText: { fontSize: 11, fontWeight: '600', color: '#4ADE80' },
+  badgeWarn: { borderColor: '#F87171' },
+  badgeWarnText: { color: '#F87171' },
+  codeText: { fontSize: 11, color: '#666', fontWeight: '500', fontFamily: Platform.OS === 'web' ? 'monospace' : undefined },
+  statCol: { marginRight: 4 },
+  statText: { fontSize: 12, fontWeight: '500', color: '#888' },
+  delBtn: { padding: 6 },
 
   // Empty
-  emptyState: { paddingVertical: 20, paddingHorizontal: 4 },
-  emptyText: { fontSize: 13, color: Colors.textMuted, fontWeight: '400', lineHeight: 20 },
+  emptyText: { fontSize: 13, color: '#555', fontWeight: '400', paddingVertical: 12 },
 
-  // Network rows - clean list
-  addBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: 'rgba(16,185,129,0.25)', backgroundColor: Colors.primaryGlow },
-  addBtnText: { fontSize: 11, fontWeight: '700', color: Colors.primary },
-  netRow: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)', gap: 8 },
-  netMain: { flex: 1 },
-  netName: { fontSize: 15, fontWeight: '700', color: Colors.white },
-  netExpanded: { width: '100%', paddingTop: 10, paddingLeft: 2, gap: 6 },
-  netDetail: { flexDirection: 'row', alignItems: 'center' },
-  netLabel: { fontSize: 11, fontWeight: '500', color: Colors.textMuted, width: 56 },
-  netValue: { fontSize: 12, fontWeight: '600', color: Colors.textSecondary },
+  // Network rows
+  netRow: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  netMain: {},
+  netName: { fontSize: 16, fontWeight: '700', color: '#EAEAEA' },
+  netExpanded: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)', gap: 5 },
+  netDetailRow: { flexDirection: 'row', alignItems: 'center' },
+  netLabel: { fontSize: 11, fontWeight: '500', color: '#666', width: 56 },
+  netVal: { fontSize: 12, fontWeight: '600', color: '#AAA' },
   removeLink: { marginTop: 4 },
-  removeLinkText: { fontSize: 11, fontWeight: '600', color: Colors.destructive },
+  removeLinkText: { fontSize: 11, fontWeight: '600', color: '#EF4444' },
+
+  // Add to Network button with glow
+  addNetWrap: { alignItems: 'center', marginTop: 20, marginBottom: 8 },
+  addNetGlow: { position: 'absolute', bottom: -4, width: '70%', height: 24, borderRadius: 20, backgroundColor: 'rgba(74, 222, 128, 0.15)' },
+  addNetBtn: { paddingHorizontal: 36, paddingVertical: 14, borderRadius: 28, borderWidth: 1.5, borderColor: 'rgba(74, 222, 128, 0.4)', backgroundColor: 'rgba(74, 222, 128, 0.06)' },
+  addNetText: { fontSize: 15, fontWeight: '600', color: '#EAEAEA', letterSpacing: 0.5 },
+
+  // Bottom Tab Bar
+  tabBar: { flexDirection: 'row', height: 56, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)', backgroundColor: '#131517' },
+  tab: { flex: 1, justifyContent: 'center', alignItems: 'center' },
 
   // Modals
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center', padding: 32 },
-  modalCard: { backgroundColor: '#1A1D23', borderRadius: 20, padding: 28, alignItems: 'center', width: '100%', maxWidth: 360, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
-  modalTitle: { fontSize: 20, fontWeight: '800', color: Colors.white, marginTop: 14, marginBottom: 6 },
-  modalDesc: { fontSize: 13, color: Colors.textSecondary, textAlign: 'center', marginBottom: 20, lineHeight: 20 },
+  modalCard: { backgroundColor: '#1E2025', borderRadius: 20, padding: 28, alignItems: 'center', width: '100%', maxWidth: 360, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  modalTitle: { fontSize: 20, fontWeight: '800', color: '#EAEAEA', marginTop: 14, marginBottom: 6 },
+  modalDesc: { fontSize: 13, color: '#888', textAlign: 'center', marginBottom: 20, lineHeight: 20 },
   modalBtns: { width: '100%', gap: 8 },
-  dangerBtn: { backgroundColor: Colors.destructive, height: 46, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  dangerBtnText: { fontSize: 13, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
-  primaryBtn: { backgroundColor: Colors.primary, height: 46, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
-  primaryBtnText: { fontSize: 13, fontWeight: '800', color: Colors.white, letterSpacing: 1 },
-  cancelBtn: { height: 40, justifyContent: 'center', alignItems: 'center' },
-  cancelBtnText: { fontSize: 12, fontWeight: '700', color: Colors.textMuted },
-  codeInput: { width: '100%', height: 56, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, paddingHorizontal: 16, color: Colors.white, fontSize: 22, fontWeight: '800', textAlign: 'center', letterSpacing: 5, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', marginBottom: 16 },
+  dangerBtn: { backgroundColor: '#EF4444', height: 46, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  greenBtn: { backgroundColor: '#10B981', height: 46, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  btnText: { fontSize: 13, fontWeight: '800', color: '#FFF', letterSpacing: 1 },
+  ghostBtn: { height: 40, justifyContent: 'center', alignItems: 'center' },
+  ghostText: { fontSize: 12, fontWeight: '700', color: '#666' },
+  codeInput: { width: '100%', height: 56, backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 12, paddingHorizontal: 16, color: '#EAEAEA', fontSize: 22, fontWeight: '800', textAlign: 'center', letterSpacing: 5, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', marginBottom: 16 },
 });
