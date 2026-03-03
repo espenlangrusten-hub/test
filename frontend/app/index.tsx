@@ -149,6 +149,13 @@ export default function HomeScreen() {
               </TouchableOpacity>
             ))}
 
+            {/* TOURNAMENTS */}
+            <TouchableOpacity data-testid="tournament-link" style={s.tournamentRow} onPress={() => router.push('/tournament')} activeOpacity={0.7}>
+              <MaterialCommunityIcons name="trophy" size={20} color="#F59E0B" />
+              <Text style={s.tournamentText}>Tournaments</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color="#555" />
+            </TouchableOpacity>
+
             {/* MY NETWORK */}
             <View style={s.netHeader}>
               <Text style={[s.sectionLabel, { marginTop: 28, marginBottom: 0 }]}>MY NETWORK</Text>
@@ -309,6 +316,10 @@ const s = StyleSheet.create({
 
   // Network header with inline Add button
   netHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 28, marginBottom: 10 },
+
+  // Tournament link
+  tournamentRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 14, marginTop: 20, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  tournamentText: { fontSize: 15, fontWeight: '600', color: '#EAEAEA', flex: 1 },
   addNetInline: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(74,222,128,0.3)', backgroundColor: 'rgba(74,222,128,0.06)' },
   addNetInlineText: { fontSize: 12, fontWeight: '600', color: '#4ADE80' },
 
