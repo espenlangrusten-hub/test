@@ -11,7 +11,6 @@ import { Colors } from '../src/constants/colors';
 import { getFlagForCode } from '../src/constants/countries';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
-const GENDER_DISPLAY: Record<string, string> = { 'Gutter': 'Boys', 'Jenter': 'Girls', 'Mixed': 'Mixed' };
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -57,14 +56,13 @@ export default function HomeScreen() {
 
   const openTeam = (team: any) => { setSport(team.sport); setFormat(team.format); setCurrentTeam(team); router.push('/team'); };
   const executeDelete = async () => { if (!teamToDelete) return; await deleteTeam(teamToDelete.id); setTeams(prev => prev.filter(t => t.id !== teamToDelete.id)); setTeamToDelete(null); };
-  const genderLabel = (g: string) => GENDER_DISPLAY[g] || g;
   const availableCount = (team: any) => team.players?.filter((p: any) => p.available !== false).length || 0;
 
   return (
     <View style={s.root}>
       <LinearGradient colors={['#1C1E22', '#161819', '#111315']} style={s.bg}>
         <SafeAreaView style={{ flex: 1 }}>
-          <ScrollView contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
 
             {/* Top Bar */}
             <View style={s.topBar}>
@@ -118,23 +116,25 @@ export default function HomeScreen() {
             {!loading && teams.map((team) => (
               <TouchableOpacity key={team.id} testID={`team-card-${team.id}`} style={s.teamRow} onPress={() => openTeam(team)} activeOpacity={0.7}>
                 <View style={s.shieldWrap}>
-                  {team.country ? <Text style={{ fontSize: 22 }}>{getFlagForCode(team.country)}</Text> :
-                    <MaterialCommunityIcons name="shield-half-full" size={28} color="#555" />}
+                  {team.country ? (
+                    <View style={s.shieldInner}>
+                      <Text style={{ fontSize: 18 }}>{getFlagForCode(team.country)}</Text>
+                    </View>
+                  ) : <MaterialCommunityIcons name="shield-half-full" size={28} color="#555" />}
+                  <View style={s.shieldPoint} />
                 </View>
                 <View style={s.teamInfo}>
                   <Text style={s.teamName}>{team.name}</Text>
                   <View style={s.badgeRow}>
                     <View style={s.badge}><Text style={s.badgeText}>{team.format}</Text></View>
-                    {team.gender ? <View style={[s.badge, s.badgeWarn]}><Text style={[s.badgeText, s.badgeWarnText]}>{genderLabel(team.gender)}{team.age_group ? ` ${team.age_group}` : ''}</Text></View> : team.age_group ? <View style={s.badge}><Text style={s.badgeText}>{team.age_group}</Text></View> : null}
+                    {team.age_group ? <View style={s.badge}><Text style={s.badgeText}>{team.age_group}</Text></View> : null}
                     {team.team_code ? <Text style={s.codeText}>· #{team.team_code}</Text> : null}
                   </View>
                 </View>
-                <View style={s.statCol}>
-                  <Text style={s.statText}>{team.players?.length || 0} PLR, {availableCount(team)} AVL</Text>
-                </View>
+                <Text style={s.statText}>{team.players?.length || 0} PLR, {availableCount(team)} AVL</Text>
                 <TouchableOpacity testID={`delete-team-${team.id}`} style={s.delBtn}
                   onPress={(e) => { e.stopPropagation?.(); setTeamToDelete(team); }} hitSlop={{top:10,bottom:10,left:10,right:10}}>
-                  <MaterialCommunityIcons name="trash-can-outline" size={16} color="#555" />
+                  <MaterialCommunityIcons name="trash-can-outline" size={16} color="#444" />
                 </TouchableOpacity>
               </TouchableOpacity>
             ))}
@@ -153,10 +153,8 @@ export default function HomeScreen() {
                     <MaterialCommunityIcons name={expandedNetwork === n.id ? 'chevron-up' : 'chevron-down'} size={16} color="#666" />
                   </View>
                   <View style={s.badgeRow}>
-                    {n.friend_team_gender || n.friend_team_age_group ? (
-                      <View style={[s.badge, s.badgeWarn]}><Text style={[s.badgeText, s.badgeWarnText]}>{genderLabel(n.friend_team_gender)}{n.friend_team_age_group ? ` ${n.friend_team_age_group}` : ''}</Text></View>
-                    ) : null}
-                    <View style={s.badge}><Text style={s.badgeText}>{n.friend_team_format}</Text></View>
+                    {n.friend_team_age_group ? <View style={s.badge}><Text style={s.badgeText}>{n.friend_team_age_group}</Text></View> : null}
+                    {n.friend_team_format ? <View style={s.badge}><Text style={s.badgeText}>{n.friend_team_format}</Text></View> : null}
                     {n.friend_team_code ? <Text style={s.codeText}>· #{n.friend_team_code}</Text> : null}
                   </View>
                 </View>
@@ -240,7 +238,7 @@ export default function HomeScreen() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   bg: { flex: 1 },
-  scroll: { paddingHorizontal: 20, paddingBottom: 10 },
+  scroll: { paddingHorizontal: 20, paddingBottom: 30 },
 
   // Top bar
   topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 12, paddingBottom: 10 },
@@ -268,16 +266,15 @@ const s = StyleSheet.create({
 
   // Team rows
   teamRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)', gap: 12 },
-  shieldWrap: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#2A2C30', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  shieldWrap: { width: 44, height: 48, justifyContent: 'center', alignItems: 'center', position: 'relative' as const },
+  shieldInner: { width: 42, height: 40, borderRadius: 8, borderBottomLeftRadius: 4, borderBottomRightRadius: 4, backgroundColor: '#2A2C30', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
+  shieldPoint: { position: 'absolute' as const, bottom: 0, width: 0, height: 0, borderLeftWidth: 21, borderRightWidth: 21, borderTopWidth: 8, borderLeftColor: 'transparent', borderRightColor: 'transparent', borderTopColor: '#2A2C30' },
   teamInfo: { flex: 1 },
   teamName: { fontSize: 17, fontWeight: '700', color: '#EAEAEA' },
   badgeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' },
   badge: { borderWidth: 1, borderColor: '#4ADE80', paddingHorizontal: 7, paddingVertical: 2, borderRadius: 5 },
   badgeText: { fontSize: 11, fontWeight: '600', color: '#4ADE80' },
-  badgeWarn: { borderColor: '#F87171' },
-  badgeWarnText: { color: '#F87171' },
   codeText: { fontSize: 11, color: '#666', fontWeight: '500', fontFamily: Platform.OS === 'web' ? 'monospace' : undefined },
-  statCol: { marginRight: 4 },
   statText: { fontSize: 12, fontWeight: '500', color: '#888' },
   delBtn: { padding: 6 },
 
