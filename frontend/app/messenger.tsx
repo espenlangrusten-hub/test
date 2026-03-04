@@ -183,10 +183,10 @@ export default function MessengerPage() {
           /* Main view: Network bar + Conversations */
           <View style={{ flex: 1 }}>
             {/* Horizontal Network Contacts */}
-            {networkOnly.length > 0 && (
+            {network.length > 0 && (
               <View style={s.networkBar}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12, gap: 14 }}>
-                  {networkOnly.map(n => (
+                  {network.map(n => (
                     <TouchableOpacity key={n.friend_user_id} style={s.networkChip}
                       onPress={() => openConvo(n.friend_user_id, n.friend_team_name, n.friend_team_id)}>
                       <View style={s.networkAvatar}>
