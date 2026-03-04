@@ -36,21 +36,21 @@ function AppContent() {
         <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="format" options={{ title: 'Select Format' }} />
         <Stack.Screen name="team-setup" options={{ title: 'Squad Setup' }} />
-        <Stack.Screen name="team" options={{ title: 'team' }} />
+        <Stack.Screen name="team" options={{ headerShown: false }} />
         <Stack.Screen name="tactics" options={{ title: 'Tactics Board' }} />
         <Stack.Screen name="match" options={{ title: 'Match Day' }} />
         <Stack.Screen name="tactic-guide" options={{ title: 'Tactic Guide' }} />
         <Stack.Screen name="player-notes" options={{ title: 'Player Notes' }} />
         <Stack.Screen name="match-history" options={{ title: 'Match History' }} />
         <Stack.Screen name="match-detail" options={{ title: 'Match Review' }} />
-        <Stack.Screen name="training" options={{ title: 'Training Sessions' }} />
-        <Stack.Screen name="calendar" options={{ title: 'Match Calendar' }} />
+        <Stack.Screen name="training" options={{ headerShown: false }} />
+        <Stack.Screen name="calendar" options={{ headerShown: false }} />
         <Stack.Screen name="friendly-matches" options={{ title: 'Friendly Matches' }} />
         <Stack.Screen name="messages" options={{ title: 'Messages' }} />
-        <Stack.Screen name="settings" options={{ title: 'Settings' }} />
-        <Stack.Screen name="messenger" options={{ title: 'Messages' }} />
-        <Stack.Screen name="my-network" options={{ title: 'My Network' }} />
-        <Stack.Screen name="tournament" options={{ title: 'Tournaments' }} />
+        <Stack.Screen name="settings" options={{ headerShown: false }} />
+        <Stack.Screen name="messenger" options={{ headerShown: false }} />
+        <Stack.Screen name="my-network" options={{ headerShown: false }} />
+        <Stack.Screen name="tournament" options={{ headerShown: false }} />
       </Stack>
     </>
   );
