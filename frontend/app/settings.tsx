@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '../src/context/AppContext';
+import BottomNav from '../src/components/BottomNav';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -102,6 +103,7 @@ export default function SettingsScreen() {
 
           <View style={{ height: 40 }} />
         </ScrollView>
+        <BottomNav />
       </LinearGradient>
     </View>
   );
@@ -112,7 +114,7 @@ const s = StyleSheet.create({
   bg: { flex: 1 },
   scroll: { padding: 20 },
   heading: { fontSize: 22, fontWeight: '800', color: '#EAEAEA', marginBottom: 16, marginTop: 8 },
-  label: { fontSize: 11, fontWeight: '600', color: '#666', letterSpacing: 2, marginBottom: 6, marginTop: 14 },
+  label: { fontSize: 11, fontWeight: '600', color: '#999', letterSpacing: 2, marginBottom: 6, marginTop: 14 },
   input: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, color: '#EAEAEA', fontSize: 15, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
   readOnly: { fontSize: 15, color: '#888', paddingVertical: 12 },
   saveBtn: { marginTop: 12, backgroundColor: '#10B981', borderRadius: 10, height: 44, justifyContent: 'center', alignItems: 'center' },

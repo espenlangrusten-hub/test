@@ -6,6 +6,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '../src/context/AppContext';
+import BottomNav from '../src/components/BottomNav';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 type TView = 'hub' | 'create' | 'detail';
@@ -542,26 +543,7 @@ export default function TournamentScreen() {
         {view === 'hub' && renderHub()}
         {view === 'create' && renderCreate()}
         {view === 'detail' && renderDetail()}
-
-        {/* Bottom Nav */}
-        <View style={s.tabBar}>
-          <TouchableOpacity style={s.navTab} onPress={() => router.push('/')}>
-            <MaterialCommunityIcons name="home" size={24} color="#555" />
-            <Text style={s.navLabel}>Dashboard</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.navTab} onPress={() => router.push('/messenger')}>
-            <MaterialCommunityIcons name="message-text-outline" size={24} color="#555" />
-            <Text style={s.navLabel}>Messages</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.navTab} onPress={() => router.push('/calendar')}>
-            <MaterialCommunityIcons name="calendar-outline" size={24} color="#555" />
-            <Text style={s.navLabel}>Calendar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.navTab} onPress={() => router.push('/my-network')}>
-            <MaterialCommunityIcons name="account-group-outline" size={24} color="#555" />
-            <Text style={s.navLabel}>Network</Text>
-          </TouchableOpacity>
-        </View>
+        <BottomNav />
       </LinearGradient>
     </View>
   );
@@ -597,7 +579,7 @@ const s = StyleSheet.create({
   bg: { flex: 1 },
   scroll: { padding: 16, paddingBottom: 20 },
   pageTitle: { fontSize: 24, fontWeight: '800', color: '#EAEAEA', marginBottom: 16 },
-  sectionLabel: { fontSize: 12, fontWeight: '600', color: '#666', letterSpacing: 2.5, marginTop: 20, marginBottom: 10 },
+  sectionLabel: { fontSize: 12, fontWeight: '600', color: '#999', letterSpacing: 2.5, marginTop: 20, marginBottom: 10 },
   empty: { fontSize: 13, color: '#555', paddingVertical: 8 },
 
   // Hub
@@ -610,7 +592,7 @@ const s = StyleSheet.create({
   // Create
   backRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 12 },
   backText: { fontSize: 14, fontWeight: '600', color: '#EAEAEA' },
-  label: { fontSize: 10, fontWeight: '600', color: '#666', letterSpacing: 2, marginBottom: 6, marginTop: 10 },
+  label: { fontSize: 10, fontWeight: '600', color: '#999', letterSpacing: 2, marginBottom: 6, marginTop: 10 },
   input: { backgroundColor: 'rgba(255,255,255,0.04)', borderRadius: 10, paddingHorizontal: 14, paddingVertical: 12, color: '#EAEAEA', fontSize: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', marginBottom: 10 },
   chip: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, marginRight: 8, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
   chipActive: { borderColor: '#4ADE80', backgroundColor: 'rgba(74,222,128,0.08)' },
@@ -644,7 +626,7 @@ const s = StyleSheet.create({
   winnerBadgeText: { fontSize: 12, fontWeight: '700', color: '#F59E0B' },
   pdfBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
   pdfBtnText: { fontSize: 11, fontWeight: '700', color: '#EAEAEA', letterSpacing: 0.5 },
-  roundLabel: { fontSize: 11, fontWeight: '700', color: '#666', letterSpacing: 2, marginBottom: 8, marginTop: 4 },
+  roundLabel: { fontSize: 11, fontWeight: '700', color: '#999', letterSpacing: 2, marginBottom: 8, marginTop: 4 },
 
   // Standings table
   tableHead: { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
