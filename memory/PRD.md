@@ -1,47 +1,37 @@
 # PRD — Tactical Lineup: Football & Futsal Coach Assistant
 
 ## Core Concept
-Subscription-based team management application for football and futsal coaches. Manage squads, formations, friendly matches, messaging, tournaments, and network.
+Subscription-based team management application for football and futsal coaches.
 
 ## Architecture
 - **Frontend:** React Native / Expo (web) with TypeScript, Expo Router
 - **Backend:** Python FastAPI + reportlab (PDF generation)
 - **Database:** MongoDB
-- **Styling:** Dark glassmorphism theme, green (#4ADE80) accents, gold (#F59E0B) for tournaments
+- **Styling:** Dark glassmorphism theme, green (#4ADE80) accents
 
-## Key Pages
-- **Dashboard** (`index.tsx`): Compact sport cards, bell badge, teams list, network section
-- **Team** (`team.tsx`): Feed (replacing message board), Quick Actions (Squad/Tactics/Calendar/Friendly/Tournament/Training/History/Match)
-- **Tournament** (`tournament.tsx`): Hub (ongoing/completed/create), bracket visualization, PDF export, A+B knockout brackets, delete icon
-- **Messenger** (`messenger.tsx`): FB-inspired DMs + notifications with 5s polling
+## Key Pages & Components
+- **Dashboard** (`index.tsx`): Sport cards, bell badge, teams list, network section
+- **Team** (`team.tsx`): Fixed header (back arrow, badges, stats) + Quick Actions grid (8 colorful items) + scrollable FEED
+- **Tournament** (`tournament.tsx`): Hub with back arrow, bracket visualization, PDF export, A+B knockouts
+- **Messenger** (`messenger.tsx`): Tabs (DMs/Notifications), horizontal network contacts, conversation list with team badges, bold unread, delete icon, chat view with team picker
 - **Settings** (`settings.tsx`): Profile/password management
-- **My Network** (`my-network.tsx`): Full network contacts list
-- **Calendar** (`calendar.tsx`): All-teams match calendar
-- **Training** (`training.tsx`): AI training sessions
-
-## Shared Components
-- **BottomNav** (`src/components/BottomNav.tsx`): Persistent bottom navigation bar (Dashboard, Messages, Calendar, Network) with active state highlighting and unread message badge. Added to ALL 8 main pages.
+- **My Network** (`my-network.tsx`): Full network contacts
+- **Calendar** (`calendar.tsx`): All-teams match calendar with back arrow
+- **Training** (`training.tsx`): AI training sessions with back arrow
+- **BottomNav** (`src/components/BottomNav.tsx`): Persistent bottom nav on all 8 pages
 
 ## Key API Endpoints
-- Auth: login, register, profile update, password change
-- Teams: CRUD, player stats
-- Network: list, add, remove
-- Direct Messages: conversations, send, delete
-- Notifications: unread count
-- Tournaments: create, list, detail, submit result, PDF export, delete
-- Calendar: all-teams events
-
-## Data Models
-- **tournaments**: `{id, user_id, name, format, tournament_type, start_date, end_date, teams[], groups{}, matches[], status, winner, winner_b, has_b_knockout, created_at}`
+- Auth, Teams, Network, Direct Messages (incl. DELETE conversation), Notifications, Tournaments, Calendar, Training
 
 ## Changelog
-- 2026-03-04 (Session 17): Added persistent BottomNav across ALL pages (shared component). Brightened grey section headlines from #666 to #999. Added delete icon for ongoing tournaments. Fixed Metro CI mode issue requiring restart for changes.
-- 2026-03-04 (Session 16): Verified B Knockout feature end-to-end. 15/15 backend + all frontend tests passed.
-- 2026-03-04 (Session 15): CL-style knockout bracket, PDF export, moved tournament to team page.
-- 2026-03-03 (Session 14): Team page redesign + full tournament system.
+- 2026-03-04 (Session 17): Team page redesign (no duplicate name, prominent Quick Actions, scrollable Feed only). Messenger rewrite (horizontal network contacts, conversation list with team badges, bold unread, delete icon). Back arrows on all team-linked pages. Persistent BottomNav on all pages. Brighter headlines (#999). Delete icon for tournaments. 100% tests (7/7 backend + all frontend).
+- 2026-03-04 (Session 16): B Knockout feature verified E2E (15/15 tests).
+- 2026-03-04 (Session 15): CL-style bracket viz, PDF export, tournament to team page.
+- 2026-03-03 (Session 14): Team page redesign + tournament system.
 - 2026-03-03 (Session 13): Dashboard redesign + settings/messenger/network pages.
 
 ## Test Reports
+- `/app/test_reports/iteration_29.json` (UI redesign + messenger - 100%)
 - `/app/test_reports/iteration_28.json` (B Knockout E2E - 100%)
 
 ## Test Credentials
