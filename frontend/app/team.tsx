@@ -188,66 +188,69 @@ export default function TeamPage() {
 
   // =============== OVERVIEW ===============
   const renderOverview = () => (
-    <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll} showsVerticalScrollIndicator={false}>
-      {/* Team Header */}
-      <View style={s.teamHeader}>
-        <View style={s.shieldWrap}>
-          {currentTeam?.country ? (
-            <View style={s.shieldInner}>
-              <Text style={{ fontSize: 22 }}>{getFlagForCode(currentTeam.country)}</Text>
-            </View>
-          ) : <MaterialCommunityIcons name="shield-half-full" size={32} color="#555" />}
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={s.teamName}>{currentTeam?.name}</Text>
-          <View style={s.badgeRow}>
-            <View style={s.badge}><Text style={s.badgeText}>{currentTeam?.format}</Text></View>
-            {ageGroup ? <View style={s.badge}><Text style={s.badgeText}>{ageGroup}</Text></View> : null}
-            <View style={s.badge}><Text style={s.badgeText}>{currentTeam?.sport}</Text></View>
+    <View style={{ flex: 1 }}>
+      {/* Fixed Header Section */}
+      <View style={s.scroll}>
+        {/* Team Header */}
+        <View style={s.teamHeader}>
+          <View style={s.shieldWrap}>
+            {currentTeam?.country ? (
+              <View style={s.shieldInner}>
+                <Text style={{ fontSize: 22 }}>{getFlagForCode(currentTeam.country)}</Text>
+              </View>
+            ) : <MaterialCommunityIcons name="shield-half-full" size={32} color="#555" />}
           </View>
-        </View>
-        <View style={s.statsGroup}>
-          <View style={s.statItem}><Text style={s.statNum}>{players.length}</Text><Text style={s.statLbl}>PLR</Text></View>
-          <View style={s.statItem}><Text style={[s.statNum, { color: '#4ADE80' }]}>{availableCount}</Text><Text style={s.statLbl}>AVL</Text></View>
-        </View>
-        <TouchableOpacity data-testid="team-settings-btn" style={s.settingsIcon} onPress={openSettings}>
-          <MaterialCommunityIcons name="cog-outline" size={20} color="#777" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Team Code */}
-      {currentTeam?.team_code ? (
-        <View style={s.codeRow}>
-          <MaterialCommunityIcons name="key-variant" size={14} color="#4ADE80" />
-          <Text style={s.codeLabel}>CODE</Text>
-          <Text style={s.codeValue}>{currentTeam.team_code}</Text>
-          <Text style={s.codeHint}>Share to invite</Text>
-        </View>
-      ) : null}
-
-      {/* Manager */}
-      {currentTeam?.manager_name ? (
-        <View style={s.managerRow}>
-          <MaterialCommunityIcons name="account-tie" size={14} color="#666" />
-          <Text style={s.managerText}>{currentTeam.manager_name}{currentTeam.manager_phone ? ` · ${currentTeam.manager_phone}` : ''}</Text>
-        </View>
-      ) : null}
-
-      {/* Quick Actions Menu */}
-      <Text style={s.sectionLabel}>QUICK ACTIONS</Text>
-      <View style={s.menuGrid}>
-        {menuItems.map(item => (
-          <TouchableOpacity key={item.key} data-testid={`menu-${item.key}`} style={s.menuItem} onPress={() => navigateMenu(item.key)} activeOpacity={0.7}>
-            <MaterialCommunityIcons name={item.icon as any} size={22} color={item.color} />
-            <Text style={s.menuLabel}>{item.label}</Text>
+          <View style={{ flex: 1 }}>
+            <View style={s.badgeRow}>
+              <View style={s.badge}><Text style={s.badgeText}>{currentTeam?.format}</Text></View>
+              {ageGroup ? <View style={s.badge}><Text style={s.badgeText}>{ageGroup}</Text></View> : null}
+              <View style={s.badge}><Text style={s.badgeText}>{currentTeam?.sport}</Text></View>
+            </View>
+          </View>
+          <View style={s.statsGroup}>
+            <View style={s.statItem}><Text style={s.statNum}>{players.length}</Text><Text style={s.statLbl}>PLR</Text></View>
+            <View style={s.statItem}><Text style={[s.statNum, { color: '#4ADE80' }]}>{availableCount}</Text><Text style={s.statLbl}>AVL</Text></View>
+          </View>
+          <TouchableOpacity data-testid="team-settings-btn" style={s.settingsIcon} onPress={openSettings}>
+            <MaterialCommunityIcons name="cog-outline" size={20} color="#777" />
           </TouchableOpacity>
-        ))}
+        </View>
+
+        {/* Team Code */}
+        {currentTeam?.team_code ? (
+          <View style={s.codeRow}>
+            <MaterialCommunityIcons name="key-variant" size={14} color="#4ADE80" />
+            <Text style={s.codeLabel}>CODE</Text>
+            <Text style={s.codeValue}>{currentTeam.team_code}</Text>
+            <Text style={s.codeHint}>Share to invite</Text>
+          </View>
+        ) : null}
+
+        {/* Manager */}
+        {currentTeam?.manager_name ? (
+          <View style={s.managerRow}>
+            <MaterialCommunityIcons name="account-tie" size={14} color="#666" />
+            <Text style={s.managerText}>{currentTeam.manager_name}{currentTeam.manager_phone ? ` · ${currentTeam.manager_phone}` : ''}</Text>
+          </View>
+        ) : null}
+
+        {/* Quick Actions Menu */}
+        <View style={s.menuGrid}>
+          {menuItems.map(item => (
+            <TouchableOpacity key={item.key} data-testid={`menu-${item.key}`} style={s.menuItem} onPress={() => navigateMenu(item.key)} activeOpacity={0.7}>
+              <View style={[s.menuIconWrap, { backgroundColor: item.color + '18' }]}>
+                <MaterialCommunityIcons name={item.icon as any} size={20} color={item.color} />
+              </View>
+              <Text style={s.menuLabel}>{item.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </View>
 
-      {/* FEED */}
-      <Text style={s.sectionLabel}>FEED</Text>
-
-      {/* Next Match Highlight */}
+      {/* Scrollable Feed Section */}
+      <Text style={[s.sectionLabel, { paddingHorizontal: 16 }]}>FEED</Text>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 80 }} showsVerticalScrollIndicator={false}>
+        {/* Next Match Highlight */}
       {nextMatch && (
         <View style={s.matchCard}>
           <View style={s.matchBadge}><Text style={s.matchBadgeText}>NEXT MATCH</Text></View>
@@ -281,8 +284,9 @@ export default function TeamPage() {
         </View>
       ))}
 
-      <View style={{ height: 80 }} />
+      <View style={{ height: 20 }} />
     </ScrollView>
+    </View>
   );
 
   // =============== SQUAD ===============
@@ -374,6 +378,9 @@ export default function TeamPage() {
       <LinearGradient colors={['#1C1E22', '#161819', '#111315']} style={s.bg}>
         {/* Top Header */}
         <View style={s.topBar}>
+          <TouchableOpacity onPress={() => router.push('/')} style={{ padding: 4 }}>
+            <MaterialCommunityIcons name="arrow-left" size={22} color="#888" />
+          </TouchableOpacity>
           <Text style={s.pageName}>{tab === 'overview' ? currentTeam?.name || 'Team' : tab === 'squad' ? 'Availability' : 'Statistics'}</Text>
           <View style={s.topRight}>
             {saving && <Text style={s.savingText}>Saving...</Text>}
@@ -496,9 +503,10 @@ const s = StyleSheet.create({
   sectionLabel: { fontSize: 12, fontWeight: '600', color: '#999', letterSpacing: 2.5, marginTop: 20, marginBottom: 12 },
 
   // Menu grid
-  menuGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  menuItem: { width: '22%' as any, alignItems: 'center', paddingVertical: 10, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.04)' },
-  menuLabel: { fontSize: 10, fontWeight: '600', color: '#888', marginTop: 4 },
+  menuGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
+  menuItem: { width: '22%' as any, alignItems: 'center', paddingVertical: 12, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  menuIconWrap: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginBottom: 4 },
+  menuLabel: { fontSize: 10, fontWeight: '700', color: '#BBB', marginTop: 2 },
 
   // Feed
   matchCard: { backgroundColor: 'rgba(74,222,128,0.06)', borderRadius: 10, padding: 14, marginBottom: 10, borderWidth: 1, borderColor: 'rgba(74,222,128,0.15)' },

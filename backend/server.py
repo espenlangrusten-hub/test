@@ -1016,6 +1016,17 @@ async def delete_direct_message(message_id: str, user: dict = Depends(get_curren
         raise HTTPException(status_code=404, detail="Message not found")
     return {"message": "Deleted"}
 
+@api_router.delete("/direct-messages/conversation/{other_user_id}")
+async def delete_conversation(other_user_id: str, user: dict = Depends(get_current_user)):
+    result = await db.direct_messages.delete_many({
+        "$or": [
+            {"from_user_id": user["user_id"], "to_user_id": other_user_id},
+            {"from_user_id": other_user_id, "to_user_id": user["user_id"]}
+        ]
+    })
+    return {"deleted": result.deleted_count}
+
+
 
 # ---- All-Teams Calendar ----
 
