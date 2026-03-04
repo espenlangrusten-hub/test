@@ -384,7 +384,7 @@ export default function TeamPage() {
       <LinearGradient colors={['#1C1E22', '#161819', '#111315']} style={s.bg}>
         {/* Top Header */}
         <View style={s.topBar}>
-          <TouchableOpacity onPress={() => router.push('/')} style={{ padding: 4 }}>
+          <TouchableOpacity onPress={() => { tab === 'overview' ? router.push('/') : setTab('overview'); }} style={{ padding: 4 }}>
             <MaterialCommunityIcons name="arrow-left" size={22} color="#888" />
           </TouchableOpacity>
           <Text style={s.pageName}>{tab === 'overview' ? currentTeam?.name || 'Team' : tab === 'squad' ? 'Availability' : 'Statistics'}</Text>
