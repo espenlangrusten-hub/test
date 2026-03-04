@@ -654,7 +654,7 @@ const st = StyleSheet.create({
   newBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.primary, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
   newBtnText: { fontSize: 11, fontWeight: '700', color: Colors.white },
   scroll: { padding: 14, paddingBottom: 40 },
-  section: { fontSize: 11, fontWeight: '700', color: Colors.textMuted, letterSpacing: 2, marginBottom: 8, marginTop: 12 },
+  section: { fontSize: 11, fontWeight: '700', color: '#B0B8C4', letterSpacing: 2, marginBottom: 8, marginTop: 12 },
   // Match cards
   matchCard: { backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: Colors.border },
   matchExpired: { opacity: 0.6 },
@@ -663,10 +663,10 @@ const st = StyleSheet.create({
   matchTeam: { fontSize: 14, fontWeight: '700', color: Colors.white, flex: 1 },
   statusTag: { paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   statusText: { fontSize: 9, fontWeight: '700' },
-  matchInfo: { fontSize: 12, color: Colors.textSecondary, marginTop: 2 },
-  matchAddr: { fontSize: 11, color: Colors.textMuted, marginTop: 2 },
+  matchInfo: { fontSize: 12, color: '#C0C8D4', marginTop: 2 },
+  matchAddr: { fontSize: 11, color: '#A0A8B4', marginTop: 2 },
   managerRow: { flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 },
-  managerText: { fontSize: 11, color: Colors.textMuted },
+  managerText: { fontSize: 11, color: '#A0A8B4' },
   // Action row
   actionRow: { flexDirection: 'row', gap: 6, marginTop: 8, flexWrap: 'wrap' },
   goMatchBtn: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: Colors.primary, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 6 },
@@ -677,15 +677,15 @@ const st = StyleSheet.create({
   cancelMatchText: { fontSize: 10, fontWeight: '700', color: Colors.destructive },
   // Cancelled
   cancelledCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 12, marginBottom: 6, borderWidth: 1, borderColor: 'rgba(239,68,68,0.15)', opacity: 0.7 },
-  cancelledTitle: { fontSize: 13, fontWeight: '700', color: Colors.textMuted },
+  cancelledTitle: { fontSize: 13, fontWeight: '700', color: '#B0B8C4' },
   cancelledStatus: { fontSize: 10, color: Colors.destructive, fontWeight: '600', marginTop: 2 },
   // Invite cards
   inviteCard: { backgroundColor: Colors.backgroundSecondary, borderRadius: 10, padding: 12, marginBottom: 8, borderWidth: 1, borderColor: 'rgba(245,158,11,0.2)' },
   tapHint: { fontSize: 10, color: Colors.primary, marginTop: 4, fontWeight: '600' },
   // Empty
   emptyBox: { alignItems: 'center', paddingVertical: 60, gap: 8 },
-  emptyText: { fontSize: 16, fontWeight: '700', color: Colors.textMuted },
-  emptyHint: { fontSize: 12, color: Colors.textMuted },
+  emptyText: { fontSize: 16, fontWeight: '700', color: '#B0B8C4' },
+  emptyHint: { fontSize: 12, color: '#A0A8B4' },
   // Modal
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.7)', justifyContent: 'flex-end' },
   modalContent: { backgroundColor: Colors.backgroundSecondary, borderTopLeftRadius: 18, borderTopRightRadius: 18, padding: 18, paddingBottom: 36 },

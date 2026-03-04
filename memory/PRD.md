@@ -59,8 +59,11 @@ Build a subscription-based football and futsal team management application with 
 - [x] Design: Reduced headline/spacing on dashboard and team pages for Expo fit
 - [x] TV-inspired pitch view with 3D perspective (TVPitchView.tsx component)
 - [x] Auto-save team selection in tactics page
-- [x] Back button on tactics page
-- [x] Hidden Stack header for tactics (custom header instead)
+- [x] Back button on tactics page, hidden Stack header
+- [x] Feed items on team page are now clickable (navigate to relevant pages)
+- [x] Fixed double back icon on friendly-matches and messages pages (headerShown: false)
+- [x] Brightened text on friendly-matches page (section headers, match info, cancelled items)
+- [x] Share Lineup PDF: Backend endpoint + frontend button to export formation as PDF
 
 ## Prioritized Backlog
 
