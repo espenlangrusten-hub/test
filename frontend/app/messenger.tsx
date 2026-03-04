@@ -118,7 +118,7 @@ export default function MessengerPage() {
           <ScrollView style={{ flex: 1 }} contentContainerStyle={s.sysList}>
             {systemMsgs.length === 0 && <Text style={s.emptyText}>No notifications yet.</Text>}
             {systemMsgs.map(m => (
-              <View key={m.id} style={[s.sysCard, !m.read && s.sysUnread]}>
+              <View key={`sys-${m.id}`} style={[s.sysCard, !m.read && s.sysUnread]}>
                 <View style={{ flex: 1 }}>
                   <Text style={s.sysTitle}>{m.title}</Text>
                   <Text style={s.sysBody}>{m.body}</Text>
@@ -154,7 +154,7 @@ export default function MessengerPage() {
               {messages.map(m => {
                 const mine = m.from_user_id === user?.user_id;
                 return (
-                  <View key={m.id} style={[s.bubble, mine ? s.bubbleMine : s.bubbleTheirs]}>
+                  <View key={`msg-${m.id}`} style={[s.bubble, mine ? s.bubbleMine : s.bubbleTheirs]}>
                     {!mine && m.from_team_name ? <Text style={s.bubbleTeam}>{m.from_team_name}</Text> : null}
                     <Text style={s.bubbleText}>{m.content}</Text>
                     <View style={s.bubbleMeta}>
@@ -187,7 +187,7 @@ export default function MessengerPage() {
               <View style={s.networkBar}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12, gap: 14 }}>
                   {network.map(n => (
-                    <TouchableOpacity key={n.friend_user_id} style={s.networkChip}
+                    <TouchableOpacity key={`netchip-${n.friend_user_id}`} style={s.networkChip}
                       onPress={() => openConvo(n.friend_user_id, n.friend_team_name, n.friend_team_id)}>
                       <View style={s.networkAvatar}>
                         <MaterialCommunityIcons name="account" size={20} color="#4ADE80" />
@@ -208,7 +208,7 @@ export default function MessengerPage() {
                 <Text style={[s.emptyText, { paddingVertical: 20 }]}>Tap a contact above to start a conversation.</Text>
               )}
               {activeConvos.map(c => (
-                <TouchableOpacity key={c.other_user_id} style={s.contactRow}
+                <TouchableOpacity key={`conv-${c.other_user_id}`} style={s.contactRow}
                   onPress={() => openConvo(c.other_user_id, c.other_user_name, c.other_team_id)}>
                   <View style={s.contactAvatar}>
                     <MaterialCommunityIcons name="account" size={22} color="#888" />
