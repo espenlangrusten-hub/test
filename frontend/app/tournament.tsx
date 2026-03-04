@@ -130,7 +130,12 @@ export default function TournamentScreen() {
   // ====== HUB ======
   const renderHub = () => (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll}>
-      <Text style={s.pageTitle}>Tournaments</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+        <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }}>
+          <MaterialCommunityIcons name="arrow-left" size={22} color="#888" />
+        </TouchableOpacity>
+        <Text style={s.pageTitle}>Tournaments</Text>
+      </View>
 
       <TouchableOpacity data-testid="create-tournament-btn" style={s.createBtn} onPress={() => setView('create')}>
         <MaterialCommunityIcons name="plus" size={20} color="#FFF" />
