@@ -6,7 +6,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://team-management-hub-1.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://league-organizer-7.preview.emergentagent.com')
 
 class TestTournamentFeatures:
     """Tests for tournament system features"""

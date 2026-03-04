@@ -31,6 +31,7 @@ export default function TournamentScreen() {
   const [endDate, setEndDate] = useState('');
   const [groupsCount, setGroupsCount] = useState('2');
   const [matchesPerPair, setMatchesPerPair] = useState('1');
+  const [hasBKnockout, setHasBKnockout] = useState(false);
   const [teams, setTeams] = useState<{name: string; team_id: string; from_network: boolean}[]>([]);
   const [newTeamName, setNewTeamName] = useState('');
   const [showNetPicker, setShowNetPicker] = useState(false);
@@ -93,6 +94,7 @@ export default function TournamentScreen() {
           start_date: startDate, end_date: endDate,
           teams, groups_count: parseInt(groupsCount) || 2,
           matches_per_pair: parseInt(matchesPerPair) || 1,
+          has_b_knockout: hasBKnockout,
         }),
       });
       if (r.ok) {
@@ -199,6 +201,14 @@ export default function TournamentScreen() {
         <>
           <Text style={s.label}>NUMBER OF GROUPS</Text>
           <TextInput style={[s.input, { width: 80 }]} value={groupsCount} onChangeText={setGroupsCount} keyboardType="number-pad" />
+
+          <TouchableOpacity data-testid="b-knockout-toggle" style={s.bKnockoutRow} onPress={() => setHasBKnockout(!hasBKnockout)}>
+            <View style={[s.toggleDot, hasBKnockout && s.toggleDotActive]} />
+            <View style={{ flex: 1 }}>
+              <Text style={s.bKnockoutLabel}>B Knockouts (Lower Bracket)</Text>
+              <Text style={s.bKnockoutDesc}>3rd/4th placed teams play a consolation bracket</Text>
+            </View>
+          </TouchableOpacity>
         </>
       )}
 
@@ -287,16 +297,24 @@ export default function TournamentScreen() {
       }
     }
 
-    // Organize knockout matches by rounds in order
-    const koMatches = matches.filter((m: any) => m.round !== 'group');
+    // Organize knockout matches by brackets
+    const koMatchesA = matches.filter((m: any) => m.round !== 'group' && m.bracket !== 'b');
+    const koMatchesB = matches.filter((m: any) => m.bracket === 'b');
     const groupMatches = matches.filter((m: any) => m.round === 'group');
-    const roundOrder: string[] = [];
-    const roundsMap: Record<string, any[]> = {};
-    for (const m of koMatches) {
-      if (!roundsMap[m.round]) { roundsMap[m.round] = []; roundOrder.push(m.round); }
-      roundsMap[m.round].push(m);
-    }
-    // Also group matches
+    
+    const buildRoundMap = (koList: any[]) => {
+      const order: string[] = [];
+      const map: Record<string, any[]> = {};
+      for (const m of koList) {
+        if (!map[m.round]) { map[m.round] = []; order.push(m.round); }
+        map[m.round].push(m);
+      }
+      return { order, map };
+    };
+    const bracketA = buildRoundMap(koMatchesA);
+    const bracketB = buildRoundMap(koMatchesB);
+    
+    // Group matches by group
     const groupRoundsMap: Record<string, any[]> = {};
     for (const m of groupMatches) {
       const key = `Group ${m.group}`;
@@ -325,13 +343,13 @@ export default function TournamentScreen() {
     };
 
     // Bracket visualization for knockout
-    const renderBracket = () => {
+    const renderBracket = (roundOrder: string[], roundsMap: Record<string, any[]>, label: string, isB?: boolean) => {
       if (roundOrder.length === 0) return null;
       return (
         <View style={s.bracketWrap}>
           <View style={s.bracketHeader}>
-            <Text style={s.bracketTitle}>KNOCKOUT BRACKET</Text>
-            <View style={s.bracketLine} />
+            <Text style={[s.bracketTitle, isB && { color: '#F59E0B' }]}>{label}</Text>
+            <View style={[s.bracketLine, isB && { backgroundColor: 'rgba(245,158,11,0.15)' }]} />
           </View>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.bracketScroll}>
             {roundOrder.map((rname, ri) => {
@@ -339,44 +357,33 @@ export default function TournamentScreen() {
               const isFinal = rname === 'Final';
               return (
                 <View key={rname} style={s.bracketRound}>
-                  <View style={[s.roundTag, isFinal && s.roundTagFinal]}>
-                    <Text style={[s.roundTagText, isFinal && { color: '#F59E0B' }]}>{rname.toUpperCase()}</Text>
+                  <View style={[s.roundTag, isFinal && s.roundTagFinal, isB && isFinal && { backgroundColor: 'rgba(245,158,11,0.1)', borderColor: 'rgba(245,158,11,0.25)' }]}>
+                    <Text style={[s.roundTagText, isFinal && { color: isB ? '#F59E0B' : '#F59E0B' }]}>{rname.toUpperCase()}</Text>
                   </View>
                   <View style={s.bracketMatchList}>
-                    {rmatches.map((m: any, mi: number) => {
+                    {rmatches.map((m: any) => {
                       const homeWon = m.played && (m.home_score ?? 0) >= (m.away_score ?? 0);
                       const awayWon = m.played && (m.away_score ?? 0) > (m.home_score ?? 0);
                       return (
-                        <View key={m.id} style={[s.bracketCard, isFinal && s.bracketCardFinal]}>
-                          {/* Home */}
+                        <View key={m.id} style={[s.bracketCard, isFinal && s.bracketCardFinal, isB && isFinal && { borderColor: 'rgba(245,158,11,0.25)', backgroundColor: 'rgba(245,158,11,0.03)' }]}>
                           <View style={[s.bracketTeamRow, homeWon && s.bracketTeamWon]}>
                             <View style={[s.bracketDot, homeWon && { backgroundColor: '#4ADE80' }]} />
                             <Text style={[s.bracketTeamName, homeWon && { color: '#4ADE80', fontWeight: '800' }]} numberOfLines={1}>{m.home_team}</Text>
-                            {m.played ? (
-                              <Text style={[s.bracketScore, homeWon && { color: '#4ADE80' }]}>{m.home_score}</Text>
-                            ) : null}
+                            {m.played ? <Text style={[s.bracketScore, homeWon && { color: '#4ADE80' }]}>{m.home_score}</Text> : null}
                           </View>
-                          {/* Divider */}
                           <View style={s.bracketDivider} />
-                          {/* Away */}
                           <View style={[s.bracketTeamRow, awayWon && s.bracketTeamWon]}>
                             <View style={[s.bracketDot, awayWon && { backgroundColor: '#4ADE80' }]} />
                             <Text style={[s.bracketTeamName, awayWon && { color: '#4ADE80', fontWeight: '800' }]} numberOfLines={1}>{m.away_team}</Text>
-                            {m.played ? (
-                              <Text style={[s.bracketScore, awayWon && { color: '#4ADE80' }]}>{m.away_score}</Text>
-                            ) : null}
+                            {m.played ? <Text style={[s.bracketScore, awayWon && { color: '#4ADE80' }]}>{m.away_score}</Text> : null}
                           </View>
-                          {/* Action */}
                           {!m.played && tournament.status !== 'completed' && (
                             <TouchableOpacity style={s.bracketResultBtn} onPress={() => { setShowResult(m); setHomeScore(''); setAwayScore(''); }}>
                               <Text style={s.bracketResultText}>ENTER RESULT</Text>
                             </TouchableOpacity>
                           )}
-                          {/* Connector */}
                           {ri < roundOrder.length - 1 && (
-                            <View style={s.connector}>
-                              <View style={s.connectorLine} />
-                            </View>
+                            <View style={s.connector}><View style={s.connectorLine} /></View>
                           )}
                         </View>
                       );
@@ -462,11 +469,14 @@ export default function TournamentScreen() {
           </View>
         ))}
 
-        {/* Bracket Visualization */}
-        {renderBracket()}
+        {/* A Bracket (Main) */}
+        {renderBracket(bracketA.order, bracketA.map, tournament.has_b_knockout ? 'A KNOCKOUT (TOP TEAMS)' : 'KNOCKOUT BRACKET')}
+
+        {/* B Bracket (Lower) */}
+        {tournament.has_b_knockout && bracketB.order.length > 0 && renderBracket(bracketB.order, bracketB.map, 'B KNOCKOUT (LOWER BRACKET)', true)}
 
         {/* Champion Banner */}
-        {tournament.status === 'completed' && (
+        {tournament.status === 'completed' && tournament.winner && (
           <View style={s.winnerCard}>
             <View style={s.winnerStars}>
               <Text style={s.starText}>★</Text>
@@ -475,6 +485,16 @@ export default function TournamentScreen() {
             </View>
             <Text style={s.winnerTitle}>CHAMPION</Text>
             <Text style={s.winnerName}>{tournament.winner}</Text>
+            <View style={s.winnerAccent} />
+          </View>
+        )}
+
+        {/* B Winner */}
+        {tournament.winner_b && (
+          <View style={[s.winnerCard, { borderColor: 'rgba(245,158,11,0.2)', backgroundColor: 'rgba(245,158,11,0.03)', marginTop: 12 }]}>
+            <MaterialCommunityIcons name="medal" size={32} color="#F59E0B" />
+            <Text style={[s.winnerTitle, { letterSpacing: 3 }]}>B BRACKET WINNER</Text>
+            <Text style={[s.winnerName, { fontSize: 20 }]}>{tournament.winner_b}</Text>
             <View style={s.winnerAccent} />
           </View>
         )}
