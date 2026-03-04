@@ -1415,6 +1415,263 @@ async def delete_tournament(tournament_id: str, user: dict = Depends(get_current
     return {"message": "Deleted"}
 
 
+@api_router.get("/tournaments/{tournament_id}/pdf")
+async def tournament_pdf(tournament_id: str, user: dict = Depends(get_current_user)):
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.units import mm
+    from reportlab.lib.colors import HexColor, white, black
+    from reportlab.pdfgen import canvas
+    from reportlab.lib.enums import TA_CENTER
+    import io
+
+    t = await db.tournaments.find_one({"id": tournament_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    w, h = A4
+    
+    # Colors
+    dark_bg = HexColor('#0D1117')
+    card_bg = HexColor('#161B22')
+    green = HexColor('#4ADE80')
+    gold = HexColor('#F59E0B')
+    gray = HexColor('#8B949E')
+    light = HexColor('#C9D1D9')
+    
+    # Background
+    c.setFillColor(dark_bg)
+    c.rect(0, 0, w, h, fill=1, stroke=0)
+    
+    # Header stripe
+    c.setFillColor(HexColor('#1A2332'))
+    c.rect(0, h - 100, w, 100, fill=1, stroke=0)
+    c.setStrokeColor(green)
+    c.setLineWidth(2)
+    c.line(20, h - 100, w - 20, h - 100)
+    
+    # Trophy icon (star shape)
+    c.setFillColor(gold)
+    cx, cy = w / 2, h - 40
+    c.circle(cx, cy, 12, fill=1, stroke=0)
+    c.setFillColor(dark_bg)
+    c.setFont("Helvetica-Bold", 14)
+    c.drawCentredString(cx, cy - 5, "★")
+    
+    # Title
+    c.setFillColor(white)
+    c.setFont("Helvetica-Bold", 24)
+    c.drawCentredString(w / 2, h - 70, t["name"].upper())
+    c.setFillColor(gray)
+    c.setFont("Helvetica", 10)
+    c.drawCentredString(w / 2, h - 88, f"{t.get('tournament_type', '').replace('_', ' ').upper()} · {t.get('format', '')} · {len(t.get('teams', []))} TEAMS")
+    
+    y = h - 130
+    matches = t.get("matches", [])
+    groups = t.get("groups", {})
+    teams_list = t.get("teams", [])
+    t_type = t.get("tournament_type", "")
+    
+    # Standings table for league / group_knockout
+    if t_type in ("league", "group_knockout") and groups:
+        for g_name, g_teams in groups.items():
+            g_matches = [m for m in matches if m.get("group") == g_name]
+            standings = compute_standings(g_matches, g_teams)
+            
+            c.setFillColor(green)
+            c.setFont("Helvetica-Bold", 12)
+            label = "STANDINGS" if t_type == "league" else f"GROUP {g_name}"
+            c.drawString(30, y, label)
+            y -= 18
+            
+            # Table header
+            c.setFillColor(card_bg)
+            c.rect(25, y - 4, w - 50, 18, fill=1, stroke=0)
+            c.setFillColor(gray)
+            c.setFont("Helvetica-Bold", 8)
+            cols = [("Team", 30), ("P", 220), ("W", 255), ("D", 285), ("L", 315), ("GF", 345), ("GA", 375), ("GD", 405), ("Pts", 440)]
+            for label, x_pos in cols:
+                c.drawString(x_pos, y, label)
+            y -= 16
+            
+            for i, row in enumerate(standings):
+                if i < 2 and t_type == "group_knockout":
+                    c.setStrokeColor(green)
+                    c.setLineWidth(1)
+                    c.line(25, y + 10, 25, y - 6)
+                c.setFillColor(light)
+                c.setFont("Helvetica", 9)
+                c.drawString(30, y, row["team"][:22])
+                vals = [row["played"], row["won"], row["drawn"], row["lost"], row["gf"], row["ga"], row["gd"], row["points"]]
+                x_positions = [220, 255, 285, 315, 345, 375, 405, 440]
+                for v, xp in zip(vals, x_positions):
+                    c.setFillColor(green if xp == 440 else light)
+                    c.drawString(xp, y, str(v))
+                y -= 14
+            y -= 10
+    
+    # Bracket visualization for knockout / group_knockout knockout phase
+    ko_matches = [m for m in matches if m.get("round") != "group"]
+    if ko_matches or t_type == "knockout":
+        bracket_matches = ko_matches if ko_matches else matches
+        
+        c.setFillColor(green)
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(30, y, "KNOCKOUT BRACKET")
+        y -= 10
+        
+        # Organize by rounds
+        round_order = []
+        seen_rounds = set()
+        for m in bracket_matches:
+            rn = m.get("round", "")
+            if rn and rn not in seen_rounds:
+                round_order.append(rn)
+                seen_rounds.add(rn)
+        
+        if round_order:
+            num_rounds = len(round_order)
+            round_width = (w - 60) / max(num_rounds, 1)
+            
+            for ri, rname in enumerate(round_order):
+                rx = 30 + ri * round_width
+                rmatches = [m for m in bracket_matches if m.get("round") == rname]
+                
+                # Round label
+                c.setFillColor(gray)
+                c.setFont("Helvetica-Bold", 8)
+                c.drawString(rx, y, rname.upper())
+                
+                match_h = 36
+                gap = 12
+                start_y = y - 20
+                total_h = len(rmatches) * (match_h + gap)
+                offset_y = start_y
+                
+                for mi, m in enumerate(rmatches):
+                    # Match card
+                    c.setFillColor(card_bg)
+                    c.roundRect(rx, offset_y - match_h, round_width - 15, match_h, 4, fill=1, stroke=0)
+                    
+                    # Border accent
+                    if m.get("played"):
+                        c.setStrokeColor(green)
+                    else:
+                        c.setStrokeColor(gray)
+                    c.setLineWidth(0.5)
+                    c.line(rx, offset_y - match_h + 4, rx, offset_y - 4)
+                    
+                    hs = m.get("home_score")
+                    as_ = m.get("away_score")
+                    home_won = m.get("played") and (hs or 0) >= (as_ or 0)
+                    away_won = m.get("played") and (as_ or 0) > (hs or 0)
+                    
+                    # Home team
+                    c.setFillColor(green if home_won else (light if not m.get("played") else gray))
+                    c.setFont("Helvetica-Bold" if home_won else "Helvetica", 8)
+                    c.drawString(rx + 6, offset_y - 14, m["home_team"][:16])
+                    if m.get("played"):
+                        c.drawRightString(rx + round_width - 22, offset_y - 14, str(hs))
+                    
+                    # Away team
+                    c.setFillColor(green if away_won else (light if not m.get("played") else gray))
+                    c.setFont("Helvetica-Bold" if away_won else "Helvetica", 8)
+                    c.drawString(rx + 6, offset_y - match_h + 8, m["away_team"][:16])
+                    if m.get("played"):
+                        c.drawRightString(rx + round_width - 22, offset_y - match_h + 8, str(as_))
+                    
+                    # Connector lines to next round
+                    if ri < num_rounds - 1:
+                        mid_y = offset_y - match_h / 2
+                        c.setStrokeColor(HexColor('#30363D'))
+                        c.setLineWidth(1)
+                        c.line(rx + round_width - 15, mid_y, rx + round_width - 5, mid_y)
+                    
+                    offset_y -= (match_h + gap)
+                
+                y_bottom = offset_y
+            
+            y = min(y_bottom - 10, y - 20 - len(bracket_matches) * 25)
+    
+    # Match results list
+    if y > 120:
+        c.setFillColor(green)
+        c.setFont("Helvetica-Bold", 12)
+        c.drawString(30, y, "ALL RESULTS")
+        y -= 18
+        
+        for m in matches:
+            if y < 40:
+                c.showPage()
+                c.setFillColor(dark_bg)
+                c.rect(0, 0, w, h, fill=1, stroke=0)
+                y = h - 40
+            
+            c.setFillColor(card_bg)
+            c.roundRect(25, y - 16, w - 50, 20, 3, fill=1, stroke=0)
+            
+            label = m.get("group", "") or m.get("round", "")
+            c.setFillColor(gray)
+            c.setFont("Helvetica", 7)
+            c.drawString(30, y - 12, label)
+            
+            c.setFillColor(light)
+            c.setFont("Helvetica", 9)
+            c.drawString(100, y - 12, m["home_team"])
+            
+            if m.get("played"):
+                c.setFillColor(green)
+                c.setFont("Helvetica-Bold", 10)
+                score_str = f"{m.get('home_score', 0)} - {m.get('away_score', 0)}"
+                c.drawCentredString(w / 2, y - 12, score_str)
+            else:
+                c.setFillColor(gray)
+                c.setFont("Helvetica", 8)
+                c.drawCentredString(w / 2, y - 12, "vs")
+            
+            c.setFillColor(light)
+            c.setFont("Helvetica", 9)
+            c.drawRightString(w - 30, y - 12, m["away_team"])
+            y -= 22
+    
+    # Winner banner
+    if t.get("winner"):
+        if y < 80:
+            c.showPage()
+            c.setFillColor(dark_bg)
+            c.rect(0, 0, w, h, fill=1, stroke=0)
+            y = h - 60
+        
+        c.setFillColor(HexColor('#1A2332'))
+        c.roundRect(40, y - 60, w - 80, 55, 8, fill=1, stroke=0)
+        c.setStrokeColor(gold)
+        c.setLineWidth(1.5)
+        c.roundRect(40, y - 60, w - 80, 55, 8, fill=0, stroke=1)
+        
+        c.setFillColor(gold)
+        c.setFont("Helvetica-Bold", 10)
+        c.drawCentredString(w / 2, y - 22, "★  CHAMPION  ★")
+        c.setFillColor(white)
+        c.setFont("Helvetica-Bold", 18)
+        c.drawCentredString(w / 2, y - 46, t["winner"])
+    
+    # Footer
+    c.setFillColor(HexColor('#30363D'))
+    c.setFont("Helvetica", 7)
+    c.drawCentredString(w / 2, 15, f"TACTICAL LINEUP · {t['name']} · Generated {datetime.now(timezone.utc).strftime('%Y-%m-%d')}")
+    
+    c.save()
+    buf.seek(0)
+    
+    from starlette.responses import StreamingResponse
+    filename = f"{t['name'].replace(' ', '_')}_tournament.pdf"
+    return StreamingResponse(
+        buf, media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+
 # ---- Health ----
 
 @api_router.get("/health")
