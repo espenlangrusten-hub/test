@@ -466,10 +466,10 @@ export default function TeamPage() {
 const s = StyleSheet.create({
   root: { flex: 1 },
   bg: { flex: 1 },
-  scroll: { padding: 16, paddingBottom: 20 },
+  scroll: { padding: 14, paddingBottom: 20 },
 
   // Top bar
-  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingTop: 8, paddingBottom: 8, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
   pageName: { fontSize: 18, fontWeight: '800', color: '#EAEAEA' },
   topRight: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   savingText: { fontSize: 11, color: '#4ADE80', fontWeight: '600' },
@@ -500,10 +500,10 @@ const s = StyleSheet.create({
   managerText: { fontSize: 12, color: '#888' },
 
   // Section
-  sectionLabel: { fontSize: 12, fontWeight: '600', color: '#999', letterSpacing: 2.5, marginTop: 20, marginBottom: 12 },
+  sectionLabel: { fontSize: 11, fontWeight: '600', color: '#999', letterSpacing: 2.5, marginTop: 12, marginBottom: 8 },
 
   // Menu grid
-  menuGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
+  menuGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 10 },
   menuItem: { width: '22%' as any, alignItems: 'center', paddingVertical: 12, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.03)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
   menuIconWrap: { width: 36, height: 36, borderRadius: 18, justifyContent: 'center', alignItems: 'center', marginBottom: 4 },
   menuLabel: { fontSize: 10, fontWeight: '700', color: '#BBB', marginTop: 2 },
@@ -547,11 +547,6 @@ const s = StyleSheet.create({
   dd: { fontSize: 12, fontWeight: '600', color: '#888', textAlign: 'center' },
   infoBox: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 12, paddingHorizontal: 10 },
   infoBoxText: { fontSize: 12, color: '#F59E0B', flex: 1 },
-
-  // Bottom Nav
-  tabBar: { flexDirection: 'row', height: 60, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)', backgroundColor: '#131517' },
-  navTab: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 2 },
-  navLabel: { fontSize: 10, fontWeight: '500', color: '#555' },
 
   // Modals
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'flex-end' },
