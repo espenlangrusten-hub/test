@@ -12,7 +12,7 @@ Subscription-based team management application for football and futsal coaches. 
 ## Key Pages
 - **Dashboard** (`index.tsx`): Compact sport cards, bell badge, teams list, network section
 - **Team** (`team.tsx`): Feed (replacing message board), Quick Actions (Squad/Tactics/Calendar/Friendly/Tournament/Training/History/Match)
-- **Tournament** (`tournament.tsx`): Hub (ongoing/completed/create), bracket visualization, PDF export
+- **Tournament** (`tournament.tsx`): Hub (ongoing/completed/create), bracket visualization, PDF export, A+B knockout brackets
 - **Messenger** (`messenger.tsx`): FB-inspired DMs + notifications with 5s polling
 - **Settings** (`settings.tsx`): Profile/password management
 - **My Network** (`my-network.tsx`): Full network contacts list
@@ -28,16 +28,19 @@ Subscription-based team management application for football and futsal coaches. 
 - Calendar: all-teams events
 
 ## Data Models
-- **tournaments**: `{id, user_id, name, format, tournament_type, start_date, end_date, teams[], groups{}, matches[], status, winner, created_at}`
+- **tournaments**: `{id, user_id, name, format, tournament_type, start_date, end_date, teams[], groups{}, matches[], status, winner, winner_b, has_b_knockout, created_at}`
   - tournament_type: knockout | group_knockout | league
   - matches auto-generated with byes for non-power-of-2 team counts
+  - B knockout: 3rd/4th placed teams from each group go to consolation bracket
 
 ## Changelog
+- 2026-03-04 (Session 16): Verified and tested B Knockout feature end-to-end. Backend: 15/15 tests passed. Frontend: All UI elements verified. Tournament creation with B knockouts, group stage completion triggers A+B bracket generation, both brackets advance through Semi-Finals to Finals, tournament completes with winner and winner_b.
 - 2026-03-04 (Session 15): Moved tournament link from dashboard to team Quick Actions. Added CL-inspired knockout bracket visualization (horizontal rounds, green winners, gold Final tag). Added PDF export with dark theme (reportlab). Hidden router headers on major pages. 100% tests (9/9 backend + all frontend).
-- 2026-03-03 (Session 14): Team page redesign + full tournament system. 
+- 2026-03-03 (Session 14): Team page redesign + full tournament system.
 - 2026-03-03 (Session 13): Dashboard redesign + settings/messenger/network pages.
 
 ## Test Reports
+- `/app/test_reports/iteration_28.json` (B Knockout E2E - 100%)
 - `/app/test_reports/iteration_27.json` (Bracket viz + PDF + move link - 100%)
 - `/app/test_reports/iteration_26.json` (Tournament system - 100%)
 - `/app/test_reports/iteration_25.json` (Dashboard + Messenger - 100%)
@@ -53,6 +56,6 @@ Subscription-based team management application for football and futsal coaches. 
 
 ### Future
 - Subscription/payment model
-- Backend refactoring (server.py → route modules)
+- Backend refactoring (server.py -> route modules)
 - WebSocket for real-time messaging
 - Training drill illustrations
