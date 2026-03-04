@@ -125,7 +125,7 @@ export default function HomeScreen() {
             {loading && <ActivityIndicator size="large" color="#4ADE80" style={{ marginVertical: 20 }} />}
             {!loading && teams.length === 0 && <Text style={s.emptyText}>No teams yet. Create your first squad above.</Text>}
             {!loading && teams.map((team) => (
-              <TouchableOpacity key={team.id} testID={`team-card-${team.id}`} style={s.teamRow} onPress={() => openTeam(team)} activeOpacity={0.7}>
+              <TouchableOpacity key={`team-${team.id}`} testID={`team-card-${team.name}`} style={s.teamRow} onPress={() => openTeam(team)} activeOpacity={0.7}>
                 <View style={s.shieldWrap}>
                   {team.country ? (
                     <View style={s.shieldInner}>
@@ -160,7 +160,7 @@ export default function HomeScreen() {
             </View>
             {network.length === 0 && <Text style={s.emptyText}>No teams in network.</Text>}
             {network.map(n => (
-              <TouchableOpacity key={n.id} testID={`network-${n.id}`} style={s.netRow}
+              <TouchableOpacity key={`net-${n.id}`} testID={`network-${n.id}`} style={s.netRow}
                 onPress={() => setExpandedNetwork(expandedNetwork === n.id ? null : n.id)}
                 activeOpacity={0.7}
               >
