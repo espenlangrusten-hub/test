@@ -12,7 +12,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://league-organizer-7.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://tournament-bracket-3.preview.emergentagent.com')
 
 class TestSetup:
     """Setup fixtures for testing"""

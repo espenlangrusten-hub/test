@@ -243,15 +243,15 @@ const s = StyleSheet.create({
   topIcon: { padding: 2 },
 
   // Brand
-  brand: { alignItems: 'center', paddingTop: 16, paddingBottom: 20 },
-  brandTitle: { fontSize: 30, fontWeight: '900', color: '#EAEAEA', letterSpacing: 2, marginTop: 8 },
-  brandSub: { fontSize: 11, fontWeight: '400', color: '#777', letterSpacing: 2, marginTop: 2 },
+  brand: { alignItems: 'center', paddingTop: 8, paddingBottom: 12 },
+  brandTitle: { fontSize: 24, fontWeight: '900', color: '#EAEAEA', letterSpacing: 2, marginTop: 6 },
+  brandSub: { fontSize: 10, fontWeight: '400', color: '#777', letterSpacing: 2, marginTop: 2 },
 
   // Section label
-  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 2.5, marginBottom: 14, marginTop: 8 },
+  sectionLabel: { fontSize: 12, fontWeight: '600', color: '#999', letterSpacing: 2.5, marginBottom: 10, marginTop: 6 },
 
   // Sport cards
-  sportRow: { flexDirection: 'row', gap: 12, marginBottom: 22 },
+  sportRow: { flexDirection: 'row', gap: 12, marginBottom: 14 },
   sportCard: { flex: 1 },
   sportGrad: { borderRadius: 14, padding: 14, alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
   sportIconArea: { height: 54, justifyContent: 'center', alignItems: 'center', marginBottom: 4 },
@@ -290,12 +290,6 @@ const s = StyleSheet.create({
   netHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 28, marginBottom: 10 },
   addNetInline: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(74,222,128,0.3)', backgroundColor: 'rgba(74,222,128,0.06)' },
   addNetInlineText: { fontSize: 12, fontWeight: '600', color: '#4ADE80' },
-
-  // Bottom Tab Bar
-  tabBar: { flexDirection: 'row', height: 60, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)', backgroundColor: '#131517' },
-  tab: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 2 },
-  tabLabel: { fontSize: 10, fontWeight: '500', color: '#555' },
-  navDot: { position: 'absolute' as const, top: -2, right: -6, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' },
 
   // Bell badge
   bellBadge: { position: 'absolute' as const, top: -6, right: -8, backgroundColor: '#EF4444', borderRadius: 10, minWidth: 18, height: 18, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 4 },
