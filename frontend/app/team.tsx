@@ -146,8 +146,9 @@ export default function TeamPage() {
     { key: 'tactics', icon: 'strategy', label: 'Tactics', color: Colors.primary },
     { key: 'calendar', icon: 'calendar-month', label: 'Calendar', color: '#06B6D4' },
     { key: 'friendly', icon: 'handshake', label: 'Friendly', color: '#10B981' },
+    { key: 'tournament', icon: 'trophy', label: 'Tournament', color: '#F59E0B' },
     { key: 'training', icon: 'whistle', label: 'Training', color: '#8B5CF6' },
-    { key: 'history', icon: 'history', label: 'History', color: '#F59E0B' },
+    { key: 'history', icon: 'history', label: 'History', color: '#EF4444' },
     { key: 'match', icon: 'play-circle', label: 'Match', color: '#EF4444' },
   ];
 
@@ -156,6 +157,7 @@ export default function TeamPage() {
     else if (key === 'tactics') router.push('/tactics');
     else if (key === 'calendar') router.push(`/calendar?teamId=${currentTeam?.id}`);
     else if (key === 'friendly') router.push(`/friendly-matches?teamId=${currentTeam?.id}`);
+    else if (key === 'tournament') router.push('/tournament');
     else if (key === 'training') router.push('/training');
     else if (key === 'history') router.push(`/match-history?teamId=${currentTeam?.id}`);
     else if (key === 'match') router.push('/match');
