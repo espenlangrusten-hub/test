@@ -10,42 +10,28 @@ import BottomNav, { NAV_HEIGHT } from '../src/components/BottomNav';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
-interface Conversation { other_user_id: string; other_user_name: string; other_team_name: string; other_team_id: string; last_message: string; last_message_at: string; unread_count: number; }
-interface DM { id: string; from_user_id: string; from_user_name: string; from_team_name: string; from_team_id: string; to_user_id: string; to_user_name: string; to_team_name: string; content: string; read: boolean; created_at: string; }
-interface NetworkItem { id: string; friend_user_id: string; friend_team_id: string; friend_team_name: string; friend_team_format: string; friend_team_age_group: string; friend_team_code: string; }
-interface SystemMsg { id: string; team_id: string; type: string; title: string; body: string; read: boolean; created_at: string; related_invite_id?: string; }
-
-export default function MessengerScreen() {
+export default function MessengerPage() {
   const { user, token } = useApp();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [network, setNetwork] = useState<NetworkItem[]>([]);
+  const [tab, setTab] = useState<'direct' | 'system'>('direct');
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [network, setNetwork] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
-  const [systemMsgs, setSystemMsgs] = useState<SystemMsg[]>([]);
-  const [selectedConvo, setSelectedConvo] = useState<string | null>(null);
-  const [selectedName, setSelectedName] = useState('');
-  const [messages, setMessages] = useState<DM[]>([]);
-  const [text, setText] = useState('');
   const [myTeamId, setMyTeamId] = useState('');
   const [toTeamId, setToTeamId] = useState('');
+  const [selectedConvo, setSelectedConvo] = useState<string | null>(null);
+  const [selectedName, setSelectedName] = useState('');
+  const [messages, setMessages] = useState<any[]>([]);
+  const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
-  const [tab, setTab] = useState<'direct' | 'system'>('direct');
+  const [systemMsgs, setSystemMsgs] = useState<any[]>([]);
   const scrollRef = useRef<ScrollView>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const auth = (): Record<string, string> => {
-    const h: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (token) h['Authorization'] = `Bearer ${token}`;
-    return h;
-  };
+  const auth = () => ({ Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' });
 
   useFocusEffect(useCallback(() => {
     fetchConvos(); fetchNetwork(); fetchTeams(); fetchSystemMsgs();
-    pollRef.current = setInterval(() => {
-      fetchConvos();
-      if (selectedConvo) fetchChat(selectedConvo);
-    }, 5000);
-    return () => { if (pollRef.current) clearInterval(pollRef.current); };
-  }, [selectedConvo]));
+    const interval = setInterval(() => { fetchConvos(); if (selectedConvo) fetchChat(selectedConvo); }, 5000);
+    return () => clearInterval(interval);
+  }, [token]));
 
   const fetchConvos = async () => {
     try { const r = await fetch(`${API_URL}/api/direct-messages/conversations`, { headers: auth() }); if (r.ok) setConversations(await r.json()); } catch {}
@@ -86,6 +72,11 @@ export default function MessengerScreen() {
     setMessages(prev => prev.filter(m => m.id !== id));
   };
 
+  const deleteConversation = async (otherUserId: string) => {
+    await fetch(`${API_URL}/api/direct-messages/conversation/${otherUserId}`, { method: 'DELETE', headers: auth() });
+    fetchConvos();
+  };
+
   const deleteSysMsg = async (id: string) => {
     await fetch(`${API_URL}/api/messages/${id}`, { method: 'DELETE', headers: auth() });
     setSystemMsgs(prev => prev.filter(m => m.id !== id));
@@ -101,23 +92,12 @@ export default function MessengerScreen() {
     return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
   };
 
-  // Build contact list: merge conversations + network contacts
-  const contactList = () => {
-    const seen = new Set<string>();
-    const list: { userId: string; name: string; teamName: string; teamId: string; lastMsg: string; lastAt: string; unread: number; }[] = [];
-    for (const c of conversations) {
-      seen.add(c.other_user_id);
-      list.push({ userId: c.other_user_id, name: c.other_user_name, teamName: c.other_team_name, teamId: c.other_team_id, lastMsg: c.last_message, lastAt: c.last_message_at, unread: c.unread_count });
-    }
-    for (const n of network) {
-      if (!seen.has(n.friend_user_id) && n.friend_user_id) {
-        list.push({ userId: n.friend_user_id, name: n.friend_team_name, teamName: n.friend_team_name, teamId: n.friend_team_id, lastMsg: '', lastAt: '', unread: 0 });
-      }
-    }
-    return list;
-  };
+  // Build active conversations (only those with messages)
+  const activeConvos = conversations.filter(c => c.last_message);
 
-  const contacts = contactList();
+  // Network contacts not yet in conversation
+  const networkOnly = network.filter(n => n.friend_user_id && !conversations.some(c => c.other_user_id === n.friend_user_id));
+
   const { height: screenH } = useWindowDimensions();
 
   return (
@@ -158,7 +138,6 @@ export default function MessengerScreen() {
               <Text style={s.chatName}>{selectedName}</Text>
             </TouchableOpacity>
 
-            {/* Team selector */}
             {teams.length > 1 && (
               <ScrollView horizontal style={s.teamPicker} showsHorizontalScrollIndicator={false}>
                 {teams.map(t => (
@@ -201,27 +180,60 @@ export default function MessengerScreen() {
             </View>
           </View>
         ) : (
-          /* Contact list */
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={s.contactList}>
-            {contacts.length === 0 && <Text style={s.emptyText}>Add teams to your network to start messaging.</Text>}
-            {contacts.map(c => (
-              <TouchableOpacity key={c.userId} style={s.contactRow}
-                onPress={() => openConvo(c.userId, c.name || c.teamName, c.teamId)}>
-                <View style={s.contactAvatar}>
-                  <MaterialCommunityIcons name="account" size={22} color="#888" />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={s.contactName}>{c.name || c.teamName}</Text>
-                  {c.teamName && c.name !== c.teamName ? <Text style={s.contactTeam}>{c.teamName}</Text> : null}
-                  {c.lastMsg ? <Text style={s.contactLastMsg} numberOfLines={1}>{c.lastMsg}</Text> : <Text style={s.contactLastMsg}>Tap to start conversation</Text>}
-                </View>
-                <View style={s.contactRight}>
-                  {c.lastAt ? <Text style={s.contactTime}>{formatTime(c.lastAt)}</Text> : null}
-                  {c.unread > 0 && <View style={s.unreadBadge}><Text style={s.unreadText}>{c.unread}</Text></View>}
-                </View>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          /* Main view: Network bar + Conversations */
+          <View style={{ flex: 1 }}>
+            {/* Horizontal Network Contacts */}
+            {networkOnly.length > 0 && (
+              <View style={s.networkBar}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: 12, gap: 14 }}>
+                  {networkOnly.map(n => (
+                    <TouchableOpacity key={n.friend_user_id} style={s.networkChip}
+                      onPress={() => openConvo(n.friend_user_id, n.friend_team_name, n.friend_team_id)}>
+                      <View style={s.networkAvatar}>
+                        <MaterialCommunityIcons name="account" size={20} color="#4ADE80" />
+                      </View>
+                      <Text style={s.networkName} numberOfLines={1}>{n.friend_team_name}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {/* Active Conversations List */}
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={s.contactList}>
+              {activeConvos.length === 0 && networkOnly.length === 0 && (
+                <Text style={s.emptyText}>Add teams to your network to start messaging.</Text>
+              )}
+              {activeConvos.length === 0 && networkOnly.length > 0 && (
+                <Text style={[s.emptyText, { paddingVertical: 20 }]}>Tap a contact above to start a conversation.</Text>
+              )}
+              {activeConvos.map(c => (
+                <TouchableOpacity key={c.other_user_id} style={s.contactRow}
+                  onPress={() => openConvo(c.other_user_id, c.other_user_name, c.other_team_id)}>
+                  <View style={s.contactAvatar}>
+                    <MaterialCommunityIcons name="account" size={22} color="#888" />
+                  </View>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      <Text style={[s.contactName, c.unread_count > 0 && s.contactNameUnread]}>{c.other_user_name}</Text>
+                      {c.other_team_name && <Text style={s.contactTeamBadge}>{c.other_team_name}</Text>}
+                    </View>
+                    {c.last_message ? <Text style={[s.contactLastMsg, c.unread_count > 0 && s.contactLastMsgUnread]} numberOfLines={1}>{c.last_message}</Text> : null}
+                  </View>
+                  <View style={s.contactRight}>
+                    {c.last_message_at ? <Text style={s.contactTime}>{formatTime(c.last_message_at)}</Text> : null}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                      {c.unread_count > 0 && <View style={s.unreadBadge}><Text style={s.unreadText}>{c.unread_count}</Text></View>}
+                      <TouchableOpacity onPress={(e) => { e.stopPropagation?.(); deleteConversation(c.other_user_id); }}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
+                        <MaterialCommunityIcons name="trash-can-outline" size={14} color="#444" />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
         )}
         <BottomNav />
       </LinearGradient>
@@ -230,8 +242,6 @@ export default function MessengerScreen() {
 }
 
 const s = StyleSheet.create({
-  root: { flex: 1 },
-  bg: { flex: 1 },
   tabRow: { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)' },
   tabBtn: { flex: 1, paddingVertical: 14, alignItems: 'center', position: 'relative' as const },
   tabActive: { borderBottomWidth: 2, borderBottomColor: '#4ADE80' },
@@ -239,14 +249,22 @@ const s = StyleSheet.create({
   tabTextActive: { color: '#4ADE80' },
   dot: { position: 'absolute' as const, top: 10, right: '30%' as any, width: 8, height: 8, borderRadius: 4, backgroundColor: '#EF4444' },
 
+  // Horizontal network bar
+  networkBar: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  networkChip: { alignItems: 'center', width: 60 },
+  networkAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(74,222,128,0.1)', borderWidth: 2, borderColor: '#4ADE80', justifyContent: 'center', alignItems: 'center' },
+  networkName: { fontSize: 10, fontWeight: '600', color: '#999', marginTop: 4, textAlign: 'center' },
+
   // Contact list
   contactList: { padding: 0 },
   contactRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)', gap: 12 },
   contactAvatar: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#2A2C30', justifyContent: 'center', alignItems: 'center' },
-  contactName: { fontSize: 15, fontWeight: '700', color: '#EAEAEA' },
-  contactTeam: { fontSize: 11, color: '#666', marginTop: 1 },
-  contactLastMsg: { fontSize: 12, color: '#888', marginTop: 2 },
-  contactRight: { alignItems: 'flex-end', gap: 4 },
+  contactName: { fontSize: 15, fontWeight: '600', color: '#CDCDCD' },
+  contactNameUnread: { fontWeight: '900', color: '#FFF' },
+  contactTeamBadge: { fontSize: 10, fontWeight: '600', color: '#4ADE80', backgroundColor: 'rgba(74,222,128,0.1)', paddingHorizontal: 6, paddingVertical: 1, borderRadius: 4 },
+  contactLastMsg: { fontSize: 12, color: '#666', marginTop: 2 },
+  contactLastMsgUnread: { color: '#BBB', fontWeight: '600' },
+  contactRight: { alignItems: 'flex-end', gap: 6 },
   contactTime: { fontSize: 10, color: '#666' },
   unreadBadge: { backgroundColor: '#4ADE80', borderRadius: 10, minWidth: 20, height: 20, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 6 },
   unreadText: { fontSize: 11, fontWeight: '700', color: '#000' },

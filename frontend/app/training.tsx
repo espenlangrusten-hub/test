@@ -83,6 +83,9 @@ export default function TrainingPage() {
       <ScrollView contentContainerStyle={st.scroll} showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View style={st.headerRow}>
+          <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }}>
+            <MaterialCommunityIcons name="arrow-left" size={22} color="#888" />
+          </TouchableOpacity>
           <View style={st.iconWrap}>
             <MaterialCommunityIcons name="whistle" size={28} color="#8B5CF6" />
           </View>
