@@ -1,11 +1,12 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
-  View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, Platform,
+  View, Text, TouchableOpacity, StyleSheet, ScrollView, TextInput, Alert, Platform, useWindowDimensions,
 } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '../src/context/AppContext';
+import BottomNav, { NAV_HEIGHT } from '../src/components/BottomNav';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -117,10 +118,11 @@ export default function MessengerScreen() {
   };
 
   const contacts = contactList();
+  const { height: screenH } = useWindowDimensions();
 
   return (
-    <View style={s.root}>
-      <LinearGradient colors={['#1C1E22', '#161819', '#111315']} style={s.bg}>
+    <View style={{ height: screenH, backgroundColor: '#111315' }}>
+      <LinearGradient colors={['#1C1E22', '#161819', '#111315']} style={{ flex: 1 }}>
         {/* Tab bar: Direct | System */}
         <View style={s.tabRow}>
           <TouchableOpacity style={[s.tabBtn, tab === 'direct' && s.tabActive]} onPress={() => setTab('direct')}>
@@ -221,6 +223,7 @@ export default function MessengerScreen() {
             ))}
           </ScrollView>
         )}
+        <BottomNav />
       </LinearGradient>
     </View>
   );

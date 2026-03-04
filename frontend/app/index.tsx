@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '../src/context/AppContext';
 import { Colors } from '../src/constants/colors';
+import BottomNav from '../src/components/BottomNav';
 import { getFlagForCode } from '../src/constants/countries';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -188,29 +189,6 @@ export default function HomeScreen() {
 
             <View style={{ height: 20 }} />
           </ScrollView>
-
-          {/* Bottom Tab Bar */}
-          <View style={s.tabBar}>
-            <TouchableOpacity style={s.tab}>
-              <MaterialCommunityIcons name="home" size={24} color="#4ADE80" />
-              <Text style={[s.tabLabel, { color: '#4ADE80' }]}>Dashboard</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={s.tab} onPress={() => router.push('/messenger')}>
-              <View>
-                <MaterialCommunityIcons name="message-text-outline" size={24} color="#555" />
-                {unreadCount > 0 && <View style={s.navDot} />}
-              </View>
-              <Text style={s.tabLabel}>Messages</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={s.tab} onPress={() => router.push('/calendar')}>
-              <MaterialCommunityIcons name="calendar-outline" size={24} color="#555" />
-              <Text style={s.tabLabel}>Calendar</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={s.tab} onPress={() => router.push('/my-network')}>
-              <MaterialCommunityIcons name="account-group-outline" size={24} color="#555" />
-              <Text style={s.tabLabel}>Network</Text>
-            </TouchableOpacity>
-          </View>
         </SafeAreaView>
       </LinearGradient>
 
@@ -246,6 +224,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
+      <BottomNav />
     </View>
   );
 }
@@ -269,7 +248,7 @@ const s = StyleSheet.create({
   brandSub: { fontSize: 11, fontWeight: '400', color: '#777', letterSpacing: 2, marginTop: 2 },
 
   // Section label
-  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#666', letterSpacing: 2.5, marginBottom: 14, marginTop: 8 },
+  sectionLabel: { fontSize: 13, fontWeight: '600', color: '#999', letterSpacing: 2.5, marginBottom: 14, marginTop: 8 },
 
   // Sport cards
   sportRow: { flexDirection: 'row', gap: 12, marginBottom: 22 },

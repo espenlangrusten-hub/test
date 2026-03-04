@@ -6,6 +6,7 @@ import { useFocusEffect } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useApp } from '../src/context/AppContext';
+import BottomNav from '../src/components/BottomNav';
 import { getFlagForCode } from '../src/constants/countries';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
@@ -119,6 +120,7 @@ export default function MyNetworkScreen() {
             </View>
           </View>
         </Modal>
+        <BottomNav />
       </LinearGradient>
     </View>
   );
