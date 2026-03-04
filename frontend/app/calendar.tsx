@@ -5,6 +5,7 @@ import {
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useApp } from '../src/context/AppContext';
+import BottomNav from '../src/components/BottomNav';
 import { Colors } from '../src/constants/colors';
 import { getFlagForCode } from '../src/constants/countries';
 
@@ -193,6 +194,7 @@ export default function CalendarScreen() {
           </View>
         ))}
       </ScrollView>
+      <BottomNav />
     </View>
   );
 }

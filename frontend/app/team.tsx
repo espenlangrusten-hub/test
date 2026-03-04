@@ -8,6 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useApp, PlayerData } from '../src/context/AppContext';
 import { COUNTRIES, getFlagForCode } from '../src/constants/countries';
+import BottomNav from '../src/components/BottomNav';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 const FORMATS = ['5v5', '7v7', '9v9', '11v11'];
@@ -385,26 +386,6 @@ export default function TeamPage() {
         </View>
 
         {tab === 'overview' ? renderOverview() : renderSquad()}
-
-        {/* Bottom Nav */}
-        <View style={s.tabBar}>
-          <TouchableOpacity style={s.navTab} onPress={() => router.push('/')}>
-            <MaterialCommunityIcons name="home" size={24} color="#555" />
-            <Text style={s.navLabel}>Dashboard</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.navTab} onPress={() => router.push('/messenger')}>
-            <MaterialCommunityIcons name="message-text-outline" size={24} color="#555" />
-            <Text style={s.navLabel}>Messages</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.navTab} onPress={() => router.push('/calendar')}>
-            <MaterialCommunityIcons name="calendar-outline" size={24} color="#555" />
-            <Text style={s.navLabel}>Calendar</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={s.navTab} onPress={() => router.push('/my-network')}>
-            <MaterialCommunityIcons name="account-group-outline" size={24} color="#555" />
-            <Text style={s.navLabel}>Network</Text>
-          </TouchableOpacity>
-        </View>
       </LinearGradient>
 
       {/* Settings Modal */}
@@ -470,6 +451,7 @@ export default function TeamPage() {
           </View>
         </View>
       </Modal>
+      <BottomNav />
     </View>
   );
 }
@@ -511,7 +493,7 @@ const s = StyleSheet.create({
   managerText: { fontSize: 12, color: '#888' },
 
   // Section
-  sectionLabel: { fontSize: 12, fontWeight: '600', color: '#666', letterSpacing: 2.5, marginTop: 20, marginBottom: 12 },
+  sectionLabel: { fontSize: 12, fontWeight: '600', color: '#999', letterSpacing: 2.5, marginTop: 20, marginBottom: 12 },
 
   // Menu grid
   menuGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },

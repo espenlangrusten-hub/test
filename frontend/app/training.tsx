@@ -7,6 +7,7 @@ import { useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useApp } from '../src/context/AppContext';
 import { Colors } from '../src/constants/colors';
+import BottomNav from '../src/components/BottomNav';
 
 const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -201,6 +202,7 @@ export default function TrainingPage() {
 
         <View style={{ height: 40 }} />
       </ScrollView>
+      <BottomNav />
     </View>
   );
 }
