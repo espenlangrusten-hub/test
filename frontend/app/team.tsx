@@ -273,7 +273,7 @@ export default function TeamPage() {
         <Text style={s.emptyText}>No activity yet. Schedule a match or invite a team!</Text>
       )}
       {feedItems.map(item => (
-        <TouchableOpacity key={item.id} style={s.feedRow} activeOpacity={0.7}
+        <TouchableOpacity key={`feed-${item.id}`} style={s.feedRow} activeOpacity={0.7}
           onPress={() => {
             if (item.type?.includes('invite') || item.type?.includes('friendly')) router.push(`/friendly-matches?teamId=${currentTeam?.id}`);
             else if (item.type?.includes('network')) router.push('/my-network');
@@ -316,7 +316,7 @@ export default function TeamPage() {
       </View>
 
       {tab === 'squad' && players.map(p => (
-        <View key={p.id} style={[s.playerRow, !p.available && { opacity: 0.35 }]}>
+        <View key={`avail-${p.id}`} style={[s.playerRow, !p.available && { opacity: 0.35 }]}>
           <View style={[s.numCircle, !p.available && { borderColor: '#333', backgroundColor: 'rgba(255,255,255,0.02)' }]}>
             <Text style={s.numText}>{p.number}</Text>
           </View>
@@ -354,7 +354,7 @@ export default function TeamPage() {
           {players.map(p => {
             const st = typeof playerStats[p.id] === 'object' ? playerStats[p.id] : {};
             return (
-              <View key={p.id} style={s.detailRow}>
+              <View key={`stat-${p.id}`} style={s.detailRow}>
                 <Text style={[s.dd, { width: 26, fontWeight: '800' }]}>{p.number}</Text>
                 <Text style={[s.dd, { flex: 1, textAlign: 'left' }]} numberOfLines={1}>{p.name}</Text>
                 <Text style={[s.dd, { width: 34 }]}>{st.minutes || 0}</Text>
