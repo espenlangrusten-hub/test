@@ -45,8 +45,8 @@ function AppContent() {
         <Stack.Screen name="match-detail" options={{ title: 'Match Review' }} />
         <Stack.Screen name="training" options={{ headerShown: false }} />
         <Stack.Screen name="calendar" options={{ headerShown: false }} />
-        <Stack.Screen name="friendly-matches" options={{ title: 'Friendly Matches' }} />
-        <Stack.Screen name="messages" options={{ title: 'Messages' }} />
+        <Stack.Screen name="friendly-matches" options={{ headerShown: false }} />
+        <Stack.Screen name="messages" options={{ headerShown: false }} />
         <Stack.Screen name="settings" options={{ headerShown: false }} />
         <Stack.Screen name="messenger" options={{ headerShown: false }} />
         <Stack.Screen name="my-network" options={{ headerShown: false }} />

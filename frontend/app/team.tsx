@@ -273,7 +273,12 @@ export default function TeamPage() {
         <Text style={s.emptyText}>No activity yet. Schedule a match or invite a team!</Text>
       )}
       {feedItems.map(item => (
-        <View key={item.id} style={s.feedRow}>
+        <TouchableOpacity key={item.id} style={s.feedRow} activeOpacity={0.7}
+          onPress={() => {
+            if (item.type?.includes('invite') || item.type?.includes('friendly')) router.push(`/friendly-matches?teamId=${currentTeam?.id}`);
+            else if (item.type?.includes('network')) router.push('/my-network');
+            else router.push(`/friendly-matches?teamId=${currentTeam?.id}`);
+          }}>
           <MaterialCommunityIcons
             name={item.type?.includes('invite') ? 'handshake' : item.type?.includes('network') ? 'account-plus' : 'bell-outline'}
             size={16} color={item.read ? '#555' : '#4ADE80'} />
@@ -281,7 +286,8 @@ export default function TeamPage() {
             <Text style={[s.feedTitle, !item.read && { color: '#EAEAEA' }]}>{item.title}</Text>
             <Text style={s.feedTime}>{formatTime(item.created_at)}</Text>
           </View>
-        </View>
+          <MaterialCommunityIcons name="chevron-right" size={16} color="#444" />
+        </TouchableOpacity>
       ))}
 
       <View style={{ height: 20 }} />
