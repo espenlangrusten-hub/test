@@ -5,85 +5,42 @@ Subscription-based team management application for football and futsal coaches. 
 
 ## Architecture
 - **Frontend:** React Native / Expo (web) with TypeScript, Expo Router
-- **Backend:** Python FastAPI
+- **Backend:** Python FastAPI + reportlab (PDF generation)
 - **Database:** MongoDB
-- **Styling:** Dark glassmorphism theme, green (#4ADE80) accents, LinearGradient
+- **Styling:** Dark glassmorphism theme, green (#4ADE80) accents, gold (#F59E0B) for tournaments
 
-## File Structure
-```
-/app
-├── backend/
-│   ├── server.py              # FastAPI monolith (all endpoints)
-│   └── tests/test_tournaments.py
-├── frontend/
-│   ├── app/
-│   │   ├── _layout.tsx        # Root layout & router
-│   │   ├── auth.tsx           # Login/Register
-│   │   ├── index.tsx          # Dashboard (homepage)
-│   │   ├── team.tsx           # Team page (redesigned with Feed)
-│   │   ├── settings.tsx       # Profile & password settings
-│   │   ├── messenger.tsx      # FB Messenger-inspired messaging
-│   │   ├── my-network.tsx     # Dedicated network page
-│   │   ├── calendar.tsx       # Match calendar
-│   │   ├── tournament.tsx     # Full tournament system
-│   │   ├── friendly-matches.tsx
-│   │   ├── messages.tsx       # Legacy message board
-│   │   ├── team-setup.tsx / format.tsx
-│   │   └── training.tsx       # AI training (placeholder)
-│   └── src/
-│       ├── context/AppContext.tsx
-│       ├── constants/colors.ts, countries.ts
-│       └── lib/coaching-data.ts
-```
+## Key Pages
+- **Dashboard** (`index.tsx`): Compact sport cards, bell badge, teams list, network section
+- **Team** (`team.tsx`): Feed (replacing message board), Quick Actions (Squad/Tactics/Calendar/Friendly/Tournament/Training/History/Match)
+- **Tournament** (`tournament.tsx`): Hub (ongoing/completed/create), bracket visualization, PDF export
+- **Messenger** (`messenger.tsx`): FB-inspired DMs + notifications with 5s polling
+- **Settings** (`settings.tsx`): Profile/password management
+- **My Network** (`my-network.tsx`): Full network contacts list
+- **Calendar** (`calendar.tsx`): All-teams match calendar
 
 ## Key API Endpoints
-### Auth & Profile
-- `POST /api/auth/login`, `POST /api/auth/register`
-- `PUT /api/auth/profile` — Update user name
-- `PUT /api/auth/password` — Change password
-
-### Teams & Players
-- `GET/POST /api/teams`, `PUT/DELETE /api/teams/{id}`
-- `GET /api/teams/{id}/player-stats`
-
-### Network
-- `GET /api/network`, `POST /api/network/add`, `DELETE /api/network/{id}`
-
-### Direct Messaging
-- `GET /api/direct-messages/conversations` — List all conversations
-- `GET /api/direct-messages/conversation/{other_user_id}` — Messages with user
-- `POST /api/direct-messages` — Send DM
-- `DELETE /api/direct-messages/{msg_id}` — Delete DM
-
-### Notifications
-- `GET /api/notifications/unread` — Unread count (messages + DMs)
-
-### Tournaments
-- `POST /api/tournaments` — Create tournament (generates fixtures automatically)
-- `GET /api/tournaments` — List (filter by status)
-- `GET /api/tournaments/{id}` — Detail with matches, groups, standings
-- `PUT /api/tournaments/{id}/result/{match_id}` — Submit match result (auto-advances rounds)
-- `DELETE /api/tournaments/{id}` — Delete
-
-### Calendar
-- `GET /api/calendar/all` — All teams' calendar events
+- Auth: login, register, profile update, password change
+- Teams: CRUD, player stats
+- Network: list, add, remove
+- Direct Messages: conversations, send, delete
+- Notifications: unread count
+- Tournaments: create, list, detail, submit result, PDF export
+- Calendar: all-teams events
 
 ## Data Models
-- **users**: `{id, email, password_hash, name}`
-- **teams**: `{id, user_id, name, sport, format, gender, age_group, country, manager, team_code, players[], formation}`
-- **network**: `{id, user_id, friend_team_id, friend_user_id, friend_team_name, ...}`
-- **friendly_invites**: `{id, from/to_team_id, dates[], status, location}`
-- **messages**: `{id, user_id, team_id, type, title, body, read, created_at}`
-- **direct_messages**: `{id, from/to_user_id, from/to_team_id, content, read, created_at}`
-- **tournaments**: `{id, user_id, name, format, tournament_type, teams[], groups{}, matches[], status, winner}`
+- **tournaments**: `{id, user_id, name, format, tournament_type, start_date, end_date, teams[], groups{}, matches[], status, winner, created_at}`
+  - tournament_type: knockout | group_knockout | league
+  - matches auto-generated with byes for non-power-of-2 team counts
 
 ## Changelog
-- 2026-03-03 (Session 14): Team page redesign (Feed replacing Message Board, Quick Actions menu, no boxes, same dark theme/bottom nav). Full tournament system (knockout/group+knockout/league with auto fixtures, byes, results, standings, advancement, champion). Fixed knockout advancement bug. 20/20 backend tests + 95% frontend pass → fixed to 100%.
-- 2026-03-03 (Session 13): Dashboard redesign, settings page, messenger, my-network page, updated bottom nav. 25/25 tests passed.
+- 2026-03-04 (Session 15): Moved tournament link from dashboard to team Quick Actions. Added CL-inspired knockout bracket visualization (horizontal rounds, green winners, gold Final tag). Added PDF export with dark theme (reportlab). Hidden router headers on major pages. 100% tests (9/9 backend + all frontend).
+- 2026-03-03 (Session 14): Team page redesign + full tournament system. 
+- 2026-03-03 (Session 13): Dashboard redesign + settings/messenger/network pages.
 
 ## Test Reports
-- `/app/test_reports/iteration_26.json` (Team page + Tournament - 95%→100% after bugfix)
-- `/app/test_reports/iteration_25.json` (Dashboard + Messenger + Settings - 100%)
+- `/app/test_reports/iteration_27.json` (Bracket viz + PDF + move link - 100%)
+- `/app/test_reports/iteration_26.json` (Tournament system - 100%)
+- `/app/test_reports/iteration_25.json` (Dashboard + Messenger - 100%)
 
 ## Test Credentials
 - `demo@test.com` / `demo123`
@@ -99,7 +56,3 @@ Subscription-based team management application for football and futsal coaches. 
 - Backend refactoring (server.py → route modules)
 - WebSocket for real-time messaging
 - Training drill illustrations
-
-## 3rd Party Integrations
-- OpenAI GPT-4 (via Emergent LLM Key) — AI training suggestions
-- expo-linear-gradient — UI styling
