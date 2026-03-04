@@ -287,13 +287,108 @@ export default function TournamentScreen() {
       }
     }
 
-    // Group matches by round
-    const rounds: Record<string, any[]> = {};
-    for (const m of matches) {
-      const key = m.group ? `Group ${m.group}` : m.round;
-      if (!rounds[key]) rounds[key] = [];
-      rounds[key].push(m);
+    // Organize knockout matches by rounds in order
+    const koMatches = matches.filter((m: any) => m.round !== 'group');
+    const groupMatches = matches.filter((m: any) => m.round === 'group');
+    const roundOrder: string[] = [];
+    const roundsMap: Record<string, any[]> = {};
+    for (const m of koMatches) {
+      if (!roundsMap[m.round]) { roundsMap[m.round] = []; roundOrder.push(m.round); }
+      roundsMap[m.round].push(m);
     }
+    // Also group matches
+    const groupRoundsMap: Record<string, any[]> = {};
+    for (const m of groupMatches) {
+      const key = `Group ${m.group}`;
+      if (!groupRoundsMap[key]) groupRoundsMap[key] = [];
+      groupRoundsMap[key].push(m);
+    }
+
+    const downloadPdf = () => {
+      const url = `${API_URL}/api/tournaments/${tournament.id}/pdf`;
+      if (Platform.OS === 'web') {
+        const a = document.createElement('a');
+        a.href = url;
+        a.setAttribute('download', `${tournament.name}.pdf`);
+        // Need to add auth header - use fetch + blob
+        fetch(url, { headers: auth() })
+          .then(r => r.blob())
+          .then(blob => {
+            const blobUrl = URL.createObjectURL(blob);
+            a.href = blobUrl;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(blobUrl);
+          });
+      }
+    };
+
+    // Bracket visualization for knockout
+    const renderBracket = () => {
+      if (roundOrder.length === 0) return null;
+      return (
+        <View style={s.bracketWrap}>
+          <View style={s.bracketHeader}>
+            <Text style={s.bracketTitle}>KNOCKOUT BRACKET</Text>
+            <View style={s.bracketLine} />
+          </View>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={s.bracketScroll}>
+            {roundOrder.map((rname, ri) => {
+              const rmatches = roundsMap[rname] || [];
+              const isFinal = rname === 'Final';
+              return (
+                <View key={rname} style={s.bracketRound}>
+                  <View style={[s.roundTag, isFinal && s.roundTagFinal]}>
+                    <Text style={[s.roundTagText, isFinal && { color: '#F59E0B' }]}>{rname.toUpperCase()}</Text>
+                  </View>
+                  <View style={s.bracketMatchList}>
+                    {rmatches.map((m: any, mi: number) => {
+                      const homeWon = m.played && (m.home_score ?? 0) >= (m.away_score ?? 0);
+                      const awayWon = m.played && (m.away_score ?? 0) > (m.home_score ?? 0);
+                      return (
+                        <View key={m.id} style={[s.bracketCard, isFinal && s.bracketCardFinal]}>
+                          {/* Home */}
+                          <View style={[s.bracketTeamRow, homeWon && s.bracketTeamWon]}>
+                            <View style={[s.bracketDot, homeWon && { backgroundColor: '#4ADE80' }]} />
+                            <Text style={[s.bracketTeamName, homeWon && { color: '#4ADE80', fontWeight: '800' }]} numberOfLines={1}>{m.home_team}</Text>
+                            {m.played ? (
+                              <Text style={[s.bracketScore, homeWon && { color: '#4ADE80' }]}>{m.home_score}</Text>
+                            ) : null}
+                          </View>
+                          {/* Divider */}
+                          <View style={s.bracketDivider} />
+                          {/* Away */}
+                          <View style={[s.bracketTeamRow, awayWon && s.bracketTeamWon]}>
+                            <View style={[s.bracketDot, awayWon && { backgroundColor: '#4ADE80' }]} />
+                            <Text style={[s.bracketTeamName, awayWon && { color: '#4ADE80', fontWeight: '800' }]} numberOfLines={1}>{m.away_team}</Text>
+                            {m.played ? (
+                              <Text style={[s.bracketScore, awayWon && { color: '#4ADE80' }]}>{m.away_score}</Text>
+                            ) : null}
+                          </View>
+                          {/* Action */}
+                          {!m.played && tournament.status !== 'completed' && (
+                            <TouchableOpacity style={s.bracketResultBtn} onPress={() => { setShowResult(m); setHomeScore(''); setAwayScore(''); }}>
+                              <Text style={s.bracketResultText}>ENTER RESULT</Text>
+                            </TouchableOpacity>
+                          )}
+                          {/* Connector */}
+                          {ri < roundOrder.length - 1 && (
+                            <View style={s.connector}>
+                              <View style={s.connectorLine} />
+                            </View>
+                          )}
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+        </View>
+      );
+    };
 
     return (
       <ScrollView style={{ flex: 1 }} contentContainerStyle={s.scroll}>
@@ -302,13 +397,29 @@ export default function TournamentScreen() {
           <Text style={s.backText}>Back</Text>
         </TouchableOpacity>
 
+        {/* Tournament Header - CL inspired */}
         <View style={s.detailHeader}>
-          <MaterialCommunityIcons name="trophy" size={28} color={tournament.status === 'completed' ? '#4ADE80' : '#F59E0B'} />
+          <View style={s.trophyCircle}>
+            <MaterialCommunityIcons name="trophy" size={26} color={tournament.status === 'completed' ? '#F59E0B' : '#4ADE80'} />
+          </View>
           <View style={{ flex: 1 }}>
             <Text style={s.detailName}>{tournament.name}</Text>
-            <Text style={s.detailMeta}>{tournament.tournament_type} · {tournament.format} · {tournament.teams?.length} teams</Text>
+            <Text style={s.detailMeta}>{tournament.tournament_type.replace('_', ' ').toUpperCase()} · {tournament.format} · {tournament.teams?.length} TEAMS</Text>
           </View>
-          {tournament.status === 'completed' && <View style={s.winnerBadge}><Text style={s.winnerText}>{tournament.winner}</Text></View>}
+        </View>
+
+        {/* PDF Download + Status */}
+        <View style={s.actionBar}>
+          {tournament.status === 'completed' && (
+            <View style={s.winnerBadge}>
+              <MaterialCommunityIcons name="trophy" size={14} color="#F59E0B" />
+              <Text style={s.winnerBadgeText}>{tournament.winner}</Text>
+            </View>
+          )}
+          <TouchableOpacity data-testid="download-pdf-btn" style={s.pdfBtn} onPress={downloadPdf}>
+            <MaterialCommunityIcons name="file-pdf-box" size={18} color="#EF4444" />
+            <Text style={s.pdfBtnText}>EXPORT PDF</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Standings Tables */}
@@ -331,19 +442,15 @@ export default function TournamentScreen() {
           </View>
         ))}
 
-        {/* Matches by Round */}
-        {Object.entries(rounds).map(([roundName, roundMatches]) => (
-          <View key={roundName} style={{ marginBottom: 16 }}>
-            <Text style={s.roundLabel}>{roundName.toUpperCase()}</Text>
-            {roundMatches.map((m: any) => (
+        {/* Group match results */}
+        {Object.entries(groupRoundsMap).map(([gName, gMatches]) => (
+          <View key={gName} style={{ marginBottom: 12 }}>
+            <Text style={s.roundLabel}>{gName.toUpperCase()}</Text>
+            {gMatches.map((m: any) => (
               <View key={m.id} style={s.matchRow}>
                 <View style={{ flex: 1 }}>
                   <Text style={s.matchTeams}>{m.home_team} vs {m.away_team}</Text>
-                  {m.played ? (
-                    <Text style={s.matchScore}>{m.home_score} - {m.away_score}</Text>
-                  ) : (
-                    <Text style={s.matchPending}>Not played</Text>
-                  )}
+                  {m.played ? <Text style={s.matchScore}>{m.home_score} - {m.away_score}</Text> : <Text style={s.matchPending}>Not played</Text>}
                 </View>
                 {!m.played && tournament.status !== 'completed' && (
                   <TouchableOpacity style={s.resultBtn} onPress={() => { setShowResult(m); setHomeScore(''); setAwayScore(''); }}>
@@ -355,11 +462,20 @@ export default function TournamentScreen() {
           </View>
         ))}
 
+        {/* Bracket Visualization */}
+        {renderBracket()}
+
+        {/* Champion Banner */}
         {tournament.status === 'completed' && (
           <View style={s.winnerCard}>
-            <MaterialCommunityIcons name="trophy" size={36} color="#F59E0B" />
+            <View style={s.winnerStars}>
+              <Text style={s.starText}>★</Text>
+              <MaterialCommunityIcons name="trophy" size={40} color="#F59E0B" />
+              <Text style={s.starText}>★</Text>
+            </View>
             <Text style={s.winnerTitle}>CHAMPION</Text>
             <Text style={s.winnerName}>{tournament.winner}</Text>
+            <View style={s.winnerAccent} />
           </View>
         )}
 
@@ -494,12 +610,18 @@ const s = StyleSheet.create({
   ghostBtn: { height: 44, justifyContent: 'center', alignItems: 'center' },
   ghostBtnText: { fontSize: 12, fontWeight: '600', color: '#666' },
 
-  // Detail
-  detailHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
-  detailName: { fontSize: 20, fontWeight: '800', color: '#EAEAEA' },
-  detailMeta: { fontSize: 12, color: '#888', marginTop: 2 },
-  winnerBadge: { backgroundColor: 'rgba(74,222,128,0.1)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, borderColor: '#4ADE80' },
-  winnerText: { fontSize: 11, fontWeight: '700', color: '#4ADE80' },
+  // Detail header - CL inspired
+  detailHeader: { flexDirection: 'row', alignItems: 'center', gap: 14, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  trophyCircle: { width: 48, height: 48, borderRadius: 24, backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 1.5, borderColor: 'rgba(245,158,11,0.3)', justifyContent: 'center', alignItems: 'center' },
+  detailName: { fontSize: 20, fontWeight: '900', color: '#EAEAEA', letterSpacing: 0.5 },
+  detailMeta: { fontSize: 11, color: '#888', marginTop: 3, letterSpacing: 1 },
+
+  // Action bar
+  actionBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, gap: 8 },
+  winnerBadge: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: 'rgba(245,158,11,0.1)', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, borderWidth: 1, borderColor: 'rgba(245,158,11,0.3)' },
+  winnerBadgeText: { fontSize: 12, fontWeight: '700', color: '#F59E0B' },
+  pdfBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, backgroundColor: 'rgba(255,255,255,0.04)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)' },
+  pdfBtnText: { fontSize: 11, fontWeight: '700', color: '#EAEAEA', letterSpacing: 0.5 },
   roundLabel: { fontSize: 11, fontWeight: '700', color: '#666', letterSpacing: 2, marginBottom: 8, marginTop: 4 },
 
   // Standings table
@@ -517,9 +639,36 @@ const s = StyleSheet.create({
   resultBtnText: { fontSize: 10, fontWeight: '700', color: '#4ADE80' },
 
   // Winner
-  winnerCard: { alignItems: 'center', paddingVertical: 24, marginTop: 12, borderRadius: 12, backgroundColor: 'rgba(74,222,128,0.05)', borderWidth: 1, borderColor: 'rgba(74,222,128,0.15)' },
-  winnerTitle: { fontSize: 12, fontWeight: '700', color: '#666', letterSpacing: 3, marginTop: 8 },
-  winnerName: { fontSize: 22, fontWeight: '900', color: '#4ADE80', marginTop: 4 },
+  winnerCard: { alignItems: 'center', paddingVertical: 28, marginTop: 16, borderRadius: 16, backgroundColor: 'rgba(245,158,11,0.04)', borderWidth: 1.5, borderColor: 'rgba(245,158,11,0.2)' },
+  winnerStars: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  starText: { fontSize: 20, color: '#F59E0B' },
+  winnerTitle: { fontSize: 11, fontWeight: '800', color: '#666', letterSpacing: 4, marginTop: 10 },
+  winnerName: { fontSize: 24, fontWeight: '900', color: '#F59E0B', marginTop: 4, letterSpacing: 1 },
+  winnerAccent: { width: 60, height: 2, backgroundColor: '#F59E0B', marginTop: 10, borderRadius: 1 },
+
+  // Bracket
+  bracketWrap: { marginTop: 16, marginBottom: 12 },
+  bracketHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14 },
+  bracketTitle: { fontSize: 12, fontWeight: '700', color: '#4ADE80', letterSpacing: 2 },
+  bracketLine: { flex: 1, height: 1, backgroundColor: 'rgba(74,222,128,0.15)' },
+  bracketScroll: { gap: 4, paddingRight: 20 },
+  bracketRound: { width: 170, alignItems: 'stretch' },
+  roundTag: { alignSelf: 'center', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 10, backgroundColor: 'rgba(255,255,255,0.04)', marginBottom: 10 },
+  roundTagFinal: { backgroundColor: 'rgba(245,158,11,0.1)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.25)' },
+  roundTagText: { fontSize: 9, fontWeight: '800', color: '#666', letterSpacing: 1.5 },
+  bracketMatchList: { gap: 16 },
+  bracketCard: { backgroundColor: 'rgba(255,255,255,0.03)', borderRadius: 10, borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)', overflow: 'hidden' as const, position: 'relative' as const },
+  bracketCardFinal: { borderColor: 'rgba(245,158,11,0.25)', backgroundColor: 'rgba(245,158,11,0.03)' },
+  bracketTeamRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 10, gap: 8 },
+  bracketTeamWon: { backgroundColor: 'rgba(74,222,128,0.04)' },
+  bracketDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#333' },
+  bracketTeamName: { flex: 1, fontSize: 12, fontWeight: '600', color: '#AAA' },
+  bracketScore: { fontSize: 14, fontWeight: '900', color: '#888', minWidth: 20, textAlign: 'right' as const },
+  bracketDivider: { height: 1, backgroundColor: 'rgba(255,255,255,0.04)' },
+  bracketResultBtn: { alignItems: 'center', paddingVertical: 6, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.04)' },
+  bracketResultText: { fontSize: 9, fontWeight: '700', color: '#4ADE80', letterSpacing: 1 },
+  connector: { position: 'absolute' as const, right: -8, top: '35%' as any, width: 8 },
+  connectorLine: { height: 1, backgroundColor: 'rgba(255,255,255,0.08)' },
 
   // Score modal
   scoreRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16, marginVertical: 20 },
