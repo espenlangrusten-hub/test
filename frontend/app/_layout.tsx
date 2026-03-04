@@ -37,7 +37,7 @@ function AppContent() {
         <Stack.Screen name="format" options={{ title: 'Select Format' }} />
         <Stack.Screen name="team-setup" options={{ title: 'Squad Setup' }} />
         <Stack.Screen name="team" options={{ headerShown: false }} />
-        <Stack.Screen name="tactics" options={{ title: 'Tactics Board' }} />
+        <Stack.Screen name="tactics" options={{ headerShown: false }} />
         <Stack.Screen name="match" options={{ title: 'Match Day' }} />
         <Stack.Screen name="tactic-guide" options={{ title: 'Tactic Guide' }} />
         <Stack.Screen name="player-notes" options={{ title: 'Player Notes' }} />

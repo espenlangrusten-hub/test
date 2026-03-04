@@ -7,7 +7,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://league-organizer-7.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://tournament-bracket-3.preview.emergentagent.com')
 
 # Test credentials
 DEMO_USER = {"email": "demo@test.com", "password": "demo123"}

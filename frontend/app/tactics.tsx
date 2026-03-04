@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, TouchableOpacity, StyleSheet, ScrollView,
   Modal, FlatList, TextInput, KeyboardAvoidingView, Platform,
@@ -8,7 +8,7 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useApp, PlayerData } from '../src/context/AppContext';
 import { Colors } from '../src/constants/colors';
 import { getFormations, Formation, PositionSlot, SET_PIECE_ROLES, STARTERS_COUNT, getPositionsForFormat } from '../src/constants/formations';
-import PitchView from '../src/components/PitchView';
+import TVPitchView from '../src/components/TVPitchView';
 
 const genId = () => Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
 
@@ -26,6 +26,7 @@ export default function TacticsScreen() {
   const [showPlayerPicker, setShowPlayerPicker] = useState(false);
   const [showSetPiece, setShowSetPiece] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [autoSaved, setAutoSaved] = useState(false);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [customPositions, setCustomPositions] = useState<PositionSlot[] | null>(null);
 
@@ -36,6 +37,10 @@ export default function TacticsScreen() {
   const [newPlayerNumber, setNewPlayerNumber] = useState('');
   const [newPlayerPos, setNewPlayerPos] = useState('');
   const [deletePlayerId, setDeletePlayerId] = useState<string | null>(null);
+
+  // Auto-save debounce ref
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isInitialMount = useRef(true);
 
   // Positional affinity groups
   const POSITION_GROUPS: Record<string, string[]> = {
@@ -95,6 +100,19 @@ export default function TacticsScreen() {
   useEffect(() => {
     if (currentTeam?.players) setAllPlayers(currentTeam.players.filter(p => p.available !== false));
   }, [currentTeam?.players]);
+
+  // Auto-save assignments whenever they change (debounced)
+  useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
+    autoSaveTimer.current = setTimeout(() => {
+      doSave().catch(() => {});
+    }, 800);
+    return () => { if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current); };
+  }, [assignments]);
 
   const changeFormation = async (f: Formation) => {
     setSelectedFormation(f);
@@ -273,6 +291,8 @@ export default function TacticsScreen() {
       formation: isCustomizing ? `${selectedFormation.name} (Custom)` : selectedFormation.name,
       tactic_name: isCustomizing ? `Custom ${selectedFormation.displayName}` : selectedFormation.displayName,
     });
+    setAutoSaved(true);
+    setTimeout(() => setAutoSaved(false), 2000);
   };
 
   const handleSaveOnly = async () => {
@@ -286,6 +306,20 @@ export default function TacticsScreen() {
   return (
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+        {/* Header with back and auto-save indicator */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 4 }}>
+          <TouchableOpacity onPress={() => router.back()} style={{ padding: 4 }}>
+            <MaterialCommunityIcons name="arrow-left" size={22} color="#888" />
+          </TouchableOpacity>
+          <Text style={{ fontSize: 18, fontWeight: '800', color: Colors.white, flex: 1 }}>Tactics</Text>
+          {autoSaved && (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <MaterialCommunityIcons name="check-circle" size={14} color={Colors.primary} />
+              <Text style={{ fontSize: 11, color: Colors.primary, fontWeight: '600' }}>Saved</Text>
+            </View>
+          )}
+        </View>
+
         {/* Formation Picker */}
         <Text style={styles.sectionTitle}>FORMATION</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.formationScroll}>
@@ -350,7 +384,7 @@ export default function TacticsScreen() {
             <Text style={styles.resetText}>Reset to default positions</Text>
           </TouchableOpacity>
         )}
-        <PitchView
+        <TVPitchView
           key={selectedFormation.id + '-' + Object.keys(assignments).length}
           positions={activePositions} assignedPlayers={assignments}
           onPositionPress={isCustomizing ? undefined : handlePositionPress}
@@ -571,8 +605,8 @@ export default function TacticsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Colors.background },
-  scroll: { padding: 16, paddingBottom: 120 },
-  sectionTitle: { fontSize: 12, fontWeight: '700', color: Colors.textMuted, letterSpacing: 2.5, marginBottom: 8, marginTop: 8 },
+  scroll: { padding: 14, paddingTop: 10, paddingBottom: 120 },
+  sectionTitle: { fontSize: 11, fontWeight: '700', color: Colors.textMuted, letterSpacing: 2, marginBottom: 6, marginTop: 6 },
   hint: { fontSize: 12, color: Colors.textMuted, marginBottom: 8 },
   pitchHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 8, marginBottom: 4 },
   customizeBtn: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: Colors.primary },

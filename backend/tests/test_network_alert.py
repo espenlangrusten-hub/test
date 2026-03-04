@@ -8,7 +8,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://league-organizer-7.preview.emergentagent.com').rstrip('/')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://tournament-bracket-3.preview.emergentagent.com').rstrip('/')
 
 class TestNetworkAddAlert:
     """Tests for Network Add Alert feature - Feature 1"""
