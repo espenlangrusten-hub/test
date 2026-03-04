@@ -1,50 +1,92 @@
-# PRD — Tactical Lineup: Football & Futsal Coach Assistant
+# Tactical Lineup - Product Requirements Document
 
-## Core Concept
-Subscription-based team management application for football and futsal coaches.
+## Original Problem Statement
+Build a subscription-based football and futsal team management application with comprehensive team management, tactics, tournaments, and social features.
 
-## Architecture
-- **Frontend:** React Native / Expo (web) with TypeScript, Expo Router
-- **Backend:** Python FastAPI + reportlab (PDF generation)
-- **Database:** MongoDB
-- **Styling:** Dark glassmorphism theme, green (#4ADE80) accents
+## Core Architecture
+- **Frontend**: React Native / Expo (TypeScript), Expo Router
+- **Backend**: Python FastAPI, MongoDB
+- **Integrations**: OpenAI GPT-4 (via Emergent LLM Key), reportlab (PDF), expo-linear-gradient
 
-## Key Pages & Components
-- **Dashboard** (`index.tsx`): Sport cards, bell badge, teams list, network section
-- **Team** (`team.tsx`): Fixed header (back arrow, badges, stats) + Quick Actions grid (8 colorful items) + scrollable FEED
-- **Tournament** (`tournament.tsx`): Hub with back arrow, bracket visualization, PDF export, A+B knockouts
-- **Messenger** (`messenger.tsx`): Tabs (DMs/Notifications), horizontal network contacts, conversation list with team badges, bold unread, delete icon, chat view with team picker
-- **Settings** (`settings.tsx`): Profile/password management
-- **My Network** (`my-network.tsx`): Full network contacts
-- **Calendar** (`calendar.tsx`): All-teams match calendar with back arrow
-- **Training** (`training.tsx`): AI training sessions with back arrow
-- **BottomNav** (`src/components/BottomNav.tsx`): Persistent bottom nav on all 8 pages
+## What's Been Implemented
 
-## Key API Endpoints
-- Auth, Teams, Network, Direct Messages (incl. DELETE conversation), Notifications, Tournaments, Calendar, Training
+### Authentication & User Management
+- JWT-based auth (login/register)
+- Profile settings page (name, password)
+- Demo user: `demo@test.com` / `demo123`
 
-## Changelog
-- 2026-03-04 (Session 17): Team page redesign (no duplicate name, prominent Quick Actions, scrollable Feed only). Messenger rewrite (horizontal network contacts, conversation list with team badges, bold unread, delete icon). Back arrows on all team-linked pages. Persistent BottomNav on all pages. Brighter headlines (#999). Delete icon for tournaments. 100% tests (7/7 backend + all frontend).
-- 2026-03-04 (Session 16): B Knockout feature verified E2E (15/15 tests).
-- 2026-03-04 (Session 15): CL-style bracket viz, PDF export, tournament to team page.
-- 2026-03-03 (Session 14): Team page redesign + tournament system.
-- 2026-03-03 (Session 13): Dashboard redesign + settings/messenger/network pages.
+### Team Management
+- Create teams (football 5v5/7v7/9v9/11v11, futsal 5v5)
+- Player management (add, edit, availability)
+- Team codes for sharing/inviting
+- Feed-style team page with quick action grid
 
-## Test Reports
-- `/app/test_reports/iteration_29.json` (UI redesign + messenger - 100%)
-- `/app/test_reports/iteration_28.json` (B Knockout E2E - 100%)
+### Tactics System (Updated Mar 4, 2026)
+- **TV-Inspired Pitch View**: Dark background (#1A1D23), 3D perspective projection, red player dots (#DC2626), player names (first name small, last name bold)
+- Formation picker with named formations (e.g., Ferguson's 4-4-2, Guardiola's 4-3-3)
+- Drag-to-customize positions
+- **Auto-save**: Debounced 800ms save on any assignment change with "Saved" indicator
+- Player swap/selection from bench
+- Captain and set-piece role assignment
+- Match mode view
 
-## Test Credentials
-- `demo@test.com` / `demo123`
+### Tournaments
+- Group stage + knockout brackets
+- B-Knockout (consolation) brackets for eliminated teams
+- Champions League-style visual bracket
+- Result submission
+- PDF export
+- Tournament delete functionality
 
-## Pending / Upcoming
-### P2 - AI Training & PDFs
-- AI Training Sessions UI polish
-- Pre-Match page with formation/lineup
-- PDF downloads for training plans and lineups
+### Social Features
+- Network/invite system between teams
+- Messenger with horizontal network contact bar at top
+- Direct messaging with conversation deletion
+- Notification bell with unread count
+
+### Scheduling
+- Calendar view (per team and all teams)
+- Friendly match proposals with date negotiation
+
+### UI/UX
+- EA Sports-inspired dark theme
+- Persistent bottom navigation bar on all pages
+- Compact headline spacing for mobile screens (Mar 4, 2026)
+
+## Completed Tasks (Mar 4, 2026)
+- [x] P0: Verified messenger page shows all network contacts in horizontal top bar
+- [x] P1: Removed redundant bottomNav StyleSheet from index.tsx and team.tsx
+- [x] Design: Reduced headline/spacing on dashboard and team pages for Expo fit
+- [x] TV-inspired pitch view with 3D perspective (TVPitchView.tsx component)
+- [x] Auto-save team selection in tactics page
+- [x] Back button on tactics page
+- [x] Hidden Stack header for tactics (custom header instead)
+
+## Prioritized Backlog
+
+### P2 - Upcoming
+- Build AI Training Sessions UI (frontend/src/app/training.tsx)
+- Build Pre-Match Page & PDF Downloads (frontend/src/app/pre-match.tsx)
+- Illustrations for Training Drills
 
 ### Future
-- Subscription/payment model
-- Backend refactoring (server.py -> route modules)
-- WebSocket for real-time messaging
-- Training drill illustrations
+- Subscription Model implementation
+- Backend refactoring: Break server.py monolith into modular route files
+
+## Key Files
+- `frontend/app/tactics.tsx` - Tactics page with TVPitchView
+- `frontend/src/components/TVPitchView.tsx` - TV broadcast pitch component
+- `frontend/src/components/PitchView.tsx` - Original green pitch (used in match.tsx)
+- `frontend/src/components/BottomNav.tsx` - Shared bottom navigation
+- `frontend/app/_layout.tsx` - Route layout
+- `backend/src/server.py` - Monolithic backend
+
+## API Endpoints
+- Auth: POST `/api/auth/login`, POST `/api/auth/register`
+- Teams: GET/PUT `/api/teams/{id}`, POST `/api/teams`
+- Tournaments: CRUD `/api/tournaments/{id}`, POST `.../submit_result`, GET `.../export_pdf`
+- Messages: GET `/api/messages/user/{id}`, POST `/api/messages/send`, DELETE `/api/messages/conversation/{id}`
+- Profile: GET/PUT `/api/profile`, PUT `/api/profile/password`
+- Notifications: GET `/api/notifications/unread-count`
+- Calendar: GET `/api/calendar/all`
+- Network: GET `/api/network`
