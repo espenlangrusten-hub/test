@@ -7,7 +7,7 @@ import requests
 import os
 import uuid
 
-BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://team-management-hub-1.preview.emergentagent.com')
+BASE_URL = os.environ.get('REACT_APP_BACKEND_URL', 'https://league-organizer-7.preview.emergentagent.com')
 
 # Test users
 USER1_EMAIL = f"test_user1_{uuid.uuid4().hex[:6]}@test.com"

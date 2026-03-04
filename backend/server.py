@@ -92,6 +92,7 @@ class TournamentCreate(BaseModel):
     teams: List[TournamentTeam] = []
     groups_count: int = 2
     matches_per_pair: int = 1
+    has_b_knockout: bool = False  # Lower bracket for 3rd/4th placed teams
 
 class MatchResult(BaseModel):
     home_score: int
@@ -1234,94 +1235,128 @@ def advance_knockout(tournament):
     
     elif t_type == "group_knockout":
         groups = tournament.get("groups", {})
+        has_b = tournament.get("has_b_knockout", False)
         group_matches = [m for m in matches if m["round"] == "group"]
         all_group_played = all(m.get("played") for m in group_matches)
-        existing_ko = [m for m in matches if m["round"] != "group"]
-        if all_group_played and group_matches and not existing_ko:
-            # Advance top 2 from each group to knockout
-            qualifiers = []
+        existing_ko_a = [m for m in matches if m["round"] != "group" and m.get("bracket") != "b"]
+        existing_ko_b = [m for m in matches if m.get("bracket") == "b"]
+        
+        if all_group_played and group_matches and not existing_ko_a:
+            # Advance top 2 from each group to A knockout
+            qualifiers_a = []
+            qualifiers_b = []
             for g_name, g_teams in groups.items():
                 g_ms = [m for m in group_matches if m["group"] == g_name]
                 standings = compute_standings(g_ms, g_teams)
-                for s in standings[:2]:
+                for i, s in enumerate(standings):
                     t = next((tt for tt in teams_list if tt["name"] == s["team"]), {"name": s["team"], "team_id": ""})
-                    qualifiers.append(t)
-            # Generate knockout from qualifiers
-            random.shuffle(qualifiers)
-            next_pow2 = 2 ** math.ceil(math.log2(max(len(qualifiers), 2)))
-            round_name = _round_name(next_pow2)
+                    if i < 2:
+                        qualifiers_a.append(t)
+                    elif has_b:
+                        qualifiers_b.append(t)
+            
             match_num = max((m.get("match_number", 0) for m in matches), default=0) + 1
-            for i in range(0, len(qualifiers), 2):
-                if i + 1 < len(qualifiers):
+            
+            # A bracket
+            random.shuffle(qualifiers_a)
+            next_pow2_a = 2 ** math.ceil(math.log2(max(len(qualifiers_a), 2)))
+            round_name_a = _round_name(next_pow2_a)
+            for i in range(0, len(qualifiers_a), 2):
+                if i + 1 < len(qualifiers_a):
                     matches.append({
-                        "id": str(uuid.uuid4()),
-                        "match_number": match_num,
-                        "round": round_name,
-                        "group": "",
-                        "home_team": qualifiers[i]["name"],
-                        "away_team": qualifiers[i + 1]["name"],
-                        "home_team_id": qualifiers[i].get("team_id", ""),
-                        "away_team_id": qualifiers[i + 1].get("team_id", ""),
-                        "home_score": None,
-                        "away_score": None,
-                        "played": False,
+                        "id": str(uuid.uuid4()), "match_number": match_num,
+                        "round": round_name_a, "group": "", "bracket": "a",
+                        "home_team": qualifiers_a[i]["name"], "away_team": qualifiers_a[i + 1]["name"],
+                        "home_team_id": qualifiers_a[i].get("team_id", ""), "away_team_id": qualifiers_a[i + 1].get("team_id", ""),
+                        "home_score": None, "away_score": None, "played": False,
                     })
                     match_num += 1
-        elif existing_ko:
-            # Handle knockout rounds same as pure knockout
-            ko_rounds = set(m["round"] for m in existing_ko)
-            for rn in ko_rounds:
-                rmatches = [m for m in matches if m["round"] == rn]
-                if not all(m.get("played") for m in rmatches): continue
-                winners = []
-                for m in rmatches:
-                    if (m.get("home_score", 0) or 0) >= (m.get("away_score", 0) or 0):
-                        winners.append({"name": m["home_team"], "team_id": m.get("home_team_id", "")})
-                    else:
-                        winners.append({"name": m["away_team"], "team_id": m.get("away_team_id", "")})
-                next_existing = [m for m in matches if m["round"] != rn and m["round"] != "group" and not m.get("played")]
-                if next_existing or len(winners) < 2: continue
-                next_round = _round_name(len(winners))
-                match_num = max((m.get("match_number", 0) for m in matches), default=0) + 1
-                for i in range(0, len(winners), 2):
-                    if i + 1 < len(winners):
+            
+            # B bracket
+            if has_b and len(qualifiers_b) >= 2:
+                random.shuffle(qualifiers_b)
+                next_pow2_b = 2 ** math.ceil(math.log2(max(len(qualifiers_b), 2)))
+                round_name_b = _round_name(next_pow2_b)
+                for i in range(0, len(qualifiers_b), 2):
+                    if i + 1 < len(qualifiers_b):
                         matches.append({
-                            "id": str(uuid.uuid4()),
-                            "match_number": match_num,
-                            "round": next_round,
-                            "group": "",
-                            "home_team": winners[i]["name"],
-                            "away_team": winners[i + 1]["name"],
-                            "home_team_id": winners[i].get("team_id", ""),
-                            "away_team_id": winners[i + 1].get("team_id", ""),
-                            "home_score": None,
-                            "away_score": None,
-                            "played": False,
+                            "id": str(uuid.uuid4()), "match_number": match_num,
+                            "round": round_name_b, "group": "", "bracket": "b",
+                            "home_team": qualifiers_b[i]["name"], "away_team": qualifiers_b[i + 1]["name"],
+                            "home_team_id": qualifiers_b[i].get("team_id", ""), "away_team_id": qualifiers_b[i + 1].get("team_id", ""),
+                            "home_score": None, "away_score": None, "played": False,
                         })
                         match_num += 1
+        
+        else:
+            # Handle knockout advancement for both A and B brackets
+            for bracket_type in ["a", "b"]:
+                ko_matches = [m for m in matches if m.get("bracket") == bracket_type and m["round"] != "group"]
+                if not ko_matches:
+                    # Legacy: matches without bracket field → treat as "a"
+                    if bracket_type == "a":
+                        ko_matches = [m for m in matches if m["round"] != "group" and not m.get("bracket")]
+                    if not ko_matches:
+                        continue
+                ko_rounds = set(m["round"] for m in ko_matches)
+                for rn in ko_rounds:
+                    rmatches = [m for m in ko_matches if m["round"] == rn]
+                    if not all(m.get("played") for m in rmatches): continue
+                    winners = []
+                    for m in rmatches:
+                        if (m.get("home_score", 0) or 0) >= (m.get("away_score", 0) or 0):
+                            winners.append({"name": m["home_team"], "team_id": m.get("home_team_id", "")})
+                        else:
+                            winners.append({"name": m["away_team"], "team_id": m.get("away_team_id", "")})
+                    next_existing = [m for m in ko_matches if m["round"] != rn and not m.get("played")]
+                    if next_existing or len(winners) < 2: continue
+                    next_round = _round_name(len(winners))
+                    match_num = max((m.get("match_number", 0) for m in matches), default=0) + 1
+                    for i in range(0, len(winners), 2):
+                        if i + 1 < len(winners):
+                            matches.append({
+                                "id": str(uuid.uuid4()), "match_number": match_num,
+                                "round": next_round, "group": "", "bracket": bracket_type,
+                                "home_team": winners[i]["name"], "away_team": winners[i + 1]["name"],
+                                "home_team_id": winners[i].get("team_id", ""), "away_team_id": winners[i + 1].get("team_id", ""),
+                                "home_score": None, "away_score": None, "played": False,
+                            })
+                            match_num += 1
     
     return matches
 
 
 def check_winner(tournament):
-    """Check if tournament has a winner."""
+    """Check if tournament has a winner (and B bracket winner)."""
     matches = tournament.get("matches", [])
     t_type = tournament.get("tournament_type", "")
+    has_b = tournament.get("has_b_knockout", False)
+    
+    result = {"winner": None, "winner_b": None}
     
     if t_type == "league":
         all_played = all(m.get("played") for m in matches)
         if all_played and matches:
             teams_in = list(set([m["home_team"] for m in matches] + [m["away_team"] for m in matches]))
             standings = compute_standings(matches, teams_in)
-            return standings[0]["team"] if standings else None
+            result["winner"] = standings[0]["team"] if standings else None
     else:
-        finals = [m for m in matches if m["round"] == "Final"]
-        if finals and all(m.get("played") for m in finals):
-            f = finals[0]
-            if (f.get("home_score", 0) or 0) >= (f.get("away_score", 0) or 0):
-                return f["home_team"]
-            return f["away_team"]
-    return None
+        # A bracket finals
+        a_finals = [m for m in matches if m["round"] == "Final" and m.get("bracket") != "b"]
+        if not a_finals:
+            a_finals = [m for m in matches if m["round"] == "Final" and not m.get("bracket")]
+        if a_finals and all(m.get("played") for m in a_finals):
+            f = a_finals[0]
+            result["winner"] = f["home_team"] if (f.get("home_score", 0) or 0) >= (f.get("away_score", 0) or 0) else f["away_team"]
+        
+        # B bracket finals
+        if has_b:
+            b_finals = [m for m in matches if m["round"] == "Final" and m.get("bracket") == "b"]
+            if b_finals and all(m.get("played") for m in b_finals):
+                fb = b_finals[0]
+                result["winner_b"] = fb["home_team"] if (fb.get("home_score", 0) or 0) >= (fb.get("away_score", 0) or 0) else fb["away_team"]
+    
+    return result
 
 
 @api_router.post("/tournaments")
@@ -1345,8 +1380,10 @@ async def create_tournament(body: TournamentCreate, user: dict = Depends(get_cur
         "teams": teams_data,
         "groups": groups,
         "matches": matches,
+        "has_b_knockout": body.has_b_knockout,
         "status": "ongoing",
         "winner": None,
+        "winner_b": None,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.tournaments.insert_one(doc)
@@ -1391,15 +1428,25 @@ async def submit_match_result(tournament_id: str, match_id: str, body: MatchResu
     
     t["matches"] = matches
     # Check winner first
-    winner = check_winner(t)
-    if not winner:
-        # Only advance if no winner yet
+    result = check_winner(t)
+    if not result.get("winner"):
+        # Only advance if no A bracket winner yet
         t["matches"] = advance_knockout(t)
-        winner = check_winner(t)
+        result = check_winner(t)
     update = {"matches": t["matches"]}
-    if winner:
-        update["winner"] = winner
-        update["status"] = "completed"
+    if result.get("winner"):
+        update["winner"] = result["winner"]
+    if result.get("winner_b"):
+        update["winner_b"] = result["winner_b"]
+    # Complete if A winner found (and B winner too if B bracket exists)
+    has_b = t.get("has_b_knockout", False)
+    if result.get("winner"):
+        if has_b:
+            # Both brackets need winners
+            if result.get("winner_b"):
+                update["status"] = "completed"
+        else:
+            update["status"] = "completed"
     
     await db.tournaments.update_one({"id": tournament_id}, {"$set": update})
     t.pop("_id", None)
