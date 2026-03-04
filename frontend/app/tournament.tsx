@@ -145,7 +145,9 @@ export default function TournamentScreen() {
             <Text style={s.tournName}>{t.name}</Text>
             <Text style={s.tournMeta}>{t.tournament_type} · {t.teams?.length || 0} teams · {t.format}</Text>
           </View>
-          <MaterialCommunityIcons name="chevron-right" size={20} color="#555" />
+          <TouchableOpacity data-testid={`delete-ongoing-${t.id}`} hitSlop={{top:10,bottom:10,left:10,right:10}} onPress={(e) => { e.stopPropagation?.(); deleteTournament(t.id); }}>
+            <MaterialCommunityIcons name="trash-can-outline" size={16} color="#555" />
+          </TouchableOpacity>
         </TouchableOpacity>
       ))}
 
