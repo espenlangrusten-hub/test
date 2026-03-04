@@ -10,11 +10,13 @@ import { Colors } from '../src/constants/colors';
 import { getFormations, Formation, PositionSlot, SET_PIECE_ROLES, STARTERS_COUNT, getPositionsForFormat } from '../src/constants/formations';
 import TVPitchView from '../src/components/TVPitchView';
 
+const API_URL = process.env.EXPO_PUBLIC_BACKEND_URL;
+
 const genId = () => Math.random().toString(36).substring(2, 10) + Date.now().toString(36);
 
 export default function TacticsScreen() {
   const router = useRouter();
-  const { sport, format, currentTeam, saveTeam } = useApp();
+  const { sport, format, currentTeam, saveTeam, token } = useApp();
 
   const formations = getFormations(sport, format);
   const startersCount = STARTERS_COUNT[format] || 5;
@@ -27,6 +29,7 @@ export default function TacticsScreen() {
   const [showSetPiece, setShowSetPiece] = useState(false);
   const [saving, setSaving] = useState(false);
   const [autoSaved, setAutoSaved] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [isCustomizing, setIsCustomizing] = useState(false);
   const [customPositions, setCustomPositions] = useState<PositionSlot[] | null>(null);
 
@@ -295,6 +298,45 @@ export default function TacticsScreen() {
     setTimeout(() => setAutoSaved(false), 2000);
   };
 
+  const exportLineupPDF = async () => {
+    setExporting(true);
+    try {
+      const playersMap: Record<string, any> = {};
+      Object.entries(assignments).forEach(([idx, p]) => {
+        if (p) playersMap[idx] = { name: p.name, number: p.number, is_captain: p.is_captain };
+      });
+      const body = {
+        team_name: currentTeam?.name || 'Team',
+        formation_name: selectedFormation.displayName || selectedFormation.name,
+        manager_style: selectedFormation.managerStyle || '',
+        positions: activePositions.map(p => ({ x: p.x, y: p.y, role: p.role })),
+        players: playersMap,
+        sport,
+      };
+      const res = await fetch(`${API_URL}/api/tactics/export_pdf`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      if (Platform.OS === 'web') {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${(currentTeam?.name || 'lineup').replace(/\s+/g, '_')}_lineup.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }
+    } catch (e) {
+      if (Platform.OS === 'web') alert('Failed to export PDF');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const handleSaveOnly = async () => {
     setSaving(true);
     try { await doSave(); } catch { }
@@ -452,6 +494,13 @@ export default function TacticsScreen() {
         )}
 
         {/* Actions */}
+        <TouchableOpacity testID="export-lineup-btn" style={[styles.actionRow, { backgroundColor: 'rgba(16,185,129,0.08)', borderColor: 'rgba(16,185,129,0.2)' }]}
+          onPress={exportLineupPDF} disabled={exporting}>
+          <MaterialCommunityIcons name="file-pdf-box" size={20} color={Colors.primary} />
+          <Text style={[styles.actionText, { color: Colors.primary }]}>{exporting ? 'Generating PDF...' : 'Share Lineup PDF'}</Text>
+          <MaterialCommunityIcons name="download" size={18} color={Colors.primary} />
+        </TouchableOpacity>
+
         <TouchableOpacity testID="tactic-guide-btn" style={styles.actionRow} onPress={() => router.push('/tactic-guide')}>
           <MaterialCommunityIcons name="clipboard-text-outline" size={20} color={Colors.primary} />
           <Text style={styles.actionText}>Tactic Guide — Focus Areas</Text>

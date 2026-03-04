@@ -1737,6 +1737,152 @@ async def health_check():
     return {"status": "ok"}
 
 
+@api_router.post("/tactics/export_pdf")
+async def export_tactics_pdf(request: Request, user: dict = Depends(get_current_user)):
+    from reportlab.lib.pagesizes import A4
+    from reportlab.lib.colors import HexColor, white
+    from reportlab.pdfgen import canvas
+    import io, math
+
+    data = await request.json()
+    team_name = data.get("team_name", "Team")
+    formation_name = data.get("formation_name", "Formation")
+    manager_style = data.get("manager_style", "")
+    positions = data.get("positions", [])
+    players = data.get("players", {})
+    buf = io.BytesIO()
+    c = canvas.Canvas(buf, pagesize=A4)
+    w, h = A4
+    dark_bg = HexColor('#0F1115')
+    pitch_bg = HexColor('#1A1D23')
+    red_dot = HexColor('#DC2626')
+    green = HexColor('#10B981')
+    gray = HexColor('#8B949E')
+    light = HexColor('#E0E0E0')
+    c.setFillColor(dark_bg)
+    c.rect(0, 0, w, h, fill=1, stroke=0)
+    c.setFillColor(HexColor('#161B22'))
+    c.rect(0, h - 90, w, 90, fill=1, stroke=0)
+    c.setStrokeColor(green)
+    c.setLineWidth(1.5)
+    c.line(20, h - 90, w - 20, h - 90)
+    c.setFillColor(white)
+    c.setFont("Helvetica-Bold", 22)
+    c.drawCentredString(w / 2, h - 40, team_name.upper())
+    c.setFillColor(green)
+    c.setFont("Helvetica-Bold", 11)
+    c.drawCentredString(w / 2, h - 58, formation_name.upper())
+    if manager_style:
+        c.setFillColor(gray)
+        c.setFont("Helvetica", 9)
+        c.drawCentredString(w / 2, h - 72, manager_style)
+    pitch_top = h - 110
+    pitch_bottom = 100
+    pitch_height = pitch_top - pitch_bottom
+    pitch_cx = w / 2
+    pitch_left = 60
+    pitch_right = w - 60
+    pitch_width = pitch_right - pitch_left
+    c.setFillColor(pitch_bg)
+    c.roundRect(pitch_left - 10, pitch_bottom - 10, pitch_width + 20, pitch_height + 20, 6, fill=1, stroke=0)
+    line_color = HexColor('#FFFFFF')
+    def pm(x_pct, y_pct):
+        y_norm = y_pct / 100.0
+        squeeze = 0.72 + 0.28 * y_norm
+        px = pitch_cx + (x_pct / 100.0 - 0.5) * pitch_width * squeeze
+        py = pitch_top - (y_pct / 100.0) * pitch_height
+        return px, py
+    def draw_line(x1, y1, x2, y2, alpha=0.3):
+        c.saveState()
+        c.setStrokeColor(line_color)
+        c.setStrokeAlpha(alpha)
+        c.setLineWidth(0.6)
+        p1x, p1y = pm(x1, y1)
+        p2x, p2y = pm(x2, y2)
+        c.line(p1x, p1y, p2x, p2y)
+        c.restoreState()
+    draw_line(0, 0, 100, 0, 0.4)
+    draw_line(100, 0, 100, 100, 0.4)
+    draw_line(100, 100, 0, 100, 0.4)
+    draw_line(0, 100, 0, 0, 0.4)
+    draw_line(0, 50, 100, 50, 0.3)
+    for i in range(36):
+        a1 = (i / 36) * 2 * math.pi
+        a2 = ((i + 1) / 36) * 2 * math.pi
+        draw_line(50 + 12 * math.cos(a1), 50 + 8 * math.sin(a1), 50 + 12 * math.cos(a2), 50 + 8 * math.sin(a2), 0.25)
+    draw_line(22, 0, 22, 16, 0.3)
+    draw_line(78, 0, 78, 16, 0.3)
+    draw_line(22, 16, 78, 16, 0.3)
+    draw_line(34, 0, 34, 6, 0.3)
+    draw_line(66, 0, 66, 6, 0.3)
+    draw_line(34, 6, 66, 6, 0.3)
+    draw_line(22, 100, 22, 84, 0.35)
+    draw_line(78, 100, 78, 84, 0.35)
+    draw_line(22, 84, 78, 84, 0.35)
+    draw_line(34, 100, 34, 94, 0.35)
+    draw_line(66, 100, 66, 94, 0.35)
+    draw_line(34, 94, 66, 94, 0.35)
+    for i, pos in enumerate(positions):
+        idx = str(i)
+        px, py = pm(pos["x"], pos["y"])
+        player = players.get(idx)
+        if player:
+            c.setFillColor(red_dot)
+            c.circle(px, py, 5, fill=1, stroke=0)
+            name = player.get("name", "")
+            parts = name.split(" ")
+            first = parts[0] if len(parts) > 1 else ""
+            last = " ".join(parts[1:]) if len(parts) > 1 else parts[0] if parts else ""
+            cap = "(C) " if player.get("is_captain") else ""
+            if first:
+                c.setFillColor(HexColor('#BBBBBB'))
+                c.setFont("Helvetica", 7)
+                c.drawCentredString(px, py - 11, f"{cap}{first}")
+            c.setFillColor(white)
+            c.setFont("Helvetica-Bold", 8.5)
+            c.drawCentredString(px, py - (20 if first else 11), f"{'' if first else cap}{last}")
+        else:
+            c.saveState()
+            c.setFillColor(white)
+            c.setFillAlpha(0.15)
+            c.circle(px, py, 4, fill=1, stroke=0)
+            c.restoreState()
+            c.setFillColor(gray)
+            c.setFont("Helvetica", 6)
+            c.drawCentredString(px, py - 9, pos.get("role", ""))
+    y_lineup = pitch_bottom - 25
+    starters = [(int(k), v) for k, v in players.items() if v]
+    starters.sort(key=lambda x: x[0])
+    if starters:
+        c.setFillColor(green)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(pitch_left, y_lineup, "LINEUP")
+        y_lineup -= 14
+        cols = 3
+        col_w = pitch_width / cols
+        for ci, (idx, p) in enumerate(starters):
+            col = ci % cols
+            row = ci // cols
+            cx_pos = pitch_left + col * col_w
+            cy_pos = y_lineup - row * 13
+            role = positions[idx]["role"] if idx < len(positions) else ""
+            cap = " (C)" if p.get("is_captain") else ""
+            c.setFillColor(light)
+            c.setFont("Helvetica", 7.5)
+            c.drawString(cx_pos, cy_pos, f"#{p.get('number', '')} {p.get('name', '')}{cap}")
+            c.setFillColor(gray)
+            c.setFont("Helvetica", 6)
+            c.drawString(cx_pos + col_w - 25, cy_pos, role)
+    c.setFillColor(HexColor('#444444'))
+    c.setFont("Helvetica", 7)
+    c.drawCentredString(w / 2, 20, "TACTICAL LINEUP")
+    c.save()
+    buf.seek(0)
+    from starlette.responses import StreamingResponse
+    return StreamingResponse(buf, media_type="application/pdf",
+                             headers={"Content-Disposition": f'attachment; filename="{team_name}_lineup.pdf"'})
+
+
 app.include_router(api_router)
 
 app.add_middleware(
