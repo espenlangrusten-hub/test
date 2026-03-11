@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuizBattle - Kahoot Clone</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- HOME SCREEN -->
+        <div id="screen-home" class="screen active">
+            <div class="home-container">
+                <div class="logo-section">
+                    <h1 class="logo">Quiz<span>Battle!</span></h1>
+                    <p class="tagline">Lag og spill quizzer med venner</p>
+                </div>
+                <div class="home-buttons">
+                    <button class="btn btn-create" onclick="showScreen('screen-create')">
+                        <span class="btn-icon">+</span>
+                        Lag ny quiz
+                    </button>
+                    <button class="btn btn-join" onclick="showScreen('screen-join')">
+                        <span class="btn-icon">&#9654;</span>
+                        Bli med i quiz
+                    </button>
+                    <button class="btn btn-browse" onclick="showBrowse()">
+                        <span class="btn-icon">&#128218;</span>
+                        Mine quizzer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- CREATE QUIZ SCREEN -->
+        <div id="screen-create" class="screen">
+            <div class="create-container">
+                <div class="create-header">
+                    <button class="back-btn" onclick="showScreen('screen-home')">&larr;</button>
+                    <h2>Lag ny quiz</h2>
+                </div>
+                <div class="create-form">
+                    <input type="text" id="quiz-title" class="input-field" placeholder="Quiz-tittel" maxlength="60">
+                    <input type="text" id="quiz-description" class="input-field" placeholder="Beskrivelse (valgfritt)" maxlength="120">
+
+                    <div id="questions-container">
+                        <!-- Questions will be added here dynamically -->
+                    </div>
+
+                    <button class="btn btn-add-question" onclick="addQuestion()">
+                        + Legg til spørsmål
+                    </button>
+
+                    <div class="create-actions">
+                        <button class="btn btn-save" onclick="saveQuiz()">Lagre quiz</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BROWSE QUIZZES SCREEN -->
+        <div id="screen-browse" class="screen">
+            <div class="browse-container">
+                <div class="create-header">
+                    <button class="back-btn" onclick="showScreen('screen-home')">&larr;</button>
+                    <h2>Mine quizzer</h2>
+                </div>
+                <div id="quiz-list" class="quiz-list">
+                    <!-- Quizzes listed here -->
+                </div>
+                <div id="no-quizzes" class="no-quizzes" style="display:none;">
+                    <p>Ingen quizzer ennå. Lag en ny!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- JOIN / ENTER PIN SCREEN -->
+        <div id="screen-join" class="screen">
+            <div class="join-container">
+                <div class="create-header">
+                    <button class="back-btn" onclick="showScreen('screen-home')">&larr;</button>
+                    <h2>Bli med i quiz</h2>
+                </div>
+                <div class="join-form">
+                    <p class="join-instruction">Skriv inn quiz-PIN</p>
+                    <input type="text" id="join-pin" class="input-pin" placeholder="000000" maxlength="6" inputmode="numeric">
+                    <input type="text" id="player-name" class="input-field" placeholder="Ditt kallenavn" maxlength="20">
+                    <button class="btn btn-join-game" onclick="joinQuiz()">Bli med!</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- LOBBY SCREEN (HOST) -->
+        <div id="screen-lobby" class="screen">
+            <div class="lobby-container">
+                <div class="lobby-header">
+                    <h2>Quiz PIN:</h2>
+                    <div class="pin-display" id="lobby-pin">------</div>
+                </div>
+                <div class="lobby-players">
+                    <h3>Spillere (<span id="player-count">0</span>)</h3>
+                    <div id="player-list" class="player-list">
+                        <!-- Players appear here -->
+                    </div>
+                </div>
+                <button class="btn btn-start-game" onclick="startGame()">Start quiz!</button>
+            </div>
+        </div>
+
+        <!-- PLAYER WAITING SCREEN -->
+        <div id="screen-player-wait" class="screen">
+            <div class="wait-container">
+                <div class="wait-spinner"></div>
+                <h2 id="wait-message">Venter på at quizzen starter...</h2>
+                <p id="wait-name" class="wait-name"></p>
+            </div>
+        </div>
+
+        <!-- QUESTION DISPLAY (HOST VIEW) -->
+        <div id="screen-question-host" class="screen">
+            <div class="question-host-container">
+                <div class="question-top-bar">
+                    <div class="question-counter" id="host-question-counter">Spørsmål 1/10</div>
+                    <div class="timer-circle" id="host-timer">
+                        <svg viewBox="0 0 100 100">
+                            <circle class="timer-bg" cx="50" cy="50" r="45"/>
+                            <circle class="timer-progress" id="timer-circle" cx="50" cy="50" r="45"/>
+                        </svg>
+                        <span class="timer-text" id="host-timer-text">20</span>
+                    </div>
+                    <div class="answers-count" id="host-answers-count">0 svar</div>
+                </div>
+                <h2 class="question-text" id="host-question-text"></h2>
+                <div class="answer-grid-host">
+                    <div class="answer-card-host red" id="host-answer-0">
+                        <span class="answer-shape">&#9650;</span>
+                        <span class="answer-text" id="host-answer-text-0"></span>
+                    </div>
+                    <div class="answer-card-host blue" id="host-answer-1">
+                        <span class="answer-shape">&#9670;</span>
+                        <span class="answer-text" id="host-answer-text-1"></span>
+                    </div>
+                    <div class="answer-card-host green" id="host-answer-2">
+                        <span class="answer-shape">&#9679;</span>
+                        <span class="answer-text" id="host-answer-text-2"></span>
+                    </div>
+                    <div class="answer-card-host yellow" id="host-answer-3">
+                        <span class="answer-shape">&#9724;</span>
+                        <span class="answer-text" id="host-answer-text-3"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUESTION DISPLAY (PLAYER VIEW) -->
+        <div id="screen-question-player" class="screen">
+            <div class="question-player-container">
+                <div class="player-question-header">
+                    <div class="player-timer" id="player-timer-text">20</div>
+                    <div class="player-question-num" id="player-question-counter">1/10</div>
+                </div>
+                <div class="answer-grid-player">
+                    <button class="answer-btn red" onclick="submitAnswer(0)">
+                        <span class="answer-shape-big">&#9650;</span>
+                    </button>
+                    <button class="answer-btn blue" onclick="submitAnswer(1)">
+                        <span class="answer-shape-big">&#9670;</span>
+                    </button>
+                    <button class="answer-btn green" onclick="submitAnswer(2)">
+                        <span class="answer-shape-big">&#9679;</span>
+                    </button>
+                    <button class="answer-btn yellow" onclick="submitAnswer(3)">
+                        <span class="answer-shape-big">&#9724;</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ANSWER SELECTED (PLAYER) -->
+        <div id="screen-answer-selected" class="screen">
+            <div class="selected-container">
+                <div class="selected-icon" id="selected-shape"></div>
+                <p>Svaret er sendt!</p>
+                <div class="wait-spinner small"></div>
+            </div>
+        </div>
+
+        <!-- RESULTS PER QUESTION (HOST) -->
+        <div id="screen-question-results" class="screen">
+            <div class="results-container">
+                <h2 class="results-title" id="results-title">Riktig svar!</h2>
+                <div class="results-bars">
+                    <div class="result-bar-wrapper">
+                        <div class="result-bar red" id="result-bar-0"><span>0</span></div>
+                        <span class="result-shape">&#9650;</span>
+                    </div>
+                    <div class="result-bar-wrapper">
+                        <div class="result-bar blue" id="result-bar-1"><span>0</span></div>
+                        <span class="result-shape">&#9670;</span>
+                    </div>
+                    <div class="result-bar-wrapper">
+                        <div class="result-bar green" id="result-bar-2"><span>0</span></div>
+                        <span class="result-shape">&#9679;</span>
+                    </div>
+                    <div class="result-bar-wrapper">
+                        <div class="result-bar yellow" id="result-bar-3"><span>0</span></div>
+                        <span class="result-shape">&#9724;</span>
+                    </div>
+                </div>
+                <button class="btn btn-next" id="btn-next-question" onclick="nextQuestion()">Neste spørsmål</button>
+            </div>
+        </div>
+
+        <!-- PLAYER RESULT FEEDBACK -->
+        <div id="screen-player-result" class="screen">
+            <div class="player-result-container">
+                <div class="result-emoji" id="player-result-emoji">&#10004;</div>
+                <h2 id="player-result-text">Riktig!</h2>
+                <div class="points-earned" id="player-points-earned">+1000</div>
+                <div class="player-total-score">Total: <span id="player-total-score">0</span></div>
+            </div>
+        </div>
+
+        <!-- SCOREBOARD (HOST) -->
+        <div id="screen-scoreboard" class="screen">
+            <div class="scoreboard-container">
+                <h2 class="scoreboard-title">Poengtavle</h2>
+                <div id="scoreboard-list" class="scoreboard-list">
+                    <!-- Scores listed here -->
+                </div>
+                <button class="btn btn-next" id="btn-scoreboard-next" onclick="nextQuestion()">Neste spørsmål</button>
+            </div>
+        </div>
+
+        <!-- FINAL RESULTS -->
+        <div id="screen-final" class="screen">
+            <div class="final-container">
+                <h1 class="final-title">Quiz ferdig!</h1>
+                <div class="podium">
+                    <div class="podium-place second" id="podium-2">
+                        <div class="podium-name">-</div>
+                        <div class="podium-block">2</div>
+                        <div class="podium-score">0</div>
+                    </div>
+                    <div class="podium-place first" id="podium-1">
+                        <div class="podium-crown">&#128081;</div>
+                        <div class="podium-name">-</div>
+                        <div class="podium-block">1</div>
+                        <div class="podium-score">0</div>
+                    </div>
+                    <div class="podium-place third" id="podium-3">
+                        <div class="podium-name">-</div>
+                        <div class="podium-block">3</div>
+                        <div class="podium-score">0</div>
+                    </div>
+                </div>
+                <div id="final-full-list" class="final-list"></div>
+                <button class="btn btn-home" onclick="resetToHome()">Tilbake til start</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
