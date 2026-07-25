@@ -162,7 +162,7 @@ export default function TeamPage() {
     { key: 'friendly', icon: 'handshake', label: 'Friendly', color: '#10B981' },
     { key: 'tournament', icon: 'trophy', label: 'Tournament', color: '#F59E0B' },
     { key: 'training', icon: 'whistle', label: 'Training', color: '#8B5CF6' },
-    { key: 'history', icon: 'history', label: 'History', color: '#F59E0B' },
+    { key: 'history', icon: 'history', label: 'History', color: '#EF4444' },
     { key: 'match', icon: 'play-circle', label: 'Match', color: '#EF4444' },
   ];
 

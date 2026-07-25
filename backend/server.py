@@ -198,6 +198,45 @@ class MatchUpdate(BaseModel):
     coaching_notes: Optional[List[dict]] = None
 
 
+class TournamentTeam(BaseModel):
+    team_id: str
+    team_name: str
+    team_code: str = ""
+
+class TournamentMatch(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
+    home_team_id: str
+    home_team_name: str
+    away_team_id: str
+    away_team_name: str
+    score_home: int = 0
+    score_away: int = 0
+    date: str = ""
+    status: str = "scheduled"  # scheduled | completed
+
+class TournamentCreate(BaseModel):
+    name: str
+    sport: str = "football"
+    format: str = "11v11"
+    start_date: str = ""
+    end_date: str = ""
+    location: str = ""
+    description: str = ""
+
+class TournamentMatchCreate(BaseModel):
+    home_team_id: str
+    home_team_name: str
+    away_team_id: str
+    away_team_name: str
+    date: str = ""
+
+class TournamentMatchUpdate(BaseModel):
+    score_home: Optional[int] = None
+    score_away: Optional[int] = None
+    date: Optional[str] = None
+    status: Optional[str] = None
+
+
 # ---- Auth Endpoints ----
 
 @api_router.post("/auth/register")
@@ -827,6 +866,188 @@ async def delete_message(message_id: str, user: dict = Depends(get_current_user)
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Message not found")
     return {"message": "Deleted"}
+
+
+# ---- Tournaments ----
+
+@api_router.post("/tournaments")
+async def create_tournament(body: TournamentCreate, user: dict = Depends(get_current_user)):
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": user["user_id"],
+        **body.dict(),
+        "teams": [],
+        "matches": [],
+        "status": "upcoming",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.tournaments.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api_router.get("/tournaments")
+async def get_tournaments(user: dict = Depends(get_current_user)):
+    tournaments = await db.tournaments.find(
+        {"user_id": user["user_id"]}, {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    return tournaments
+
+
+@api_router.get("/tournaments/{tournament_id}")
+async def get_tournament(tournament_id: str, user: dict = Depends(get_current_user)):
+    t = await db.tournaments.find_one({"id": tournament_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    return t
+
+
+@api_router.put("/tournaments/{tournament_id}")
+async def update_tournament(tournament_id: str, body: TournamentCreate, user: dict = Depends(get_current_user)):
+    update_data = {k: v for k, v in body.dict().items()}
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    result = await db.tournaments.update_one(
+        {"id": tournament_id, "user_id": user["user_id"]}, {"$set": update_data}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    return await db.tournaments.find_one({"id": tournament_id}, {"_id": 0})
+
+
+@api_router.delete("/tournaments/{tournament_id}")
+async def delete_tournament(tournament_id: str, user: dict = Depends(get_current_user)):
+    result = await db.tournaments.delete_one({"id": tournament_id, "user_id": user["user_id"]})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    return {"message": "Tournament deleted"}
+
+
+@api_router.post("/tournaments/{tournament_id}/teams")
+async def add_team_to_tournament(tournament_id: str, body: TournamentTeam, user: dict = Depends(get_current_user)):
+    t = await db.tournaments.find_one({"id": tournament_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    for existing in t.get("teams", []):
+        if existing["team_id"] == body.team_id:
+            raise HTTPException(status_code=409, detail="Team already in tournament")
+    team_entry = body.dict()
+    await db.tournaments.update_one(
+        {"id": tournament_id},
+        {"$push": {"teams": team_entry}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return team_entry
+
+
+@api_router.delete("/tournaments/{tournament_id}/teams/{team_id}")
+async def remove_team_from_tournament(tournament_id: str, team_id: str, user: dict = Depends(get_current_user)):
+    result = await db.tournaments.update_one(
+        {"id": tournament_id, "user_id": user["user_id"]},
+        {"$pull": {"teams": {"team_id": team_id}}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    if result.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    return {"message": "Team removed"}
+
+
+@api_router.post("/tournaments/{tournament_id}/matches")
+async def add_tournament_match(tournament_id: str, body: TournamentMatchCreate, user: dict = Depends(get_current_user)):
+    t = await db.tournaments.find_one({"id": tournament_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    match_doc = {
+        "id": str(uuid.uuid4()),
+        "home_team_id": body.home_team_id,
+        "home_team_name": body.home_team_name,
+        "away_team_id": body.away_team_id,
+        "away_team_name": body.away_team_name,
+        "score_home": 0,
+        "score_away": 0,
+        "date": body.date,
+        "status": "scheduled",
+    }
+    await db.tournaments.update_one(
+        {"id": tournament_id},
+        {"$push": {"matches": match_doc}, "$set": {"updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return match_doc
+
+
+@api_router.put("/tournaments/{tournament_id}/matches/{match_id}")
+async def update_tournament_match(tournament_id: str, match_id: str, body: TournamentMatchUpdate, user: dict = Depends(get_current_user)):
+    t = await db.tournaments.find_one({"id": tournament_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    matches = t.get("matches", [])
+    updated = False
+    for m in matches:
+        if m["id"] == match_id:
+            if body.score_home is not None:
+                m["score_home"] = body.score_home
+            if body.score_away is not None:
+                m["score_away"] = body.score_away
+            if body.date is not None:
+                m["date"] = body.date
+            if body.status is not None:
+                m["status"] = body.status
+            updated = True
+            break
+    if not updated:
+        raise HTTPException(status_code=404, detail="Match not found")
+    await db.tournaments.update_one(
+        {"id": tournament_id},
+        {"$set": {"matches": matches, "updated_at": datetime.now(timezone.utc).isoformat()}}
+    )
+    return next(m for m in matches if m["id"] == match_id)
+
+
+@api_router.get("/tournaments/{tournament_id}/standings")
+async def get_tournament_standings(tournament_id: str, user: dict = Depends(get_current_user)):
+    t = await db.tournaments.find_one({"id": tournament_id, "user_id": user["user_id"]}, {"_id": 0})
+    if not t:
+        raise HTTPException(status_code=404, detail="Tournament not found")
+    standings: dict = {}
+    for team in t.get("teams", []):
+        standings[team["team_id"]] = {
+            "team_id": team["team_id"],
+            "team_name": team["team_name"],
+            "played": 0, "won": 0, "drawn": 0, "lost": 0,
+            "goals_for": 0, "goals_against": 0, "goal_diff": 0, "points": 0,
+        }
+    for match in t.get("matches", []):
+        if match.get("status") != "completed":
+            continue
+        h_id = match["home_team_id"]
+        a_id = match["away_team_id"]
+        sh = match.get("score_home", 0)
+        sa = match.get("score_away", 0)
+        for tid in [h_id, a_id]:
+            if tid not in standings:
+                standings[tid] = {
+                    "team_id": tid,
+                    "team_name": match["home_team_name"] if tid == h_id else match["away_team_name"],
+                    "played": 0, "won": 0, "drawn": 0, "lost": 0,
+                    "goals_for": 0, "goals_against": 0, "goal_diff": 0, "points": 0,
+                }
+        h = standings[h_id]
+        a = standings[a_id]
+        h["played"] += 1; a["played"] += 1
+        h["goals_for"] += sh; h["goals_against"] += sa
+        a["goals_for"] += sa; a["goals_against"] += sh
+        if sh > sa:
+            h["won"] += 1; h["points"] += 3; a["lost"] += 1
+        elif sh < sa:
+            a["won"] += 1; a["points"] += 3; h["lost"] += 1
+        else:
+            h["drawn"] += 1; h["points"] += 1
+            a["drawn"] += 1; a["points"] += 1
+    for s in standings.values():
+        s["goal_diff"] = s["goals_for"] - s["goals_against"]
+    sorted_standings = sorted(
+        standings.values(),
+        key=lambda x: (-x["points"], -x["goal_diff"], -x["goals_for"])
+    )
+    return sorted_standings
 
 
 @api_router.post("/teams/{team_id}/training-suggestions")
