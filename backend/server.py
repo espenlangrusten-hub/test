@@ -1061,8 +1061,24 @@ async def get_training_suggestions(team_id: str, body: dict, user: dict = Depend
     if not team:
         raise HTTPException(status_code=404, detail="Team not found")
 
-    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    # AI suggestions are optional. The emergentintegrations package is not on
+    # public PyPI, so deployments that install from requirements.txt will not
+    # have it. Report that clearly instead of failing with a 500.
+    try:
+        from emergentintegrations.llm.chat import LlmChat, UserMessage
+    except ImportError:
+        raise HTTPException(
+            status_code=503,
+            detail="AI training suggestions are not available in this deployment.",
+        )
+
     llm_key = os.environ.get("EMERGENT_LLM_KEY", "")
+    if not llm_key:
+        raise HTTPException(
+            status_code=503,
+            detail="AI training suggestions are not configured (EMERGENT_LLM_KEY is unset).",
+        )
+
     category = body.get("category", "general")
 
     matches = await db.matches.find(
